@@ -1,0 +1,52 @@
+version: '1'
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: pgext:latest
+    hostname: app
+    network_mode: "bridge"
+    ports:
+      - "8081:8081"
+    environment:
+      REDIS_PGEXT_READ_WRITE: "redis://localhost:6379/1"
+      MONGO_PGEXT_READ_WRITE: "mongodb://locahost:27017/pgext"
+      DOCKER_DEV: true
+      ENV: ${ENV}
+      EXTENSION_API_KEY: ${EXTENSION_API_KEY}
+      EXTENSION_API_SECRET: ${EXTENSION_API_SECRET}
+      EXTENSION_BASE_URL: ${EXTENSION_BASE_URL}
+      EXTENSION_CLUSTER_URL: ${EXTENSION_CLUSTER_URL}
+      DOMAIN: ${DOMAIN}
+      CITY: ${CITY}
+      COUNTRY: ${COUNTRY}
+      BPP_URL: ${BPP_URL}
+      BG_DEFAULT_URL: ${BG_DEFAULT_URL}
+      REGISTRY_BASE_URL: ${REGISTRY_BASE_URL}
+      BPP_UNIQUE_KEY_ID: ${BPP_UNIQUE_KEY_ID}
+      BPP_PRIVATE_KEY: ${BPP_PRIVATE_KEY}
+      BPP_PUBLIC_KEY: ${BPP_PUBLIC_KEY}
+      BPP_TTL: ${BPP_TTL}
+      PROTOCOL_VERSION: ${PROTOCOL_VERSION}
+      PROTOCOL_ENV: ${PROTOCOL_ENV}
+      APPLICATION_ID: ${APPLICATION_ID}
+      COMPANY_ID: ${COMPANY_ID}
+    volumes:
+      - ./public:/srv/public
+      - ./src:/srv/src
+      - ./app:/srv/app
+  mongo:
+    extends:
+      file: docker-compose.common.yml
+      service: mongo
+
+  redis:
+    extends:
+      file: docker-compose.common.yml
+      service: redis
+
+  zookeeper:
+    extends:
+      file: docker-compose.common.yml
+      service: zookeeper
