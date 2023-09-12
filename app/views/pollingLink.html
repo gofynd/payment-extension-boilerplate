@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+      html,
+      body {
+        height: 100%;
+        width: 100%;
+        font-family: 'Montserrat';
+        overflow: hidden;
+        margin: 0;
+        color: #333333;
+      }
+
+      /* @media only screen and (max-width: 384px){html, body{font-size: 12px !important;}}*/
+      @media only screen and (min-width: 700px) {
+        .flex-box {
+          justify-content: center;
+        }
+
+        .title-1 {
+          height: 17px;
+          left: 38.61%;
+          top: calc(50% - 17px/2 - 340px);
+          font-family: 'Montserrat';
+          font-style: normal;
+          font-weight: 600;
+          font-size: 20px !important;
+          line-height: 17px;
+          color: #1D1E1A;
+          margin-bottom: 24px;
+          opacity: 0.85;
+        }
+
+        .selection-block {
+          width: 727px;
+          height: 348px;
+          position: relative;
+        }
+
+        .payment-block {
+          width: 727px;
+          height: 120px;
+          background: #FFFFFF;
+          padding-bottom: 10px;
+        }
+
+        .cancel-txn-container {
+          height: 18px;
+          position: relative;
+          bottom: inherit;
+          margin-top: 230px;
+        }
+
+        .transform-block {
+          margin-top: 40px;
+        }
+
+        .cancel-button-property {
+          position: absolute;
+          height: 18px;
+          top: -172px;
+          font-family: 'Montserrat';
+          font-style: normal;
+          font-weight: normal;
+          font-size: 0.9em;
+          color: #222222;
+          mix-blend-mode: normal;
+          opacity: 0.5;
+          text-decoration-line: underline;
+          cursor: pointer;
+        }
+
+        .merged-block {
+          position: relative;
+          width: 727px;
+          margin: auto;
+          padding-top: 30px;
+          padding-bottom: 30px;
+        }
+
+        .collect-rupees {
+          height: 17px;
+          font-family: 'Montserrat';
+          font-style: normal;
+          font-weight: bold;
+          font-size: 1.1em;
+          float: right;
+          margin-right: 20px;
+          margin-top: 15px;
+        }
+
+        .progress-background-grey {
+          position: absolute;
+          justify-content: flex-start;
+          align-items: center;
+          display: flex;
+          height: 3px;
+          background: #3c404a40;
+          mix-blend-mode: normal;
+          margin-top: 195px;
+          border-radius: 2px;
+          width: 50%;
+          margin-left: 25%;
+          top: 20px;
+        }
+
+        .title-bar {
+          position: relative;
+          width: 100%;
+        }
+
+        .merchant-logo {
+          position: absolute;
+          margin-top: -60px;
+          right: 0px;
+        }
+
+        .cancel-icon {
+          /* position: absolute; */
+          top: 0;
+          right: 0;
+        }
+
+        .cancel-icon img {
+          width: 18px;
+          height: 18px;
+          margin-top: 15px;
+          margin-right: 15px;
+        }
+
+        .cancel-icon :hover {
+          width: 22px;
+          height: 22px;
+          cursor: pointer;
+        }
+
+        .merchant-logo-property {
+          display: block;
+          height: 48px;
+          width: 84px;
+        }
+
+        .modal {
+          position: fixed;
+          left: 0;
+          top: 0;
+          width: 100%;
+          height: 100%;
+          background-color: rgba(0, 0, 0, 0.5);
+          opacity: 0;
+          visibility: none;
+          transform: scale(1.1);
+          transition: visibility 0s linear 0.25s, opacity 0.25s 0s, transform 0.25s;
+        }
+
+        .modal-content {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          background-color: white;
+          padding: 1rem 1.5rem;
+          width: 30rem !important;
+          height: 15rem;
+          border-radius: 0.5rem;
+        }
+
+        .modal-header {
+          font-size: 1.5rem;
+        }
+
+        .modal-text {
+          font-size: 1.2rem;
+          font-weight: 100;
+          color: grey;
+        }
+
+        .modal-button {
+          margin-top: 7%;
+          text-align: center;
+        }
+
+        .proceed-cancel-transaction-button {
+          text-align: center;
+          cursor: pointer;
+          font-size: 20px;
+          width: 250px;
+          background-color: #0275d8;
+          color: white;
+          border: none;
+          padding: 7px;
+          border-radius: 7px;
+          margin-bottom: 5px;
+        }
+
+        .close-button {
+          text-align: center;
+          cursor: pointer;
+          font-size: 20px;
+          width: 250px;
+          background-color: #fff;
+          color: #000;
+          border: none;
+          padding: 7px;
+          border-radius: 7px;
+        }
+
+        .close-button:hover {
+          background-color: darkgray;
+        }
+
+        .show-modal {
+          visibility: visible;
+          opacity: 1;
+          transform: scale(1.0);
+          transition: visibility 0s linear 0s, opacity 0.25s 0s, transform 0.25s;
+        }
+      }
+
+      @media only screen and (max-width: 699px) {
+        .collect-rupees {
+          height: 17px;
+          font-family: 'Montserrat';
+          font-style: normal;
+          font-weight: bold;
+          font-size: 1em;
+          float: right;
+          margin-right: 12px;
+          margin-top: 12px;
+        }
+
+        .title-1 {
+          font-weight: bold;
+          font-size: 1.1em !important;
+          color: #1D1E1A;
+          margin-bottom: 24px;
+          opacity: 0.85;
+        }
+
+        .selection-block {
+          width: 94%;
+          height: 368px;
+          margin: 0 3%;
+          justify-content: center;
+          position: relative;
+        }
+
+        .cancel-button-property {
+          height: 18px;
+          font-family: 'Montserrat';
+          font-style: normal;
+          font-weight: normal;
+          font-size: 0.8em;
+          color: #222222;
+          mix-blend-mode: normal;
+          opacity: 0.5;
+          text-decoration-line: underline;
+        }
+
+        .transform-block {
+          margin-top: 25px;
+        }
+
+        .payment-block {
+          width: 94%;
+          margin: 0 3%;
+          height: 120px;
+          background: #FFFFFF;
+          justify-content: center;
+          padding-bottom: 10px;
+        }
+
+        .merged-block {
+          position: relative;
+          width: 97%;
+          margin: auto;
+          padding-top: 30px;
+          padding-bottom: 30px;
+        }
+
+        .cancel-txn-container {
+          height: 18px;
+          justify-content: center;
+          position: relative;
+          bottom: inherit;
+          margin-top: 215px;
+        }
+
+        .title-bar {
+          position: relative;
+          width: 100%;
+        }
+
+        .merchant-logo {
+          position: absolute;
+          margin-right: 4%;
+          margin-top: -50px;
+          right: 0;
+        }
+
+        .title-1 {
+          height: 17px;
+          left: 38.61%;
+          top: calc(50% - 17px/2 - 340px);
+          font-family: 'Montserrat';
+          font-style: normal;
+          font-weight: 600;
+          font-size: 1.1em !important;
+          line-height: 17px;
+          color: #1D1E1A;
+          margin-bottom: 24px;
+          opacity: 0.85;
+          margin-left: 4%;
+        }
+
+        .progress-background-grey {
+          position: absolute;
+          justify-content: flex-start;
+          align-items: center;
+          display: flex;
+          height: 3px;
+          background: #3c404a40;
+          mix-blend-mode: normal;
+          margin-top: 195px;
+          border-radius: 2px;
+          width: 66%;
+          margin-left: 15%;
+        }
+
+        .cancel-icon {
+          margin-bottom: 17px !important;
+          height: 15px !important;
+        }
+
+        .cancel-icon img {
+          width: 15px !important;
+          height: 15px !important;
+        }
+
+        .cancel-icon :hover {
+          width: 18px !important;
+          height: 18px !important;
+        }
+
+        .payment-request-text {
+          margin-left: 15px !important;
+          font-size: 15px !important;
+        }
+
+        .customer-vpa-text {
+          font-size: 15px !important;
+          margin-left: 15px !important;
+          margin-top: 15px !important;
+          width: 90% !important;
+        }
+
+        .customer-vpa-text strong:before {
+          display: block;
+          content: ' ';
+        }
+      }
+
+      /* @media only screen and (min-width: 375px) and (max-width: 428px){html, body{font-size: 14px !important;}}*/
+      .transform-block {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+      }
+
+      .transform-mark {
+        width: 0px;
+        height: 39px;
+        opacity: 0.5;
+        border: 1px solid #9E9E9E;
+      }
+
+      .upi-img {
+        width: 49px;
+        height: 21px;
+        margin-right: 30px;
+        align-self: center;
+      }
+
+      .juspay-img {
+        width: 49px;
+        height: 21px;
+        margin-left: 30px;
+        align-self: center;
+      }
+
+      .upi-img-block {
+        height: 21px;
+      }
+
+      .juspay-img-block {
+        width: 65.03px;
+        height: 14px;
+      }
+
+      .loader-container {
+        height: 100%;
+        width: 100%;
+        position: fixed;
+        overflow: hidden;
+        overflow-y: scroll;
+        background: rgba(130, 130, 130, 0.11);
+      }
+
+      .information-container {
+        margin: 0px 41px 0px 24px;
+        height: 258px;
+      }
+
+      .payment-details {
+        position: absolute;
+        width: 328px;
+        height: 79px;
+        left: 556px;
+        top: 172px;
+        background: #FFFFFF;
+        box-shadow: 0px 1px 4px rgba(32, 33, 36, 0.05);
+        border-radius: 2px;
+      }
+
+      .title-1 {
+        height: 17px;
+        left: 38.61%;
+        top: calc(50% - 17px/2 - 340px);
+        font-family: 'Montserrat';
+        font-style: normal;
+        font-weight: 600;
+        font-size: 1.3em;
+        line-height: 17px;
+        color: #1D1E1A;
+        margin-bottom: 24px;
+        opacity: 0.85;
+      }
+
+      .flex-box {
+        display: -webkit-flexbox;
+        display: -ms-flexbox;
+        display: -webkit-flex;
+        display: flex;
+        -webkit-flex-align: center;
+        -ms-flex-align: center;
+        -webkit-align-items: center;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .selection-block {
+        /* width: 727px; height: 368px; */
+        background-color: #FFFFFF;
+      }
+
+      .right-arrow {
+        position: absolute;
+        overflow: auto;
+        left: auto;
+        margin: 5px 0px 0px 154px;
+      }
+
+      .open-the-upi-app-text {
+        color: rgba(34, 34, 34, 0.87);
+        font-family: 'Montserrat';
+        font-weight: normal;
+        /* border-radius: 50%; */
+        font-size: 0.9em;
+        line-height: 18px;
+      }
+
+      .RopaBold {
+        font-family: 'Montserrat';
+        font-size: 0.9em;
+        line-height: 18px;
+      }
+
+      .firstline {
+        position: absolute;
+        /* height: 16px; */
+        width: 90%;
+        margin: 40px 0px 10px 30px;
+        font-size: 1.1rem;
+      }
+
+      .index {
+        position: absolute;
+        left: auto;
+        margin: 0px 10px 0px -10px;
+        height: 24px;
+        width: 24px;
+        border-radius: 50%;
+        background-color: #e6e6e6f2;
+        text-align: center;
+        vertical-align: middle;
+        overflow: hidden;
+      }
+
+      .progress {
+        height: 3px;
+      }
+
+      .progress-background-blue {
+        height: 3px;
+        background: #196CB4;
+        width: 100%;
+        border-radius: 2px;
+      }
+
+      .merchant-text {
+        position: absolute;
+        left: 20px;
+        height: 20px;
+        min-width: 230px;
+      }
+
+      .merchant-text .background-green {
+        font-weight: bold;
+      }
+
+      .cancel-icon {
+        position: relative;
+        margin-bottom: 20px;
+        height: 18px;
+      }
+
+      .cancel-icon img {
+        width: 18px;
+        height: 18px;
+        margin-top: 15px;
+        margin-right: 15px;
+        position: absolute;
+        right: 0;
+        top: 0;
+        border-radius: 50%;
+        padding: 5px;
+        background-color: #e6e6e6f2;
+      }
+
+      .cancel-icon :hover {
+        width: 22px;
+        height: 22px;
+        cursor: pointer;
+      }
+
+      .merchant-logo-property {
+        height: 0px;
+      }
+
+      .indexNumber1 {
+        font-size: 13px;
+        line-height: 24px;
+        font-family: 'Montserrat';
+        font-weight: 700;
+      }
+
+      .indexNumber2 {
+        font-size: 13px;
+        line-height: 24px;
+        position: relative;
+        font-family: 'Montserrat';
+        font-weight: 700;
+      }
+
+      .secondline {
+        position: absolute;
+        margin-left: 30px;
+        margin-top: 90px;
+        font-family: 'Montserrat';
+        font-weight: normal;
+        width: 90%;
+        font-size: 1.1rem;
+      }
+
+      .progressbar {
+        text-align: center;
+        height: 15px;
+        position: relative;
+        left: auto;
+        top: -170px;
+      }
+
+      .progressbar .font-property10 {
+        width: 250px;
+      }
+
+      .font-property10 {
+        position: relative;
+        height: 15px;
+        font-family: 'Montserrat';
+        font-style: normal;
+        font-weight: normal;
+        font-size: 0.9em;
+        line-height: 15px;
+        text-align: center;
+        color: #999999;
+        margin-top: 480px;
+        margin-bottom: 70px;
+        width: 230px;
+      }
+
+      .note .font-property10 {
+        font-size: 12px;
+      }
+
+      .stepsHeader {
+        position: relative;
+        left: 22.5px;
+        right: 70.12%;
+        top: calc(50% - 15px/2 - 135.5px);
+        font-family: 'Montserrat';
+        font-style: normal;
+        font-weight: 500;
+        font-size: 14px;
+        line-height: 17px;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        color: #030305;
+        margin-bottom: 20px;
+      }
+
+      .collect-rupee {
+        height: 17px;
+      }
+
+      .customer-vpa {
+        height: 15px;
+      }
+
+      .upi-amount {
+        min-height: 15px;
+        height: auto;
+      }
+
+      .horizontal-line {
+        width: 95%;
+        padding: 0;
+        margin: auto;
+        background-color: #999999;
+        height: 0px;
+        opacity: 0.5;
+      }
+
+      .margin-loader {
+        margin-top: 24px;
+        justify-content: center;
+      }
+
+      .background-green {
+        background: #ffffff;
+      }
+
+      .customer-vpa-text {
+        position: absolute;
+        width: 65%;
+        word-wrap: break-word;
+        word-break: break-all;
+        font-family: 'Montserrat';
+        font-weight: 400;
+        font-size: 16px;
+        line-height: 20px;
+        color: rgba(34, 34, 34, 0.62);
+        margin-top: 10px;
+        margin-left: 24px;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        white-space: nowrap;
+      }
+
+      .payment-request-text {
+        position: absolute;
+        height: 14px;
+        font-style: normal;
+        font-family: 'Montserrat';
+        font-weight: 600;
+        font-size: 16px;
+        line-height: 14px;
+        letter-spacing: -0.3px;
+        margin-top: 20px;
+        margin-left: 24px;
+        color: #49A862;
+      }
+
+      .note {
+        text-align: center;
+        margin-top: 12px;
+        padding: 0 12px 20px 12px;
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100%;
+        box-sizing: border-box;
+      }
+
+      #right-button {
+        height: 12px;
+      }
+
+      .modal {
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        opacity: 0;
+        visibility: hidden;
+        transform: scale(1.1);
+        transition: visibility 0s linear 0.25s, opacity 0.25s 0s, transform 0.25s;
+      }
+
+      .modal-content {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 0.5rem;
+        width: 80%;
+      }
+
+      .modal-header {
+        font-family: 'Montserrat';
+        font-style: normal;
+        font-weight: 600;
+        font-size: 20px;
+        line-height: 140%;
+        color: #333333;
+      }
+
+      .modal-text {
+        font-family: 'Montserrat';
+        font-style: normal;
+        font-weight: 400;
+        font-size: 18px;
+        line-height: 140%;
+        /* or 25px */
+        color: #333333;
+      }
+
+      .modal-button {
+        margin-top: 7%;
+        text-align: center;
+      }
+
+      .proceed-cancel-transaction-button {
+        text-align: center;
+        cursor: pointer;
+        font-size: 20px;
+        width: 250px;
+        background: #0555CA;
+        border-radius: 4px;
+        color: white;
+        border: none;
+        padding: 7px;
+        margin-bottom: 5px;
+      }
+
+      .close-button {
+        text-align: center;
+        cursor: pointer;
+        font-size: 20px;
+        width: 250px;
+        background-color: #fff;
+        color: #000;
+        border: none;
+        padding: 7px;
+        border-radius: 5px;
+      }
+
+      .close-button:hover {
+        background-color: darkgray;
+      }
+
+      .show-modal {
+        visibility: visible;
+        opacity: 1;
+        transform: scale(1.0);
+        transition: visibility 0s linear 0s, opacity 0.25s 0s, transform 0.25s;
+      }
+
+      .cancel-button-property:hover {
+        cursor: pointer;
+      }
+
+      @-ms-keyframes spin {
+        from {
+          -ms-transform: rotate(0deg);
+        }
+
+        to {
+          -ms-transform: rotate(360deg);
+        }
+      }
+
+      @-moz-keyframes spin {
+        from {
+          -moz-transform: rotate(0deg);
+        }
+
+        to {
+          -moz-transform: rotate(360deg);
+        }
+      }
+
+      @-webkit-keyframes spin {
+        from {
+          -webkit-transform: rotate(0deg);
+        }
+
+        to {
+          -webkit-transform: rotate(360deg);
+        }
+      }
+
+      @keyframes spin {
+        from {
+          transform: rotate(0deg);
+        }
+
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+    <script
+        src="https://code.jquery.com/jquery-3.1.1.min.js"
+        crossorigin="anonymous">
+    </script>
+    <script type="text/javascript">
+      var pageExpiry = '<%= pollingData.expiry %>';
+      var timerVal = pageExpiry;
+      var start = Date.now();
+      var expiryInSeconds = pageExpiry; //parseInt(pageExpiry) * 60;
+      var count = parseInt(expiryInSeconds);
+      var countDownInterval = setInterval(function() {
+        var delta = Date.now() - start;
+        var secondsElapsed = Math.floor(delta / 1000);
+        var timer = timerVal.split(':');
+        var minutes = Math.floor(parseInt(pageExpiry) / 60);
+        var seconds = parseInt(pageExpiry) % 60;
+        var total = pageExpiry - secondsElapsed;
+        var remainingSeconds = ((minutes * 60) + seconds) - secondsElapsed;
+        seconds = remainingSeconds % 60;
+        minutes = Math.floor(remainingSeconds / 60);
+        if (minutes < 0) {
+          clearInterval(countDownInterval);
+          window.location.href = "<%= pollingData.returnUrl %>";
+        } else {
+          var timeRemaining = (total / count) * 100;
+          seconds = (seconds < 10) ? '0' + seconds : seconds;
+          minutes = (minutes < 10) ? '0' + minutes : minutes;
+          var countdownElement = document.getElementById('countdown');
+          var progressbar = document.getElementById('contentlength');
+          progressbar.style.width = timeRemaining + '%';
+          countdownElement.innerHTML = minutes + ':' + seconds + ' min';
+        }
+      }, 1000);
+
+      function cancelTransaction() {
+        window.location.href = window.location.origin + "/api/v1/payment/cancel/" + "<%= pollingData._id %>"
+      };
+
+      function setVisibility() {
+        this.merchantLogoPresent = 'false';
+        if (this.merchantLogoPresent === 'true') {
+          var width = screen.width;
+          document.getElementById('merchantLogoCondition').style.display = 'block';
+          if (width > 700) {
+            document.getElementById('merchantLogoCondition').style.height = '40px';
+            document.getElementById('merchantLogoCondition').style.width = '120px';
+          } else {
+            document.getElementById('merchantLogoCondition').style.height = '30px';
+            document.getElementById('merchantLogoCondition').style.width = '90px';
+          }
+        } else {
+          document.getElementById('merchantLogoCondition').style.display = 'none';
+        }
+        document.getElementById('countdown').innerText = pageExpiry;
+      }
+    </script>
+    <script type="text/javascript">
+      function modal() {
+        let modal = document.querySelector('.modal');
+        let activate_modal = document.querySelectorAll('.modal-class');
+        let closeButton = document.querySelector('.close-button');
+
+        function toggleModal() {
+          modal.classList.toggle('show-modal');
+        }
+
+        function windowOnClick(event) {
+          if (event.target === modal) {
+            toggleModal();
+          }
+        }
+        activate_modal.forEach(e => e.addEventListener('click', toggleModal));
+        closeButton.addEventListener('click', toggleModal);
+        window.addEventListener('click', windowOnClick);
+      }
+    </script>
+    <script type="text/javascript">
+      let merchantConfig = '{"noteText":"Note : Do not refresh this page or close the window until your transaction is completed.","fontType":"Ropa Sans","progressBarColor":"#0099FF","headerText":"Approve UPI Request","cancelButton":"false","fontColor":"#00ff2442"}';
+      try {
+        merchantConfig = JSON.parse(merchantConfig);
+      } catch (err) {
+        merchantConfig = {};
+      }
+
+      function applyFontTypeConfig(fontType) {
+        if (!fontType || fontType === '') return;
+        document.querySelectorAll('.merchant-text span').forEach(e => {
+          e.style.fontFamily = fontType;
+        });
+      }
+
+      function applyFontColorConfig(fontColor) {
+        if (!fontColor || fontColor === '') return;
+        document.querySelectorAll('.background-green').forEach(e => {
+          e.style.backgroundColor = fontColor;
+        });
+      }
+
+      function applyNoteTextConfig(noteText) {
+        if (!noteText || noteText === '') return;
+        document.querySelectorAll('.note span').forEach(e => {
+          e.innerText = noteText;
+        })
+      }
+
+      function applyCancelButtonConfig(cancelButton) {
+        if (cancelButton === 'true') {
+          document.querySelectorAll('.cancel-icon').forEach(e => {
+            e.style.visibility = 'default';
+          });
+          document.querySelectorAll('.cancel-txn-container').forEach(e => {
+            e.style.visibility = 'hidden';
+          });
+        } else {
+          document.querySelectorAll('.cancel-icon').forEach(e => {
+            e.style.visibility = 'hidden';
+          });
+          document.querySelectorAll('.cancel-txn-container').forEach(e => {
+            e.style.visibility = 'default';
+          });
+        }
+      }
+
+      function applyHeaderTextConfig(headerText) {
+        if (!headerText || headerText === '') return;
+        document.querySelectorAll('.title-1').forEach(e => {
+          e.innerText = headerText;
+        });
+      }
+
+      function applyProgressBarColor(progressBarColor) {
+        if (!progressBarColor || progressBarColor === '') return;
+        document.querySelectorAll('.progress-background-blue').forEach(e => {
+          e.style.background = progressBarColor;
+        });
+      }
+
+      function applyConfigs(config) {
+        applyFontTypeConfig(config.fontType);
+        applyFontColorConfig(config.fontColor);
+        applyNoteTextConfig(config.noteText);
+        applyCancelButtonConfig(config.cancelButton);
+        applyHeaderTextConfig(config.headerText);
+        applyProgressBarColor(config.progressBarColor);
+      }
+
+      function fetchStatus(pollingLink, data) {
+            var jqxhr = $.ajax({
+                type: 'POST',
+                url: pollingLink,
+                data: JSON.stringify(data),
+                contentType: "application/json",
+                dataType: 'json'
+            }).done(function(data) {
+                console.log(data);
+                if(data.retry) {
+                    console.log('retrying')
+                    console.log(data);
+                    // if pending then wait some time and check again
+                    setTimeout(function() { fetchStatus(pollingLink, data); }, 5000);
+                } else {
+                    window.location.replace(data.returnUrl);
+                }
+            })
+            .fail(function() {
+                alert( "error" );
+            })
+            .always(function() {
+                // update belo logic for exponatial delay.
+                // timeout = timeout + ((Math.round(10 / 10) + 1) * increase);
+            });
+        }
+
+      function init() {
+        setVisibility();
+        applyConfigs(merchantConfig);
+        modal();
+
+        var pollingLink = '<%= pollingLink %>';
+        var pollingData = {
+            'amount': '<%= pollingData.amount %>',
+            'gid': '<%= pollingData.gid %>',
+            'counter': '<%= pollingData.counter %>',
+            'expiry': '<%= pollingData.expiry %>',
+            'qrImage': '<%= pollingData.qrImage %>'
+        };
+        fetchStatus(pollingLink, pollingData);
+      }
+    </script>
+    <style type="text/css">
+      @font-face {
+        font-family: Roboto;
+        src: url('chrome-extension://gdojjgflncpbfmenbkndfhoamlhajmf/fonts/Roboto-Regular.ttf');
+      }
+    </style>
+  </head>
+  <body onload="init()" data-new-gr-c-s-check-loaded="14.1121.0" data-gr-ext-installed="">
+    <div class="loader-container flex-box">
+      <div class="merged-block">
+        <div class="title-bar">
+          <div class="merchant-logo">
+            <img class="merchant-logo-property" alt="merchant logo" id="merchantLogoCondition" src="https://www.freepnglogos.com/uploads/logo-website-png/logo-website-website-logo-png-transparent-background-background-15.png" style="display: none;">
+          </div>
+        </div>
+        <div class="outer-box">
+          <div class="payment-block">
+            <div class="cancel-icon modal-class" style="visibility: hidden;"></div>
+            <div class="upi-amount">
+              <div class="payment-request-text">Payment request sent <img id="right-button" src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAASABIAAD/4QBMRXhpZgAATU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAGKADAAQAAAABAAAAGAAAAAD/wAARCAAYABgDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9sAQwACAgICAgIDAgIDBQMDAwUGBQUFBQYIBgYGBgYICggICAgICAoKCgoKCgoKDAwMDAwMDg4ODg4PDw8PDw8PDw8P/9sAQwECAgIEBAQHBAQHEAsJCxAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQ/90ABAAC/9oADAMBAAIRAxEAPwD7l/aa/aa8Qab4gvPh18Ors2CWB8q+vouJjMPvRRN/AE6Mw+YtkAgDn4Q/4SrxP9t/tL+17z7Xnd532iTzM+u/dnP410kWiR+I/iTd6H4m1WPRJLy+ukmu7hS0cdwWfHmYIIVpMKzfw53HgGvTbH4X2HwnWXxX8abYM9vK8em6IsgMmpSxnHmyMudtoDyW/j6Djr8FXqVa83NvT8F/X4n894/E4zH1pV5ytFN9dIr9Puu3tdnv37Mv7TXiDUvEFn8OviLdm/S/PlWN9LzMJj92KVv4w/RWPzBsAkg8fovX4OSeKvEXjX4kWfiW5K/2teXtr5SwoI0QoyJDHGq9FQKqqOuBySea+r/+Lzf9PP8A49XoYPOJwhyv3rdT6TJeM61Gi6Uk6iTdm97dL7/mf//Q+5f2mv2ZfEGpeILz4i/Dq0N+l+fNvrGLmYTH70sS/wAYfqyj5g2SAQePh290fxxqeoR2OpWOo3V9CiQJFLFNJKiRjCRqrAsFUcBRwO1fvzX5l/8ANZ/+3n/2avks4wUIzUo9T8d4zyOhSrqdO659Wulzd/Zl/Zl8Qab4gs/iL8RbQ2CWB82xsZeJjMPuyyr/AABOqqfmLYJAA5/ReiivoMHg6dKmoxR+jZLkuHwuHjTpxvfXXV3Z/9k=">
+              </div>
+            </div>
+            <div class="right-arrow"></div>
+            <div class="collect-rupee">
+              <span class="collect-rupees">&#8377; <%= pollingData.amount / 100 %></span>
+            </div>
+            <div class="customer-vpa">
+              <span class="customer-vpa-text">sent to <strong>Customer Mobile</strong>
+              </span>
+            </div>
+          </div>
+          <div class="selection-block">
+            <hr class="horizontal-line">
+            <div>
+              <img src="<%= pollingData.qrImage %>" style=" width:200px; height:200px; margin-left: 37%;">
+            </div>
+            <div class="progress">
+              <div class="progress-background-grey">
+                <div class="progress-background-blue" id="contentlength" style="width: 93.8889%; background: rgb(0, 153, 255);"></div>
+              </div>
+            </div>
+            <div class="progressbar flex-box">
+              <span class="font-property10">Time Remaining: <strong id="countdown"><%= pollingData.expiry %> min</strong>
+              </span>
+            </div>
+            <div class="cancel-txn-container flex-box">
+              <a class="cancel-button-property modal-class">Cancel Transaction</a>
+            </div>
+            <div class="note">
+              <span class="font-property10">Note : Do not refresh this page or close the window until your transaction is completed.</span>
+            </div>
+            <div class="modal">
+              <div class="modal-content">
+                <h3 class="modal-header">Are you sure you want to exit?</h3>
+                <p class="modal-text">On exiting this page, your payment status might not be available immediately.</p>
+                <div class="modal-button">
+                  <button class="proceed-cancel-transaction-button" onclick="cancelTransaction()">Yes, Exit</button>
+                  <br>
+                  <button class="close-button">No</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
