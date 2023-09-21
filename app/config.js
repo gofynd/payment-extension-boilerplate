@@ -1,7 +1,6 @@
 const convict = require("convict");
 const mongodbUri = require('mongodb-uri');
 
-
 convict.addFormat({
   name: 'mongo-uri',
   validate: function (val) {
@@ -138,5 +137,14 @@ let config = convict({
 // Perform validation
 config.validate({ allowed: "strict" });
 config = config.get();
+
+exports.aggregatorConfig = {
+    'createOrder': '/initiate/payment/request',
+    'refund': '/initiate-refund',
+    'orderStatus': '/v1/payment/status',
+    'resendPayment': '/rposasp/resend/paymentlink',
+    'refundStatus': '/v2/refund-status',
+};
+
 
 module.exports = config;
