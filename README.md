@@ -43,4 +43,4 @@ Before you begin, ensure you have met the following requirements:
     ```
 
 ## Documentation
-For detailed documentation on how to use and customize this boilerplate, please refer to the our official document [here](https://gofynd.quip.com/HbnJAupFKgoV/Payment-Gateway-Extension-Document).
+For detailed documentation on how to use and customize this boilerplate, please refer to the our official document..
