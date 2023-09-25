@@ -10,6 +10,7 @@
 ## Getting started
 
 ##### Directory structure
+```
 .
 ├── app
 │   ├── __tests__
@@ -61,7 +62,7 @@
 │       ├── htmlString.html => HTML file that render HTML Strings. You can use this file for redirection purpose.
 │       ├── pollingLink.html => Continues polling page if required to poll. This check the payment status if success and redirect to success_url other poll continous.
 │       └── redirector.html => This file help to simple use to redirect the URL to provided URL.
-
+```
 ##### Prerequisites
 Before you begin, ensure you have met the following requirements:
 
