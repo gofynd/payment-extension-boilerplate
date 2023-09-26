@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Render HTML with JavaScript</title>
+</head>
+<body>
+  <div id="content"></div>
+  <script>
+    const contentDiv = document.getElementById('content');
+
+    // Set the HTML content of the div
+    contentDiv.innerHTML = '<%= htmlString %>';
+  </script>
+</body>
+</html>

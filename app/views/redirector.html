@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Loader Page</title>
+    </head>
+    <body>
+        <div id="loading-message">Loading... Please wait.</div>
+
+        <script>
+            // Function to redirect to the target page
+            function redirectToTargetPage() {
+                window.location.href = decodeURIComponent('<%=redirectUrl%>')
+            }
+
+            // Set a timeout to call the redirectToTargetPage function after 1000ms (1 seconds)
+            setTimeout(redirectToTargetPage, 1000);
+        </script>
+    </body>
+</html>
