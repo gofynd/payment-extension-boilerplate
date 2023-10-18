@@ -11,7 +11,8 @@ const {
     renderPGHandler,
     processPaymentUpdateStatus,
     getPaymentDetailsHandler,
-    processPaymentCancelHandler
+    processPaymentCancelHandler,
+    processShipmentUpdate
 } = require("../controllers/orderController")
 
 
@@ -28,5 +29,8 @@ orderRouter.get('/pgloader/:_id', renderPGHandler);
 orderRouter.post('/payment_update', processPaymentUpdateStatus);
 
 orderRouter.get('/payment/cancel/:_id', processPaymentCancelHandler);
+
+orderRouter.post('/payment/shipment', verifyPlatformChecksum, processShipmentUpdate)
+orderRouter.post('/customer/validation', verifyPlatformChecksum, validateCustomer)
 
 module.exports = orderRouter;

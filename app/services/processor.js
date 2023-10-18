@@ -620,6 +620,23 @@ class AggregatorProcessor {
             "message": "Transaction is Cancelled."
         };
     }
+
+    async processShipmentUpdate(requestPayload) {
+        const order = await Order.findOne({ gid: requestPayload.gid })
+        if(!order) {
+            throw new BadRequestError(`Order ${requestPayload.gid} does not exist`);
+        }
+        
+        const instance = AggregatorFactory.createInstance({appId: order.app_id});
+        const response = await instance.processShipmentUpdate(requestPayload);
+        return response;
+    }
+
+    async validateCustomer(requestPayload) {
+        const instance = AggregatorFactory.createInstance({appId: requestPayload.app_id});
+        const response = await instance.validateCustomer(requestPayload);
+        return response;
+    }
 }
 
 module.exports = AggregatorProcessor
