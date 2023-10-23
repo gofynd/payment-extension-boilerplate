@@ -163,7 +163,7 @@ class Aggregator extends Base {
     async getOrderDetails(data, gid, aggregatorOrderId=null) {
         /*
         get currect details of given order.
-        Sample API Response
+        Sample Function Response
         200Ok: {
             'success': responseData.success,
             'amount': responseData.totalAmount,
@@ -207,7 +207,7 @@ class Aggregator extends Base {
             "invoice_no": "89765413213412",
             "delivery_timestamp": "1623456789"  
         }
-        Sample API response
+        Sample Function response
         200Ok:{
             "status": true,
             "gid": "TR64D4E4250DB0CBEF1D",
