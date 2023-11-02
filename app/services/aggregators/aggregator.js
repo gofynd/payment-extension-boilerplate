@@ -191,6 +191,103 @@ class Aggregator extends Base {
         //     'order_id': gid,
         // }
     }
+
+    async processShipmentUpdate(payload) {
+        /*
+        update shipment delivery status
+        Sample Payload: {
+            "platform_order_id": "FY435678123AD987",
+            "gid": "TR64D4E4250DB0CBEF1D",
+            "shipment_id": "16916747740991418099",
+            "status": "delivery",
+            "delivered_amount": 23000,
+            "currency": "INR",
+            "invoice_no": "89765413213412",
+            "delivery_timestamp": "1623456789"  
+        }
+        Sample Function response
+        200Ok:{
+            "status": true,
+            "gid": "TR64D4E4250DB0CBEF1D",
+            "shipment_id": "16916747740991418099",
+            "delivery_status": "delivered",
+            "delivered_date": "123456789",
+            "message": "Delivered Successfully",
+        }
+        400 BadRequest :{
+            "status": false,
+            "gid": "TR64D4E4250DB0CBEF1D",
+            "shipment_id": "16916747740991418099",
+            "delivery_status": "delivered",
+            "delivered_date": "123456789",
+            "message": "Status update failed",
+        }
+         */
+    }
+
+    async validateCustomer(payload) {
+        /*
+        validate customer
+        Sample Payload: {
+            "payload": "hashed_encoded_payload",
+            "order_items": [
+                    {
+                    "sku": "1",
+                    "price": 100,
+                    "quantity": 1
+                    }
+                ],
+            "delivery_address": {
+                "line1": "string",
+                "line2": "string",
+                "city": "string",
+                "state": "string",
+                "country": "string",
+                "pincode": "string",
+                "type": "string",
+                "geoLocation": {
+                    "latitude": "string",
+                    "longitude": "string"
+                    }
+                },
+            "billing_address": {
+                "line1": "string",
+                "line2": "string",
+                "city": "string",
+                "state": "string",
+                "country": "string",
+                "pincode": "string",
+                "type": "string",
+                "geoLocation": {
+                "latitude": "string",
+                "longitude": "string"
+                    }
+                },
+            "aggregator": "Simpl",
+            "phone_number": "9876543210",
+            "merchant_params": {"dummy": "lorem"},
+            "transaction_amount_in_paise": 9128,
+            "app_id": app_id
+        }
+        Sample Function response
+        200Ok:{
+            'success': true,
+            'data': {
+                'approved': true,
+                'amount': 550
+            }
+            'message': 'Validated'
+        }
+        400 BadRequest:{
+            'success': false,
+            'data': {
+                'approved': false,
+                'amount': 550
+            }
+            'message': 'Validation Failed'
+        }
+         */
+    }
 }
 
 module.exports = Aggregator;
