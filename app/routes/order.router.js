@@ -12,7 +12,8 @@ const {
     processPaymentUpdateStatus,
     getPaymentDetailsHandler,
     processPaymentCancelHandler,
-    processShipmentUpdate
+    processShipmentUpdate,
+    validateCustomer
 } = require("../controllers/orderController")
 
 

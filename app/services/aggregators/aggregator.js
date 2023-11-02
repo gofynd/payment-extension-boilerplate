@@ -271,7 +271,7 @@ class Aggregator extends Base {
             "transaction_amount_in_paise": 9128,
             "app_id": app_id
         }
-        Sample API response
+        Sample Function response
         200Ok:{
             'success': true,
             'data': {
