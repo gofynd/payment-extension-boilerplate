@@ -134,3 +134,23 @@ exports.processPaymentCancelHandler = asyncHandler(async (req, res, next) => {
     logger.info('Cancel Handler Response: %O', JSON.stringify(response));
     return res.status(httpStatus.OK).redirect(response.cancelUrl);
 });
+
+//@desc: shipment update 
+//@route POST /api/v1/payment/shipment
+//@access public
+exports.processShipmentUpdate = asyncHandler(async (req, res, next) => {
+    const requestPayload = req.body;
+    const instance = new AggregatorProcessor();
+    const response = await instance.processShipmentUpdate(requestPayload);
+    return res.status(httpStatus.OK).json(response)
+});
+
+//@desc: customer validation
+//@route POST /api/v1/customer/validation
+//@access public
+exports.validateCustomer = asyncHandler(async (req, res, next) => {
+    const requestPayload = req.body;
+    const instance = new AggregatorProcessor();
+    const response = await instance.validateCustomer(requestPayload)
+    return res.status(httpStatus.OK).json(response)
+})
