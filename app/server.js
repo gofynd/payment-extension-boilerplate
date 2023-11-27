@@ -35,11 +35,11 @@ app.use("/", fdkExtension.fdkHandler);
 
 app.use('/api/v1', orderRouter);
 app.use('/api/v1', credsRouter);
-app.use('/protected', credsRouter);
+// app.use('/protected/v1', apiRouter); // uncomment these lines for local and comment below 3 lines
 
-const apiRoutes = fdkExtension.apiRoutes;
-apiRoutes.use('/v1', apiRouter);
-// app.use('/protected', apiRoutes);
+const apiRoutes = fdkExtension.apiRoutes; // comment
+apiRoutes.use('/v1', apiRouter); // comment
+app.use('/protected', apiRoutes); // comment
 
 app.use(errorHandler);
 
