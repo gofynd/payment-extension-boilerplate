@@ -20,12 +20,15 @@ const CREDENTIAL_FIELDS = [
 //@route POST /api/v1/secrets
 //@access private
 exports.createSecretsHandler = asyncHandler(async (req, res, next) => {
-    let app_id = req.body.app_id;
+    // TODO: update request to object {slug: value ...} instead of [{slug: slug, value: value}, ...]
+    let app_id = req.headers['x-application-id'];  // req.body.app_id;
     let creds = req.body.data;
     let data = {};
     for (var i=0;i<creds.length;i++){
         data[creds[i].slug] = creds[i].value;
     }
+    console.log(`creating secrets for app_id: ${app_id}`);
+
     let secrets = EncryptHelper.encrypt(config.extension.encrypt_secret, JSON.stringify(data));
 
     await Secret.findOneAndUpdate(
@@ -71,6 +74,7 @@ exports.getSecretsHandler = asyncHandler(async (req, res, next) => {
     res.status(httpStatus.OK).json({
         success: true,
         app_id: req.params.app_id,
+        is_active: true,
         data: creds
     });
 });
