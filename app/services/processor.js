@@ -189,7 +189,7 @@ class AggregatorProcessor {
                 }
             }
         );
-        // await this.updatePlatformPaymentStatus(order, callbackResponse, "callback");
+        await this.updatePlatformPaymentStatus(order, callbackResponse, "callback");
         const redirectUrl = callbackResponse.status == "complete" ? order.meta.request.success_url : order.meta.request.cancel_url
 
         return {
