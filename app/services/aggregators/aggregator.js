@@ -3,8 +3,7 @@ const { getAggregatorStatusMapper, makeRequest, getRedisData, setRedisData, tryO
 const { getHmacChecksum } = require("../../utils/signatureUtils");
 const { getISTDateTime, calculateTimeDelta } = require("../../utils/dateUtils");
 const logger = require("../../common/logger");
-const config = require("../../config");
-const { aggregatorConfig } = require("./config");
+const {aggregatorConfig, config} = require("../../config");
 const { ActionType, httpStatus, RedisKeys } = require("../../../constants");
 const EncryptHelper = require("../../utils/encryptUtils");
 const removeTrailingSlash = require("../../utils/commonUtils");
@@ -158,7 +157,6 @@ class Aggregator extends Base {
         // };
 
     }
-
 
     async getOrderDetails(data, gid, aggregatorOrderId=null) {
         /*
