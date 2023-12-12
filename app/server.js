@@ -30,7 +30,7 @@ app.get('/env.js', (req, res) => {
   );
 });
 app.use("/", healthRouter);
-app.use(express.static(path.resolve(__dirname, "../build")));
+app.use(express.static(path.resolve(__dirname, "../build/")));
 app.use("/", fdkExtension.fdkHandler);
 
 app.use('/api/v1', orderRouter);

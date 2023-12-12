@@ -12,13 +12,12 @@ const {
     createStatusMapperHandler,
     getStatusMapperHandler,
     updateStatusMapperHandler,
-    deleteStatusMapperHandler
+    deleteStatusMapperHandler,
 } = require("../controllers/credsController")
 
 
 credsRouter.post('/secrets', verifyExtensionAuth, createSecretsHandler);
 credsRouter.get('/secrets/:app_id', verifyExtensionAuth, getSecretsHandler);
-credsRouter.get('/credentials/:app_id', verifyApplicationId, getSecretsHandler);
 
 apiRouter.get('/credentials/:app_id', verifyApplicationId, getSecretsHandler);
 apiRouter.post('/credentials/:app_id', verifyApplicationId, createSecretsHandler);
@@ -32,3 +31,4 @@ module.exports = {
     credsRouter: credsRouter,
     apiRouter: apiRouter
 }
+

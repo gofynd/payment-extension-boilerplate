@@ -189,8 +189,14 @@ class AggregatorProcessor {
                 }
             }
         );
-        await this.updatePlatformPaymentStatus(order, callbackResponse, "callback");
-        const redirectUrl = callbackResponse.status == "complete" ? order.meta.request.success_url : order.meta.request.cancel_url
+        var redirectUrl;
+        try {
+            await this.updateGringottsPaymentStatus(order, callbackResponse.status, data, 'callback');
+            redirectUrl = callbackResponse.status == "complete" ? order.meta.request.success_url : order.meta.request.cancel_url
+        } catch (err) {
+            redirectUrl = order.meta.request.cancel_url;
+            console.log(err);
+        }
 
         return {
             action: "redirect",

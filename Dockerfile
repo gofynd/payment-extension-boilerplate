@@ -16,6 +16,7 @@ RUN rm -rf ./node_modules \
 && npm install \
 && npm cache clean --force \
 && rm -rf .git
+RUN npm run build
 
 
 FROM node:16.20-alpine
