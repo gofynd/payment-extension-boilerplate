@@ -17,6 +17,12 @@ const Endpoints = {
   GET_ALL_APPLICATIONS() {
     return urlJoin(envVars.EXAMPLE_MAIN_URL, "/api/v1.0/applications");
   },
+  GET_CREDENTIALS(app_id) {
+    return urlJoin(envVars.EXAMPLE_MAIN_URL, "/protected/v1/credentials/", app_id);
+  },
+  POST_CREDENTIALS(app_id) {
+    return urlJoin(envVars.EXAMPLE_MAIN_URL, "/protected/v1/credentials/", app_id);
+  },
 };
 
 export default Endpoints;

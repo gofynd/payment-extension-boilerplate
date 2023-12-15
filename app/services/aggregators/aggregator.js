@@ -161,7 +161,7 @@ class Aggregator extends Base {
     async getOrderDetails(data, gid, aggregatorOrderId=null) {
         /*
         get currect details of given order.
-        Sample API Response
+        Sample Function Response
         200Ok: {
             'success': responseData.success,
             'amount': responseData.totalAmount,

@@ -28,9 +28,21 @@ const verifyExtensionAuth = (req, res, next) => {
     next();
 }
 
+const verifyApplicationId = (req, res, next) => {
+    const pathApplicationId = req.params.app_id;
+    const headerApplicationId = req.headers['x-application-id'];
+  
+    if (pathApplicationId && headerApplicationId && pathApplicationId === headerApplicationId) {
+      next();
+    } else {
+      res.status(403).json({ error: 'Invalid x-application-id' });
+    }
+}
+
 module.exports = {
     verifyPlatformChecksum,
     verifyPGChecksum,
     verifyFrontendChecksum,
-    verifyExtensionAuth
+    verifyExtensionAuth,
+    verifyApplicationId
 };
