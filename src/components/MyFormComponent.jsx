@@ -4,7 +4,7 @@ import { getApplication } from '../helper/utils';
 import MainService from "../services/main-service";
 import './MyFormComponent.css';
 import MessageBox from './MessageBox';
-import { FaRegEye, FaEyeSlash } from "react-icons/fa";
+import { FaRegEye, FaRegEyeSlash } from "react-icons/fa";
 
 const MyFormComponent = ({ params }) => {
   const initialFormData = params.reduce((acc, param) => {
@@ -74,24 +74,27 @@ const MyFormComponent = ({ params }) => {
       <h1>Credentials</h1>
       <form method="post" onSubmit={handleSubmit}>
         {params.map((param, index) => (
-          <div key={index}>
-            <label htmlFor={param.name}>{param.name}{param.required && <>*</>}</label>
-            <br />
-            <div style={{ display: 'flex', alignItems: 'center' }}>
-              <input
-                id={param.slug}
-                required={param.required}
-                name={param.name}
-                value={hidden === false ? formData[param.slug] : Array(formData[param.slug].length).fill('*').join('')}
-                onChange={handleInputChange}
-                style={{ marginRight: '8px' }} // Adjust the margin as needed
-              />
-              {hidden === false 
-              ? <FaRegEye size={30} onClick={hideField}/>
-              : <FaEyeSlash size={30} onClick={hideField}/>}
+          <>
+          {param.display != false && <div key={index}>
+              <label htmlFor={param.name}>{param.name}{param.required && <>*</>}</label>
+              <br />
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <input
+                  id={param.slug}
+                  required={param.required}
+                  name={param.name}
+                  value={hidden === false ? formData[param.slug] : Array(formData[param.slug].length).fill('*').join('')}
+                  onChange={handleInputChange}
+                  style={{ marginRight: '8px' }} // Adjust the margin as needed
+                />
+                {hidden === false
+                ? <FaRegEye size={25} style={{ marginBottom: '8px' }} onClick={hideField}/>
+                : <FaRegEyeSlash size={25} style={{ marginBottom: '8px' }} onClick={hideField}/>}
+              </div>
+              <br />
             </div>
-            <br />
-          </div>
+          }
+          </>
         ))}
         <input type="submit" value="Submit" />
       </form>

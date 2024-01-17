@@ -79,6 +79,54 @@ exports.getSecretsHandler = asyncHandler(async (req, res, next) => {
 });
 
 
+exports.deleteCredentialsHandler = asyncHandler(async (req) => {
+    const { company_id } = req.body;
+    console.log(`Uninstalling extension for company: ${company_id}`);
+    await Secret.deleteMany({ company_id: company_id });
+});
+
+
+exports.getCredentials = asyncHandler(async (req, res) => {
+    
+    logger.info("secrets for app_id %s", req.params.app_id);
+    let secret = await Secret.findOne({ app_id: req.params.app_id })
+    let data = {};
+    if (secret) {
+        data = EncryptHelper.decrypt(config.extension.encrypt_secret, secret.secrets);
+    }
+    let creds = []
+    for (var i=0; i<CREDENTIAL_FIELDS.length; i++) {
+        creds.push({
+            "slug": CREDENTIAL_FIELDS[i].slug,
+            "name": CREDENTIAL_FIELDS[i].name,
+            "required": CREDENTIAL_FIELDS[i].required,
+            "display": CREDENTIAL_FIELDS[i].display,
+            "value": data[CREDENTIAL_FIELDS[i].slug]
+        })
+    }
+    res.render('../../public/credentials.ejs', { params: creds });
+});
+
+
+exports.setCredentials = asyncHandler(async (req, res) => {
+    let app_id = req.params.app_id;
+    let data = req.body;
+    const companyId = req.headers['x-company-id'];
+    let secrets = EncryptHelper.encrypt(config.extension.encrypt_secret, JSON.stringify(data));
+
+    await Secret.findOneAndUpdate(
+        { app_id: app_id },
+        {
+            secrets: secrets,
+            company_id: companyId
+        },
+        { upsert: true, new: false }
+    );
+
+    res.status(httpStatus.CREATED).json({});
+});
+
+
 exports.createStatusMapperHandler = asyncHandler(async (req, res, next) => {
     if (!req.body.journey_type) {
         res.status(httpStatus.BAD_REQUEST).json({

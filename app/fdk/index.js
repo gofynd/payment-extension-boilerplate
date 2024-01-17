@@ -15,14 +15,10 @@ let fdkExtension = setupFdk({
             return `${req.extension.base_url}/company/${req.query['company_id']}/application/${req.query['application_id']}`;
         },
         
-        uninstall: async (req) => {
-            // Write your code here to cleanup data related to extension
-            // If task is time taking then process it async on other process.
-            console.log(`Uninstalling extension for company: ${req.query('company_id')}`);
-        }
+        uninstall: deleteCredentialsHandler
     },
     debug: true,
-    storage: new RedisStorage(redisClient, config.extension_slug), // add your prefix
+    storage: new MongoStorage(),
     access_mode: "offline",
     cluster:  config.extension.fp_api_server // this is optional (default: "https://api.fynd.com")
 });

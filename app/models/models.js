@@ -8,7 +8,8 @@ const secretCollection = "secret";
 const userCollection = "user";
 const addressCollection = "address";
 const transactionCollection = "transaction";
-const aggregatorStatusMapperCollection = "aggregatorstatusmapper";
+const aggregatorStatusMapperCollection = "aggregatorstatusmappercollection";
+const sessionCollection = "session";
 
 
 const OrderSchema = new Schema({
@@ -132,6 +133,10 @@ const SecretSchema = new Schema({
     secrets: {
         type: Object,
         required: true
+    },
+    company_id: {
+        type: String,
+        required: true,
     }
 }, {
     timestamps: true
@@ -260,6 +265,27 @@ const AggregatorStatusMapperSchema = new Schema({
     timestamps: true
 });
 
+
+const SessionSchema = new Schema({
+    session_id: {
+        type: String,
+        required: true,
+    },
+    value: {
+        type: Object,
+        required: false,
+    },
+    expires: {
+        type: Number,
+        required: false,
+    }
+});
+
+SessionSchema.index({
+    session_id: 1,
+    expires: 1,
+});
+
 OrderSchema.index({
     gid: 1,
     current_status: 1,
@@ -272,14 +298,15 @@ TransactionSchema.index({
 });
 
 SecretSchema.index({
-    app_id: 1
-}, { unique: true });
+    app_id: 1,
+    company_id: 1
+});
 
 UserSchema.index({
     g_user_id: 1,
-    app_id: 1
-}, { unique: true });
-
+    app_id: 1,
+    aggregator_user_id: 1
+});
 AggregatorStatusMapperSchema.index({
     aggregator_status: 1,
     journey_type: 1,
@@ -290,6 +317,7 @@ AggregatorStatusMapperSchema.index({
 module.exports = {
     Order: mongoConnection.model(orderCollection, OrderSchema),
     Secret: mongoConnection.model(secretCollection, SecretSchema),
+    Session: mongoConnection.model(sessionCollection, SessionSchema),
     User: mongoConnection.model(userCollection, UserSchema),
     Transaction: mongoConnection.model(transactionCollection, TransactionSchema),
     Address: mongoConnection.model(addressCollection, AddressSchema),

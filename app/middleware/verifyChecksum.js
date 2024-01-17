@@ -12,6 +12,15 @@ const verifyPlatformChecksum = (req, res, next) => {
     next();
 };
 
+const verifyPGChecksum = (req, res, next) => {
+    const request_payload = req.body;
+    const checksum = getHmacChecksum(JSON.stringify(request_payload),
+        process.env.CHECKOUT_CHECKSUM_SECRET);
+    if (checksum !== req.headers.checksum)
+        throw new AuthorizationError("Invalid Checksum");
+    next();
+}
+
 const verifyFrontendChecksum = (req, res, next) => {
     const checksum = getHashChecksum(
         config.extension.api_secret + "|" + req.params._id, config.extension.platform_api_salt
@@ -22,7 +31,7 @@ const verifyFrontendChecksum = (req, res, next) => {
 }
 
 const verifyExtensionAuth = (req, res, next) => {
-    const basic_auth = config.extension.fp_api_salt;
+    const basic_auth = config.extension.platform_api_salt;
     const basicAuthHeader = "Basic " + btoa(basic_auth);
     if (basicAuthHeader !== req.headers.authorization)
         throw new AuthorizationError("Authorization failed");
@@ -49,6 +58,7 @@ const verifyApplicationId = async (req, res, next) => {
 
 module.exports = {
     verifyPlatformChecksum,
+    verifyPGChecksum,
     verifyFrontendChecksum,
     verifyExtensionAuth,
     verifyApplicationId
