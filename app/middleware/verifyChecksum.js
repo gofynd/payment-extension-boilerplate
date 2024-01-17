@@ -15,7 +15,7 @@ const verifyPlatformChecksum = (req, res, next) => {
 const verifyPGChecksum = (req, res, next) => {
     const request_payload = req.body;
     const checksum = getHmacChecksum(JSON.stringify(request_payload),
-        process.env.CHECKOUT_CHECKSUM_SECRET);
+    config.extension.platform_api_salt);
     if (checksum !== req.headers.checksum)
         throw new AuthorizationError("Invalid Checksum");
     next();
