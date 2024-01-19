@@ -1,5 +1,11 @@
 const crypto = require("node:crypto");
 
+function getHashChecksum(message, secret) {
+    const hmac = crypto.createHash('sha256');
+    hmac.update(message + secret);
+    return hmac.digest('hex').toString();
+}
+
 function getHmacChecksum(message, secret) {
     const hmac = crypto.createHmac('sha256', secret).update(message);
     return hmac.digest('hex').toString();

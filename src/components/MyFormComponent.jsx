@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 import { getApplication } from '../helper/utils';
 import MainService from "../services/main-service";
 import './MyFormComponent.css';
+import MessageBox from './MessageBox';
+import { FaRegEye, FaRegEyeSlash } from "react-icons/fa";
 
 const MyFormComponent = ({ params }) => {
   const initialFormData = params.reduce((acc, param) => {
@@ -10,15 +12,14 @@ const MyFormComponent = ({ params }) => {
     return acc;
   }, {});
 
-  console.log(initialFormData);
+
   const [formData, setFormData] = useState(initialFormData);
   const [showSuccessBanner, setShowSuccessBanner] = useState(false);
+  const [hidden, setHidden] = useState(true);
 
   const handleInputChange = (e) => {
     const { id, value } = e.target;
-    console.log(e);
     setFormData((formData) => ({ ...formData, [id]: value }));
-    console.log(formData);
   };
 
   const createBody = (formData) => {
@@ -32,13 +33,24 @@ const MyFormComponent = ({ params }) => {
     return body;
   }
 
+  const hideField = () => {
+    setHidden(!hidden);
+  }
+
+  const handleClick = () => {
+    setShowSuccessBanner(true);
+    setTimeout(() => {
+      setShowSuccessBanner(false);
+    }, 1500);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    handleClick();
 
     const body = createBody(formData)
     try {
-      const response = await MainService.submitCredentials(getApplication(), {'data': body})
-      console.log(response);
+      const response = await MainService.submitCredentials(getApplication(), { 'data': body })
 
       if (response.status === 201) {
         console.log('POST request successful');
@@ -62,25 +74,32 @@ const MyFormComponent = ({ params }) => {
       <h1>Credentials</h1>
       <form method="post" onSubmit={handleSubmit}>
         {params.map((param, index) => (
-          <div key={index}>
-            <label htmlFor={param.name}>{param.name}:</label>
-            <br />
-            <input
-              type={param.type}
-              id={param.slug}
-              name={param.name}
-              value={formData[param.slug]}
-              onChange={handleInputChange}
-            />
-            <br />
-          </div>
+          <>
+          {param.display != false && <div key={index}>
+              <label htmlFor={param.name}>{param.name}{param.required && <>*</>}</label>
+              <br />
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <input
+                  id={param.slug}
+                  required={param.required}
+                  name={param.name}
+                  value={hidden === false ? formData[param.slug] : Array(formData[param.slug].length).fill('*').join('')}
+                  onChange={handleInputChange}
+                  style={{ marginRight: '8px' }} // Adjust the margin as needed
+                />
+                {hidden === false
+                ? <FaRegEye size={25} style={{ marginBottom: '8px' }} onClick={hideField}/>
+                : <FaRegEyeSlash size={25} style={{ marginBottom: '8px' }} onClick={hideField}/>}
+              </div>
+              <br />
+            </div>
+          }
+          </>
         ))}
         <input type="submit" value="Submit" />
       </form>
       {showSuccessBanner && (
-        <div className="success-banner">
-          Update success!
-        </div>
+        <MessageBox />
       )}
     </div>
   );

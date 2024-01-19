@@ -55,10 +55,10 @@ let config = convict({
       default: "",
       env: "ENCRYPT_IV",
     },
-    fp_api_salt: {
+    platform_api_salt: {
       doc: "Fynd platform salt for checksum verification",
       default: "",
-      env: "FP_API_SALT",
+      env: "PLATFORM_API_SALT",
     },
     base_url: {
       doc: "extension base_url",
