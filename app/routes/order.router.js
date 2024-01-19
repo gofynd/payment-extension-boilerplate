@@ -18,7 +18,7 @@ const {
 
 
 orderRouter.post('/payment_session/:gid', verifyPlatformChecksum, createOrderHandler);
-orderRouter.get('/payment/status/:gid', verifyPlatformChecksum, getPaymentDetailsHandler);
+orderRouter.get('/payment_session/:gid', verifyPlatformChecksum, getPaymentDetailsHandler);
 
 orderRouter.get('/payment_callback/:gid', paymentCallbackHandler);
 orderRouter.post('/payment_callback', paymentCallbackHandler);
