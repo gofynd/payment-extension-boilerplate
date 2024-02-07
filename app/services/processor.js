@@ -6,7 +6,7 @@ const { Order, Transaction, User } = require("../models/models");
 const { BadRequestError, NotFoundError, AuthorizationError } = require("../common/customError");
 const { Settings, httpStatus, ActionType } = require("../../constants");
 const { fdkExtension } = require("../fdk/index")
-const { getHashChecksum, compareHashDigest } = require("../utils/signatureUtils");
+const { getHmacChecksum, compareHashDigest } = require("../utils/signatureUtils");
 const config = require("../config");
 const removeTrailingSlash = require("../utils/commonUtils");
 
@@ -191,7 +191,7 @@ class AggregatorProcessor {
         );
         var redirectUrl;
         try {
-            await this.updateGringottsPaymentStatus(order, callbackResponse.status, data, 'callback');
+            await this.updatePlatformPaymentStatus(order, callbackResponse.status, data, 'callback');
             redirectUrl = callbackResponse.status == "complete" ? order.meta.request.success_url : order.meta.request.cancel_url
         } catch (err) {
             redirectUrl = order.meta.request.cancel_url;
@@ -413,7 +413,7 @@ class AggregatorProcessor {
             }
         };
 
-        const checksum = getHashChecksum(JSON.stringify(payload), config.extension.Platform_api_salt);
+        const checksum = getHmacChecksum(JSON.stringify(payload), config.extension.Platform_api_salt);
         payload["checksum"] = checksum
 
         logger.info("Updating Payment status on Platform: %O", JSON.stringify(payload));
@@ -511,6 +511,9 @@ class AggregatorProcessor {
                 "created": String(Date.parse(order.createdAt)),
             },
         }
+
+        const checksum = getHmacChecksum(JSON.stringify(payload), config.extension.Platform_api_salt);
+        payload["checksum"] = checksum
 
         logger.info("Updating Refund status on Platform: %O", JSON.stringify(payload));
 
