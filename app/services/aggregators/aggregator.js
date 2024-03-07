@@ -111,12 +111,6 @@ class Aggregator extends Base {
         // };
     }
 
-    async verifyChecksum(data, checksum) {
-        message = { /* checksum payload */ }
-        const calculatedChecksum = getHmacChecksum(message, this.checksum_key).toUpperCase();
-        return calculatedChecksum === checksum
-    }
-
     async processWebhook(requestPayload, order) {
         /*
         returns {
