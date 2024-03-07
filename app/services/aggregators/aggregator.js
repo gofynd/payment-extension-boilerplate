@@ -4,12 +4,9 @@ const { getHmacChecksum } = require("../../utils/signatureUtils");
 const { getISTDateTime, calculateTimeDelta } = require("../../utils/dateUtils");
 const logger = require("../../common/logger");
 const {aggregatorConfig, config} = require("../../config");
-const { ActionType, httpStatus, RedisKeys } = require("../../../constants");
+const { ActionType, httpStatus } = require("../../../constants");
 const EncryptHelper = require("../../utils/encryptUtils");
 const removeTrailingSlash = require("../../utils/commonUtils");
-
-
-let REDIS_ORDER_STATUS = RedisKeys.REDIS_ORDER_STATUS
 
 class Aggregator extends Base {
     constructor(appId) {
@@ -112,12 +109,6 @@ class Aggregator extends Base {
         //         response: response
         //     }
         // };
-    }
-
-    async verifyChecksum(data, checksum) {
-        message = { /* checksum payload */ }
-        const calculatedChecksum = getHmacChecksum(message, this.checksum_key).toUpperCase();
-        return calculatedChecksum === checksum
     }
 
     async processWebhook(requestPayload, order) {

@@ -62,7 +62,7 @@ let config = convict({
     },
     base_url: {
       doc: "extension base_url",
-      default: "https://8a8e-14-142-187-98.ngrok-free.app",
+      default: "",
       env: "EXTENSION_BASE_URL",
     },
     fp_api_server: {
@@ -76,15 +76,7 @@ let config = convict({
       doc: 'Redis URL of host.',
       format: String,
       default: 'redis://127.0.0.1:6379/0',
-      env: '',
-      arg: '',
-    },
-    TTL: {
-      doc: "cache time to live",
-      format: int,
-      default: 5 * 60,
-      env: '',
-      arg: ''
+      env: 'REDIS_HOST'
     }
   },
   mongodb: {
@@ -93,8 +85,7 @@ let config = convict({
         doc: 'host mongodb',
         format: 'mongo-uri',
         default: 'mongodb://127.0.0.1:27017/db_name',
-        env: '',
-        arg: '',
+        env: 'MONGO_HOST_URI',
       },
     },
   },
@@ -102,30 +93,20 @@ let config = convict({
     doc: 'The port this extension will bind to',
     format: 'port',
     default: 8081,
-    env: 'PORT',
-    arg: 'port',
+    env: 'PORT'
   },
   extension_slug: {
     doc: "Extension slug",
     format: String,
     default: "<paymentgateway>",
-    env: "",
-    arg: "",
+    env: "EXTENSION_SLUG"
   },
   global_ttl: {
     doc: "Global Redis Keys TTL",
     format: Number,
     default: 60 * 60 * 24 * 180,  // 180 days
-    env: "GLOBAL_TTL",
-    arg: "global_ttl",
-  },
-  pg_checksum_secret: {
-    doc: 'pg secret from fynd platform',
-    format: String,
-    default: 'pg_checksum_secret',
-    env: 'PG_CHECKSUM_SECRET',
-    arg: 'pg_checksum_secret',
-  },
+    env: "GLOBAL_TTL"
+  }
 });
 
 // Perform validation
