@@ -2,6 +2,7 @@ const { setupFdk } = require("fdk-extension-javascript/express");
 const { RedisStorage } = require("fdk-extension-javascript/express/storage");
 const config =  require("../config");
 const { redisClient } = require("./../common/redis.init");
+const { deleteCredentialsHandler } = require('./../controllers/credsController');
 
 let fdkExtension = setupFdk({
     api_key: config.extension.api_key,
@@ -18,7 +19,7 @@ let fdkExtension = setupFdk({
         uninstall: deleteCredentialsHandler
     },
     debug: true,
-    storage: new MongoStorage(),
+    storage: new RedisStorage(redisClient, config.extension_slug),
     access_mode: "offline",
     cluster:  config.extension.fp_api_server // this is optional (default: "https://api.fynd.com")
 });
