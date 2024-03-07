@@ -87,6 +87,7 @@ let config = convict({
     },
     TTL: {
       doc: "cache time to live",
+      format: Number,
       default: 5 * 60,
       env: '',
       arg: ''
