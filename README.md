@@ -85,7 +85,7 @@ Before you begin, ensure you have met the following requirements:
     ```
 
 ## Configuration
-1. Configure your payment settings by editing the `app/config.js` file.
+1. Configure your payment settings by editing the `.env` file.
 2. Provide necessary API keys, endpoints, or credentials.
 
 ## Usage
