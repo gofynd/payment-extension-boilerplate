@@ -71,12 +71,6 @@ let config = convict({
       env: "EXTENSION_CLUSTER_URL",
     }
   },
-  pgBaseUrl: {
-    doc: "payment gateway base url",
-    format: String,
-    default: "/",
-    env: "PG_BASE_URL"
-  },
   redis: {
     host: {
       doc: 'Redis URL of host.',
