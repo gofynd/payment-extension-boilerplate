@@ -2,11 +2,12 @@
 const validator = require('validator');
 const { InvalidExtensionConfig } = require("./error_codes");
 const urljoin = require('url-join');
-const { PlatformConfig, PlatformClient } = require("@gofynd/fdk-client-javascript");
+// const { PlatformConfig, PlatformClient } = require("@gofynd/fdk-client-javascript");
 const { WebhookRegistry } = require('./webhook');
 const logger = require('../common/logger');
+const { Secret } = require("../models/models");
 
-const { version } = require('./../package.json');
+const { version } = require('../../package.json');
 const { AxiosHelper } = require('../common/axiosHelper');
 
 class Extension {
@@ -163,6 +164,13 @@ class Extension {
             throw new InvalidExtensionConfig("Invalid api_key or api_secret. Reason:" + err.message);
         }
     }
+
+    
+    async uninstallExtension(company_id) {
+        console.log(`Uninstalling extension for company: ${company_id}`);
+        await Secret.deleteMany({ company_id: company_id });
+    }
+
 }
 
 

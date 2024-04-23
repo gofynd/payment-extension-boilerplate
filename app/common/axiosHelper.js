@@ -1,12 +1,12 @@
-const combineURLs = require("axios/lib/helpers/combineURLs");
-const isAbsoluteURL = require("axios/lib/helpers/isAbsoluteURL");
+const combineURLs = require("./urlHelper");
+const isAbsoluteURL = require("./urlHelper");
 const axios = require("axios");
 const querystring = require("query-string");
 const { sign } = require("./requestSigner");
-const { FDKServerResponseError } = require("./FDKError");
-const { log, Logger, getLoggerLevel } = require("./logger");
+const { ServerResponseError } = require("../extension/error_codes");
+const { log, Logger, getLoggerLevel } = require("../common/logger");
 const createCurl = require("./curlHelper");
-const { version } = require("./../../package.json");
+const { version } = require("../../package.json");
 axios.defaults.withCredentials = true;
 
 function getTransformer(config) {
@@ -142,7 +142,7 @@ AxiosHelper.interceptors.response.use(
           headers: error.config.headers,
         },
       });
-      throw new FDKServerResponseError(
+      throw new ServerResponseError(
         error.response.data.message || error.message,
         error.response.data.stack || error.stack,
         error.response.statusText,
@@ -161,7 +161,7 @@ AxiosHelper.interceptors.response.use(
           headers: error.config.headers,
         },
       });
-      throw new FDKServerResponseError(
+      throw new ServerResponseError(
         error.message,
         error.stack,
         error.code,
@@ -170,7 +170,7 @@ AxiosHelper.interceptors.response.use(
     } else {
       // Something happened in setting up the request that triggered an Error
       Logger({ level: "ERROR", message: error.message });
-      throw new FDKServerResponseError(error.message, error.stack);
+      throw new ServerResponseError(error.message, error.stack);
     }
   }
 );

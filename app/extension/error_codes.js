@@ -54,6 +54,12 @@ class WebhookHandlerNotFound extends Error {
     }
 }
 
+class ServerResponseError extends Error {
+    constructor(message) {
+      super(message);
+    }
+  }
+
 
 module.exports = {
     InvalidExtensionConfig,
@@ -64,5 +70,6 @@ module.exports = {
     InvalidWebhookConfig,
     WebhookRegistrationError,
     WebhookProcessError,
-    WebhookHandlerNotFound
+    WebhookHandlerNotFound,
+    ServerResponseError
 };

@@ -4,7 +4,7 @@ const hmacSHA256 = require("crypto-js/hmac-sha256");
 // const { fdkAxios } = require("@gofynd/fdk-client-javascript/sdk/common/AxiosHelper");
 const { TEST_WEBHOOK_EVENT_NAME, ASSOCIATION_CRITERIA } = require("./constants");
 const { WebhookProcessError, WebhookHandlerNotFound, WebhookRegistrationError, InvalidHMacError, InvalidWebhookConfig } = require("./error_codes");
-const logger = require("./logger");
+const logger = require("../common/logger");
 
 let eventConfig = {}
 class WebhookRegistry {
