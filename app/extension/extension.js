@@ -9,6 +9,13 @@ const { Secret } = require("../models/models");
 
 const { version } = require('../../package.json');
 const { AxiosHelper } = require('../common/axiosHelper');
+const asyncHandler = require("express-async-handler");
+
+const config =  require("../config");
+const { RedisStorage } = require("../storage/index");
+const { redisClient } = require("../common/redis.init");
+
+
 
 class Extension {
     constructor() {
@@ -39,8 +46,8 @@ class Extension {
         }
         this.api_secret = data.api_secret;
 
-        if (!data.callbacks || (data.callbacks && (!data.callbacks.auth || !data.callbacks.uninstall))) {
-            throw new InvalidExtensionConfig("Missing some of callbacks. Please add all `auth` and `uninstall` callbacks.");
+        if (!data.callbacks || (data.callbacks && (!data.callbacks.auth ))) {
+            throw new InvalidExtensionConfig("Missing some of callbacks. Please add all `auth` callbacks.");
         }
 
         this.callbacks = data.callbacks;
@@ -76,6 +83,7 @@ class Extension {
         }
 
         this._isInitialized = true;
+    return this;
     }
 
     get isInitialized(){
@@ -96,49 +104,6 @@ class Extension {
 
     isOnlineAccessMode() {
         return this.access_mode === 'online';
-    }
-
-    getPlatformConfig(companyId) {
-        if (!this._isInitialized){
-            throw new InvalidExtensionConfig('Extension not initialized due to invalid data')    
-        }
-        let platformConfig = new PlatformConfig({
-            companyId: parseInt(companyId),
-            domain: this.cluster,
-            apiKey: this.api_key,
-            apiSecret: this.api_secret,
-            useAutoRenewTimer: false
-        });
-        return platformConfig;
-        
-    }
-
-    async getPlatformClient(companyId, session) {
-        if (!this._isInitialized){
-            throw new InvalidExtensionConfig('Extension not initialized due to invalid data')    
-        }
-        const SessionStorage = require('./session/session_storage');
-        
-        let platformConfig = this.getPlatformConfig(companyId);
-        platformConfig.oauthClient.setToken(session);
-        platformConfig.oauthClient.token_expires_at = session.access_token_validity;
-        
-        if (session.access_token_validity && session.refresh_token) {
-            let ac_nr_expired = ((session.access_token_validity - new Date().getTime()) / 1000) <= 120;
-            if (ac_nr_expired) {
-                logger.debug(`Renewing access token for company ${companyId} with platform config ${logger.safeStringify(platformConfig)}`);
-                const renewTokenRes = await platformConfig.oauthClient.renewAccessToken(session.access_mode === 'offline');
-                renewTokenRes.access_token_validity = platformConfig.oauthClient.token_expires_at;
-                session.updateToken(renewTokenRes);
-                await SessionStorage.saveSession(session);
-                logger.debug(`Access token renewed for company ${companyId} with response ${logger.safeStringify(renewTokenRes)}`);
-            }
-        }
-        let platformClient = new PlatformClient(platformConfig);
-        platformClient.setExtraHeaders({
-            'x-ext-lib-version': `js/${version}`
-        })
-        return platformClient;
     }
 
     async getExtensionDetails() {
@@ -164,18 +129,41 @@ class Extension {
             throw new InvalidExtensionConfig("Invalid api_key or api_secret. Reason:" + err.message);
         }
     }
-
-    
-    async uninstallExtension(company_id) {
-        console.log(`Uninstalling extension for company: ${company_id}`);
-        await Secret.deleteMany({ company_id: company_id });
-    }
-
 }
 
+async function deleteCredentialsHandler (){
+    const { company_id } = req.body;
+    console.log(`Uninstalling extension for company: ${company_id}`);
+    await Secret.deleteMany({ company_id: company_id });
+}
 
-const extension = new Extension();
+function getExtensionInstanceHandler(req) {
+    let data = {
+        api_key: config.extension.api_key,
+        api_secret: config.extension.api_secret,
+        base_url: config.extension.base_url,
+        callbacks: {
+            auth: async (req) => {
+                // Writee you code here to return initial launch url after suth process complete
+                console.log(`Authorized extension for ${req.query['company_id']}`)
+                console.log(req.extension.base_url);
+                return `${req.extension.base_url}/company/${req.query['company_id']}/application/${req.query['application_id']}`;
+            },
+            
+            uninstall: deleteCredentialsHandler
+        },
+        debug: true,
+        storage: new RedisStorage(redisClient, config.extension_slug),
+        access_mode: "offline",
+        cluster:  config.extension.fp_api_server // this is optional (default: "https://api.fynd.com")
+    }
+    let ext = new Extension();
+    ext.initialize(data);
+    return ext;
+}
 
+// let extension = new Extension();
 module.exports = {
-    extension
+    getExtensionInstanceHandler: getExtensionInstanceHandler
 };
+

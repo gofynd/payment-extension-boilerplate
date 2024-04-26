@@ -92,7 +92,7 @@ let config = convict({
   port: {
     doc: 'The port this extension will bind to',
     format: 'port',
-    default: 8081,
+    default: 8080,
     env: 'PORT'
   },
   extension_slug: {

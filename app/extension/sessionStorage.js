@@ -6,7 +6,7 @@ const logger = require("../common/logger");
 class SessionStorage {
     constructor() {
     }
-
+    storage = new RedisStorage(redisClient, config.extension_slug)
     static async saveSession(session) {
         if(session.expires) {
             let ttl = (new Date() - session.expires) / 1000;
