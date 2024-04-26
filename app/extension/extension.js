@@ -83,7 +83,6 @@ class Extension {
         }
 
         this._isInitialized = true;
-    return this;
     }
 
     get isInitialized(){
@@ -137,33 +136,36 @@ async function deleteCredentialsHandler (){
     await Secret.deleteMany({ company_id: company_id });
 }
 
-function getExtensionInstanceHandler(req) {
-    let data = {
-        api_key: config.extension.api_key,
-        api_secret: config.extension.api_secret,
-        base_url: config.extension.base_url,
-        callbacks: {
-            auth: async (req) => {
-                // Writee you code here to return initial launch url after suth process complete
-                console.log(`Authorized extension for ${req.query['company_id']}`)
-                console.log(req.extension.base_url);
-                return `${req.extension.base_url}/company/${req.query['company_id']}/application/${req.query['application_id']}`;
-            },
-            
-            uninstall: deleteCredentialsHandler
+let data = {
+    api_key: config.extension.api_key,
+    api_secret: config.extension.api_secret,
+    base_url: config.extension.base_url,
+    callbacks: {
+        auth: async (req) => {
+            // Writee you code here to return initial launch url after suth process complete
+            console.log(`Authorized extension for ${req.query['company_id']}`)
+            console.log(req.extension.base_url);
+            return `${req.extension.base_url}/company/${req.query['company_id']}/application/${req.query['application_id']}`;
         },
-        debug: true,
-        storage: new RedisStorage(redisClient, config.extension_slug),
-        access_mode: "offline",
-        cluster:  config.extension.fp_api_server // this is optional (default: "https://api.fynd.com")
-    }
-    let ext = new Extension();
-    ext.initialize(data);
-    return ext;
+        
+        uninstall: deleteCredentialsHandler
+    },
+    debug: true,
+    storage: new RedisStorage(redisClient, config.extension_slug),
+    access_mode: "offline",
+    cluster:  config.extension.fp_api_server // this is optional (default: "https://api.fynd.com")
+}
+
+function getExtensionInstanceHandler(req) {
+    return new Extension();
+    // let ext = new Extension();
+    // ext.initialize(data);
+    // return ext;
 }
 
 // let extension = new Extension();
 module.exports = {
-    getExtensionInstanceHandler: getExtensionInstanceHandler
+    getExtensionInstanceHandler: getExtensionInstanceHandler,
+    configData: data
 };
 

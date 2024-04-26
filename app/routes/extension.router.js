@@ -3,6 +3,6 @@ const { extensionInstallController } = require('../controllers/extensionControll
 const extensionRoutes = express.Router();
 
 
-extensionRoutes.post('/fp/install', extensionInstallController);
+extensionRoutes.get('/fp/install', extensionInstallController);
 
 module.exports = extensionRoutes;

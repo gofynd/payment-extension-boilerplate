@@ -75,8 +75,8 @@ function requestInterceptorFn() {
     };
     const signature = sign(signingOptions);
 
-    config.headers["x-fp-date"] = signature["x-fp-date"];
-    config.headers["x-fp-signature"] = signature["x-fp-signature"];
+    config.headers["x-fp-date"] = signature["x-fp-date"] || signature["headers"]["x-fp-date"];
+    config.headers["x-fp-signature"] = signature["x-fp-signature"] || signature["headers"]["x-fp-signature"];
     // config.headers["fp-sdk-version"] = version;
     return config;
   };

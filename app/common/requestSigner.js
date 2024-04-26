@@ -34,7 +34,7 @@ const HEADERS_TO_IGNORE = {
   'range': true,
 };
 
-const HEADERS_TO_INCLUDE = ["x\-ptl\-.*", "host"];
+const HEADERS_TO_INCLUDE = ["x\-fp\-.*", "host"];
 
 // request: { path | body, [host], [method], [headers], [service], [region] }
 class RequestSigner {
@@ -74,23 +74,23 @@ class RequestSigner {
 
       this.parsedPath.query = query = this.parsedPath.query || { };
 
-      if (query['x-ptl-date']) {
-        this.datetime = query['x-ptl-date'];
+      if (query['x-fp-date']) {
+        this.datetime = query['x-fp-date'];
       } else {
-        query['x-ptl-date'] = this.getDateTime();
+        query['x-fp-date'] = this.getDateTime();
       }
     } else {
 
       if (!request.doNotModifyHeaders) {
-        if (headers['x-ptl-date']) {
-          this.datetime = headers['x-ptl-date'] || headers['x-ptl-date'];
+        if (headers['x-fp-date']) {
+          this.datetime = headers['x-fp-date'] || headers['x-fp-date'];
         } else {
-          headers['x-ptl-date'] = this.getDateTime();
+          headers['x-fp-date'] = this.getDateTime();
         }
       }
 
-      delete headers["x-ptl-signature"];
-      delete headers["x-ptl-Signature"];
+      delete headers["x-fp-signature"];
+      delete headers["x-fp-Signature"];
     }
   }
 
@@ -99,9 +99,9 @@ class RequestSigner {
       this.prepareRequest();
     }
     if (this.request.signQuery) {
-      this.parsedPath.query['x-ptl-signature'] = this.signature(this.request.secret);
+      this.parsedPath.query['x-fp-signature'] = this.signature(this.request.secret);
     } else {
-      this.request.headers['x-ptl-signature'] = this.signature(this.request.secret);
+      this.request.headers['x-fp-signature'] = this.signature(this.request.secret);
     }
     this.request.path = this.formatPath();
     return this.request;

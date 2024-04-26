@@ -6,11 +6,12 @@ const Session = require("../extension/session");
 const { SESSION_COOKIE_NAME } = require("../extension/constants");
 const { v4: uuidv4 } = require("uuid");
 const SessionStorage = require("../extension/sessionStorage");
-const { getExtensionInstanceHandler } = require("../extension/extension");
+const { getExtensionInstanceHandler, configData } = require("../extension/extension");
 const { logger } = require("../common/logger");
 
-exports.extensionInstallController = asyncHandler(async (req, res, next) => {
-    let ext = getExtensionInstanceHandler();
+let ext = getExtensionInstanceHandler();
+const extensionInstallController = asyncHandler(async (req, res, next) => {
+    ext.initialize(configData);
     {
         // ?company_id=1&client_id=123313112122
         try {
@@ -73,3 +74,7 @@ exports.extensionInstallController = asyncHandler(async (req, res, next) => {
     }
     res.status(httpStatus.CREATED).json({"success": true});
 });
+
+module.exports = {
+    extensionInstallController: extensionInstallController
+}
