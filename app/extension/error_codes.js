@@ -60,6 +60,18 @@ class ServerResponseError extends Error {
     }
   }
 
+class OAuthCodeError extends Error {
+    constructor(message) {
+        super(message);
+    }
+  }
+
+  class TokenIssueError extends Error{
+    constructor(message){
+        super(message);
+  }
+}
+
 
 module.exports = {
     InvalidExtensionConfig,
@@ -71,5 +83,7 @@ module.exports = {
     WebhookRegistrationError,
     WebhookProcessError,
     WebhookHandlerNotFound,
-    ServerResponseError
+    ServerResponseError,
+    OAuthCodeError,
+    TokenIssueError
 };

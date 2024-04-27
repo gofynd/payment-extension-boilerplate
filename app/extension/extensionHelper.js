@@ -3,6 +3,7 @@ const urljoin = require('url-join');
 const { Logger } = require("../common/logger")
 const querystring = require("query-string");
 const { sign } = require("../common/requestSigner");
+const { OAuthCodeError } = require("./error_codes");
 
 function startAuthorization(options) {
     Logger({ level: "INFO", message: "Starting Authorization..." });
@@ -41,7 +42,44 @@ function getAuthCallback(base_url) {
     return urljoin(base_url, "/fp/auth");
 }
 
+async function getAccessToken() {
+    if (
+      !this.useAutoRenewTimer &&
+      this.refreshToken &&
+      this.isTokenExpired(120)
+    ) {
+      // Check if token is about to expire in less than 2 mins.
+      // Renew if to be expired and auto renew timer is not enabled.
+      await this.renewAccessToken();
+    }
+    return this.token;
+  }
+
+async function verifyCallback(query) {
+    if (query.error) {
+      throw new OAuthCodeError(query.error_description, {
+        error: query.error,
+      });
+    }
+  
+    try {
+      let res = await getAccessToken({
+        grant_type: "authorization_code",
+        code: query.code,
+      });
+      setToken(res);
+      token_expires_at = new Date().getTime() + token_expires_in * 1000;
+    } catch (error) {
+      if (error.isAxiosError) {
+        throw new FDKTokenIssueError(error.message);
+      }
+      throw error;
+    }
+  }
+  
+
 module.exports = {
     startAuthorization: startAuthorization,
-    getAuthCallback: getAuthCallback
+    getAuthCallback: getAuthCallback,
+    verifyCallback: verifyCallback
 };
