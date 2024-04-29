@@ -7,7 +7,7 @@ const { SESSION_COOKIE_NAME } = require("../extension/constants");
 const { v4: uuidv4 } = require("uuid");
 const SessionStorage = require("../extension/sessionStorage");
 const { getExtensionInstanceHandler, configData } = require("../extension/extension");
-const { logger } = require("../common/logger");
+const logger = require("../common/logger")
 const { SessionNotFoundError, InvalidOAuthError } = require("../extension/error_codes");
 const OAuthClient = require("../extension/oauthClient");
 
@@ -68,13 +68,13 @@ const extensionInstallController = asyncHandler(async (req, res, next) => {
                 access_mode: 'online' // Always generate online mode token for extension launch
             });
             await SessionStorage.saveSession(session);
-            logger.debug(`Redirecting after install callback to url: ${redirectUrl}`);
+            logger.info(`Redirecting after install callback to url: ${redirectUrl}`);
             res.redirect(redirectUrl);
         } catch (error) {
             next(error);
         }
     }
-    res.status(httpStatus.CREATED).json({"success": true});
+    // res.status(httpStatus.CREATED).json({"success": true});
 });
 
 const extensionAuthController = asyncHandler(async (req, res, next) => {
@@ -155,7 +155,28 @@ const extensionAuthController = asyncHandler(async (req, res, next) => {
     }
 });
 
+const extensionUninstallController = asyncHandler(async (req, res, next) => {
+    try {
+        let { company_id } = req.body;
+        let sid;
+        if (!ext.isOnlineAccessMode()) {
+            sid = Session.generateSessionId(false, {
+                cluster: ext.cluster,
+                companyId: company_id
+            });
+            await SessionStorage.deleteSession(sid);
+        }
+        req.extension = ext;
+        await ext.callbacks.uninstall(req);
+        res.json({ success: true });
+    } catch (error) {
+        logger.error(error);
+        next(error);
+    }
+});
+
 module.exports = {
     extensionInstallController: extensionInstallController,
-    extensionAuthController: extensionAuthController
+    extensionAuthController: extensionAuthController,
+    extensionUninstallController: extensionUninstallController
 }

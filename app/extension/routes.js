@@ -5,7 +5,7 @@ const Session = require("./session");
 const SessionStorage = require("./sessionStorage");
 const { SessionNotFoundError, InvalidOAuthError } = require("./error_codes");
 const { SESSION_COOKIE_NAME } = require('./constants');
-const { sessionMiddleware } = require('./middleware');
+const { sessionMiddleware } = require('../middleware/middleware');
 const logger = require('../common/logger');
 const extensionRoutes = express.Router();
 
@@ -229,4 +229,4 @@ function setupRoutes(ext) {
 }
 
 
-module.exports = setupRoutes;
+module.exports = {setupRoutes};

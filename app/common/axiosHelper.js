@@ -4,9 +4,10 @@ const axios = require("axios");
 const querystring = require("query-string");
 const { sign } = require("./requestSigner");
 const { ServerResponseError } = require("../extension/error_codes");
-const { log, Logger, getLoggerLevel } = require("../common/logger");
+// const { log, Logger, getLoggerLevel } = require("../common/logger");
 const createCurl = require("./curlHelper");
 const { version } = require("../../package.json");
+const logger = require("../common/logger");
 axios.defaults.withCredentials = true;
 
 function getTransformer(config) {
@@ -97,17 +98,19 @@ AxiosHelper.interceptors.request.use(
         log.debug(curl);
       }
     } catch (error) {
-      Logger({ level: "ERROR", message: `Error Generating Curl: ${error}` });
+      // Logger({ level: "ERROR", message: `Error Generating Curl: ${error}` });
+      logger.error("Error Generating Curl: " + error);
     } finally {
       return request;
     }
   },
   function (error) {
-    Logger({
-      level: "ERROR",
-      message: error.data || error.message,
-      stack: error.data.stack || error.stack,
-    });
+    // Logger({
+    //   level: "ERROR",
+    //   message: error.data || error.message,
+    //   stack: error.data.stack || error.stack,
+    // });
+    logger.error(error.data || error.message);
   }
 );
 
@@ -117,12 +120,13 @@ AxiosHelper.interceptors.response.use(
     if (response.config.method == "head") {
       return response.headers;
     }
-    Logger({
-      level: "DEBUG",
-      type: "RESPONSE",
-      message: response.data,
-      url: response.config.url,
-    });
+    // Logger({
+    //   level: "DEBUG",
+    //   type: "RESPONSE",
+    //   message: response.data,
+    //   url: response.config.url,
+    // });
+    logger.info(`type: RESPONSE} | url: ${response.config.url}, message: ${response.data}`);
 
     if (response.config.responseHeaders) {
       return [response.data, response.headers];
@@ -132,10 +136,18 @@ AxiosHelper.interceptors.response.use(
   function (error) {
     if (error.response) {
       // Request made and server responded
-      Logger({
-        level: "ERROR",
-        message: error.response.data || error.message,
-        stack: error.response.data.stack || error.stack,
+      // Logger({
+      //   level: "ERROR",
+      //   message: error.response.data || error.message,
+      //   stack: error.response.data.stack || error.stack,
+      //   request: {
+      //     method: error.config.method,
+      //     url: error.config.url,
+      //     headers: error.config.headers,
+      //   },
+      // });
+      logger.error(error.data || error.message, {
+        stack: error.data ? error.data.stack : error.stack,
         request: {
           method: error.config.method,
           url: error.config.url,
@@ -151,10 +163,18 @@ AxiosHelper.interceptors.response.use(
       );
     } else if (error.request) {
       // The request was made but no error.response was received
-      Logger({
-        level: "ERROR",
-        message: error.data || error.message,
-        stack: error.data.stack || error.stack,
+      // Logger({
+      //   level: "ERROR",
+      //   message: error.data || error.message,
+      //   stack: error.data.stack || error.stack,
+      //   request: {
+      //     method: error.config.method,
+      //     url: error.config.url,
+      //     headers: error.config.headers,
+      //   },
+      // });
+      logger.error(error.data || error.message, {
+        stack: error.data ? error.data.stack : error.stack,
         request: {
           method: error.config.method,
           url: error.config.url,
@@ -169,7 +189,8 @@ AxiosHelper.interceptors.response.use(
       );
     } else {
       // Something happened in setting up the request that triggered an Error
-      Logger({ level: "ERROR", message: error.message });
+      // Logger({ level: "ERROR", message: error.message });
+      logger.error(error.message);
       throw new ServerResponseError(error.message, error.stack);
     }
   }

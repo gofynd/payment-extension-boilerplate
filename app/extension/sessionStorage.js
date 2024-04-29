@@ -1,6 +1,6 @@
 'use strict';
 const Session = require("./session");
-const { extension } = require("./extension");
+const { getExtensionInstanceHandler, configData } = require("./extension");
 const logger = require("../common/logger");
 const { redisClient } = require("../common/redis.init");
 const config = require("../config");
@@ -21,6 +21,8 @@ class SessionStorage {
     }
 
     static async getSession(sessionId) {
+        let extension = getExtensionInstanceHandler();
+        extension.initialize(configData);
         let session = await extension.storage.get(sessionId);
         if(session) {
             session = JSON.parse(session);

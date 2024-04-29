@@ -1,12 +1,14 @@
 const config = require("../config");
 const urljoin = require('url-join');
-const { Logger } = require("../common/logger")
+// const { Logger } = require("../common/logger")
 const querystring = require("query-string");
 const { sign } = require("../common/requestSigner");
 const { OAuthCodeError } = require("./error_codes");
+const logger = require("../common/logger");
 
 function startAuthorization(options) {
-    Logger({ level: "INFO", message: "Starting Authorization..." });
+    // Logger({ level: "INFO", message: "Starting Authorization..." });
+    logger.info("Starting Authorization...");
     let domain =  config.domain || "https://api.fynd.com"
     const query = {
         client_id: config.apiKey,
@@ -29,7 +31,8 @@ function startAuthorization(options) {
     const signature = sign(signingOptions, {
         signQuery: true,
     });
-    Logger({ level: "INFO", message: "Authorization successful.!" });
+    // Logger({ level: "INFO", message: "Authorization successful.!" });
+    logger.info("Authorization successful.!", { level: "info" });
     const urlObj = new URL(reqPath, domain);
     urlObj.searchParams.set("x-fp-date", signature["x-fp-date"]);
     urlObj.searchParams.set("x-fp-signature", signature["x-fp-signature"]);

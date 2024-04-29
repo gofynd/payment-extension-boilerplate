@@ -106,8 +106,14 @@ let config = convict({
     format: Number,
     default: 60 * 60 * 24 * 180,  // 180 days
     env: "GLOBAL_TTL"
+  },
+  domain: {
+    doc: 'Domain of the extension',
+    default: "https://api.fynd.com",
+    env: 'DOMAIN'
   }
 });
+
 
 // Perform validation
 config.validate({ allowed: "strict" });

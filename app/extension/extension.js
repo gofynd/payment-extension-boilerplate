@@ -4,7 +4,7 @@ const { InvalidExtensionConfig } = require("./error_codes");
 const urljoin = require('url-join');
 // const { PlatformConfig, PlatformClient } = require("@gofynd/fdk-client-javascript");
 const { WebhookRegistry } = require('./webhook');
-const logger = require('../common/logger');
+const logger = require("../common/logger");
 const { Secret } = require("../models/models");
 
 const { version } = require('../../package.json');
@@ -122,7 +122,7 @@ class Extension {
                 },
             };
             let extensionData = await AxiosHelper.request(rawRequest);
-            logger.debug(`Extension details received: ${logger.safeStringify(extensionData)}`);
+            logger.debug(`Extension details received: ${extensionData}`);
             return extensionData;
         } catch (err) {
             throw new InvalidExtensionConfig("Invalid api_key or api_secret. Reason:" + err.message);

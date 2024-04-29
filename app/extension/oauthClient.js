@@ -2,8 +2,9 @@ const querystring = require("query-string");
 const { AxiosHelper } = require("../common/axiosHelper");
 const { sign } = require("../common/requestSigner");
 const { TokenIssueError, OAuthCodeError } = require("./error_codes");
-const { Logger } = require("../common/logger");
+// const { Logger } = require("../common/logger");
 const { convertStringToBase64 } = require("../common/utils");
+const logger = require("../common/logger");
 
 const refreshTokenRequestCache = {};
 class OAuthClient {
@@ -50,11 +51,13 @@ class OAuthClient {
     if (this.refreshToken && this.useAutoRenewTimer) {
       this.retryOAuthToken(token.expires_in);
     }
-    Logger({ level: "INFO", message: "Token set." });
+    // Logger({ level: "INFO", message: "Token set." });
+    logger.info("Tokenset.");
   }
 
   retryOAuthToken(expires_in) {
-    Logger({ level: "INFO", message: "Retrying OAuth Token..." });
+    // Logger({ level: "INFO", message: "Retrying OAuth Token..." });
+    logger.info("Retrying OAuth Token...");
     if (this.retryOAuthTokenTimer) {
       clearTimeout(this.retryOAuthTokenTimer);
     }
@@ -66,7 +69,8 @@ class OAuthClient {
   }
 
   startAuthorization(options) {
-    Logger({ level: "INFO", message: "Starting Authorization..." });
+    // Logger({ level: "INFO", message: "Starting Authorization..." });
+    logger.info("Starting Authorization...");
     let query = {
       client_id: this.config.apiKey,
       scope: options.scope.join(","),
@@ -88,7 +92,8 @@ class OAuthClient {
     const signature = sign(signingOptions, {
       signQuery: true,
     });
-    Logger({ level: "INFO", message: "Authorization successful.!" });
+    // Logger({ level: "INFO", message: "Authorization successful.!" });
+    logger.info("Authorization successful.!");
     const urlObj = new URL(reqPath, this.config.domain);
     urlObj.searchParams.set("x-fp-date", signature["x-fp-date"]);
     urlObj.searchParams.set("x-fp-signature", signature["x-fp-signature"]);
@@ -121,7 +126,8 @@ class OAuthClient {
 
   async renewAccessToken(isOfflineToken = false) {
     try {
-      Logger({ level: "INFO", message: "Renewing Access token..." });
+      // Logger({ level: "INFO", message: "Renewing Access token..." });
+      logger.info("Renewing Access token...");
       let res;
       if (isOfflineToken) {
         let requestCacheKey = `${this.config.apiKey}:${this.config.companyId}`;
@@ -143,7 +149,8 @@ class OAuthClient {
       this.setToken(res);
       this.token_expires_at =
         new Date().getTime() + this.token_expires_in * 1000;
-      Logger({ level: "INFO", message: "Done." });
+      // Logger({ level: "INFO", message: "Done." });
+      logger.info("Done")
       return res;
     } catch (error) {
       if (error.isAxiosError) {
@@ -154,7 +161,8 @@ class OAuthClient {
   }
 
   async getAccesstokenObj({ grant_type, refresh_token, code }) {
-    Logger({ level: "INFO", message: "Processing Access token object..." });
+    // Logger({ level: "INFO", message: "Processing Access token object..." });
+    logger.info("Processing Access token object...");
     let reqData = {
       grant_type: grant_type,
     };
@@ -178,7 +186,8 @@ class OAuthClient {
         "Content-Type": "application/x-www-form-urlencoded",
       },
     };
-    Logger({ level: "INFO", message: "Done." });
+    // Logger({ level: "INFO", message: "Done." });
+    logger.info("Done");
     return AxiosHelper.request(rawRequest);
   }
 
@@ -222,4 +231,4 @@ class OAuthClient {
   }
 }
 
-module.exports = OAuthClient;
+module.exports = { OAuthClient: OAuthClient}
