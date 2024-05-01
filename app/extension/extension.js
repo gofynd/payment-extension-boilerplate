@@ -157,10 +157,9 @@ let data = {
 }
 
 function getExtensionInstanceHandler(req) {
-    return new Extension();
-    // let ext = new Extension();
-    // ext.initialize(data);
-    // return ext;
+    let ext = new Extension();
+    ext.initialize(data);
+    config.ext = ext;
 }
 
 // let extension = new Extension();
@@ -168,4 +167,3 @@ module.exports = {
     getExtensionInstanceHandler: getExtensionInstanceHandler,
     configData: data
 };
-

@@ -11,12 +11,10 @@ const logger = require("../common/logger")
 const { SessionNotFoundError, InvalidOAuthError } = require("../extension/error_codes");
 const OAuthClient = require("../extension/oauthClient");
 
-let ext = getExtensionInstanceHandler();
 const extensionInstallController = asyncHandler(async (req, res, next) => {
-    ext.initialize(configData);
-    {
         // ?company_id=1&client_id=123313112122
         try {
+            let ext = config.ext;
             let companyId = parseInt(req.query.company_id);
             // let platformConfig = ext.getPlatformConfig(companyId);
             let session;
@@ -65,7 +63,8 @@ const extensionInstallController = asyncHandler(async (req, res, next) => {
                 scope: session.scope,
                 redirectUri: authCallback,
                 state: session.state,
-                access_mode: 'online' // Always generate online mode token for extension launch
+                access_mode: 'online', // Always generate online mode token for extension launch
+                companyId: companyId
             });
             await SessionStorage.saveSession(session);
             logger.info(`Redirecting after install callback to url: ${redirectUrl}`);
@@ -73,7 +72,6 @@ const extensionInstallController = asyncHandler(async (req, res, next) => {
         } catch (error) {
             next(error);
         }
-    }
     // res.status(httpStatus.CREATED).json({"success": true});
 });
 

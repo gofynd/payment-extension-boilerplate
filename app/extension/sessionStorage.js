@@ -21,8 +21,8 @@ class SessionStorage {
     }
 
     static async getSession(sessionId) {
-        let extension = getExtensionInstanceHandler();
-        extension.initialize(configData);
+        let extension = config.ext;
+        // extension.initialize(configData);
         let session = await extension.storage.get(sessionId);
         if(session) {
             session = JSON.parse(session);
@@ -35,6 +35,7 @@ class SessionStorage {
     }
 
     static async deleteSession(sessionId) {
+        let extension = config.ext;
         return extension.storage.del(sessionId);
     }
 }

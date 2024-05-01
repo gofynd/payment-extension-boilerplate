@@ -20,7 +20,7 @@ class OAuthClient {
       config.useAutoRenewTimer !== undefined ? config.useAutoRenewTimer : true;
   }
 
-  async getAccessToken() {
+  getAccessToken() {
     if (
       !this.useAutoRenewTimer &&
       this.refreshToken &&
@@ -28,7 +28,7 @@ class OAuthClient {
     ) {
       // Check if token is about to expire in less than 2 mins.
       // Renew if to be expired and auto renew timer is not enabled.
-      await this.renewAccessToken();
+      this.renewAccessToken();
     }
     return this.token;
   }
@@ -80,8 +80,9 @@ class OAuthClient {
       response_type: "code",
     };
     const queryString = querystring.stringify(query);
+    const companyId = options.companyId;
 
-    let reqPath = `/service/panel/authentication/v1.0/company/${this.config.companyId}/oauth/authorize?${queryString}`;
+    let reqPath = `/service/panel/authentication/v1.0/company/${companyId}/oauth/authorize?${queryString}`;
     let signingOptions = {
       method: "GET",
       host: new URL(this.config.domain).host,
@@ -95,8 +96,8 @@ class OAuthClient {
     // Logger({ level: "INFO", message: "Authorization successful.!" });
     logger.info("Authorization successful.!");
     const urlObj = new URL(reqPath, this.config.domain);
-    urlObj.searchParams.set("x-fp-date", signature["x-fp-date"]);
-    urlObj.searchParams.set("x-fp-signature", signature["x-fp-signature"]);
+    urlObj.searchParams.set("x-fp-date", signature["x-fp-date"] || signature.headers["x-fp-date"]);
+    urlObj.searchParams.set("x-fp-signature", signature["x-fp-signature"] || signature.headers["x-fp-signature"]);
 
     return urlObj.href;
   }
@@ -231,4 +232,4 @@ class OAuthClient {
   }
 }
 
-module.exports = { OAuthClient: OAuthClient}
+module.exports = OAuthClient;
