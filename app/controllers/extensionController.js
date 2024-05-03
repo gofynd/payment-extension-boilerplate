@@ -6,7 +6,6 @@ const Session = require("../extension/session");
 const { SESSION_COOKIE_NAME } = require("../extension/constants");
 const { v4: uuidv4 } = require("uuid");
 const SessionStorage = require("../extension/sessionStorage");
-const { getExtensionInstanceHandler, configData } = require("../extension/extension");
 const logger = require("../common/logger")
 const { SessionNotFoundError, InvalidOAuthError } = require("../extension/error_codes");
 const OAuthClient = require("../extension/oauthClient");
@@ -160,6 +159,7 @@ const extensionAuthController = asyncHandler(async (req, res, next) => {
 
 const extensionUninstallController = asyncHandler(async (req, res, next) => {
     try {
+        const ext = config.ext;
         let { company_id } = req.body;
         let sid;
         if (!ext.isOnlineAccessMode()) {

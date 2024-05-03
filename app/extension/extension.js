@@ -2,14 +2,12 @@
 const validator = require('validator');
 const { InvalidExtensionConfig } = require("./error_codes");
 const urljoin = require('url-join');
-// const { PlatformConfig, PlatformClient } = require("@gofynd/fdk-client-javascript");
 const { WebhookRegistry } = require('./webhook');
 const logger = require("../common/logger");
 const { Secret } = require("../models/models");
 
 const { version } = require('../../package.json');
 const { AxiosHelper } = require('../common/axiosHelper');
-const asyncHandler = require("express-async-handler");
 
 const config =  require("../config");
 const { RedisStorage } = require("../storage/index");
@@ -97,10 +95,6 @@ class Extension {
         return scopes;
     }
 
-    getAuthCallback() {
-        return urljoin(this.base_url, "/fp/auth");
-    }
-
     isOnlineAccessMode() {
         return this.access_mode === 'online';
     }
@@ -145,8 +139,7 @@ let data = {
             // Writee you code here to return initial launch url after suth process complete
             console.log(`Authorized extension for ${req.query['company_id']}`)
             console.log(req.extension.base_url);
-            return `${req.extension.base_url}/company/${req.query['company_id']}`;
-            // return `${req.extension.base_url}/company/${req.query['company_id']}/application/${req.query['application_id']}`;
+            return `${req.extension.base_url}/company/${req.query['company_id']}/application/${req.query['application_id']}`;
         },
         
         uninstall: deleteCredentialsHandler

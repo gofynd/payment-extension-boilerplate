@@ -423,7 +423,7 @@ class AggregatorProcessor {
         // const applicationClient = platformClient.application(order.app_id);
         // const sdkResponse = await applicationClient.payment.updatePaymentSession({gid: order.gid, body: payload});
         
-         const token = generateToken();
+        const token = generateToken(config.extension.api_key, config.extension.api_secret);
           const rawRequest = {
             method: "put",
             url: `${config.extension.fp_api_server}/service/platform/payment/v1.0/company/${config.companyId}/application/${order.app_id}/payment/session/${order.gid}`,

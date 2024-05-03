@@ -1,8 +1,11 @@
 const { httpStatus } = require("../../constants");
 const { AuthorizationError } = require("../common/customError");
 const config = require("../config");
+const { generateToken } = require("../extension/extensionHelper");
 // const { fdkExtension } = require("../fdk/index")
 const { getHashChecksum, getHmacChecksum } = require("../utils/signatureUtils");
+const { version } = require('../../package.json');
+const { AxiosHelper } = require("../common/axiosHelper");
 
 const verifyPlatformChecksum = (req, res, next) => {
     const request_payload = req.body;
@@ -43,8 +46,20 @@ const verifyApplicationId = async (req, res, next) => {
     const companyId = req.headers['x-company-id'];
 
     try {
-        let platformClient = await fdkExtension.getPlatformClient(companyId);
-        const response = await platformClient.application(applicationId).configuration.getApplicationById();
+        // let platformClient = await fdkExtension.getPlatformClient(companyId);
+        // const response = await platformClient.application(applicationId).configuration.getApplicationById();
+        const token = generateToken(config.extension.api_key, config.extension.api_secret);
+        const rawRequest = {
+            method: "get",
+            url: `${config.extension.fp_api_server}/service/platform/configuration/v1.0/company/${companyId}/application/${req.headers['x-application-id']}`,
+            headers: {
+                Authorization: `Basic ${token}`,
+                "Content-Type": "application/json",
+                'x-ext-lib-version': `js/${version}`
+            },
+            params: {}
+        };
+        let response = await AxiosHelper.request(rawRequest);
         if (response.company_id == companyId) {
             next();
         }
