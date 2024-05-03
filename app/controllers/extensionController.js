@@ -1,7 +1,7 @@
 const asyncHandler = require("express-async-handler");
 const { httpStatus } = require("../../constants");
 const config =  require("../config");
-const { startAuthorization, getAuthCallback } = require("../extension/extensionHelper");
+const { getAuthCallback } = require("../extension/extensionHelper");
 const Session = require("../extension/session");
 const { SESSION_COOKIE_NAME } = require("../extension/constants");
 const { v4: uuidv4 } = require("uuid");
@@ -16,6 +16,8 @@ const extensionInstallController = asyncHandler(async (req, res, next) => {
         try {
             let ext = config.ext;
             let companyId = parseInt(req.query.company_id);
+            // config.companyId = companyId;
+            // config.applicationId = req.query.client_id;
             // let platformConfig = ext.getPlatformConfig(companyId);
             let session;
 
@@ -52,6 +54,8 @@ const extensionInstallController = asyncHandler(async (req, res, next) => {
 
             session.state = uuidv4();
 
+            const oauthConfig = {companyId: companyId, domain: config.domain || "https://api.fynd.com", apiKey: config.extension.api_key, apiSecret: config.extension.api_secret};
+            const oauthClient = new OAuthClient(oauthConfig);
             // pass application id if received
             let authCallback = getAuthCallback(config.extension.base_url);
             if (req.query.application_id) {
@@ -59,7 +63,7 @@ const extensionInstallController = asyncHandler(async (req, res, next) => {
             }
 
             // start authorization flow 
-            redirectUrl = startAuthorization({
+            redirectUrl = oauthClient.startAuthorization({
                 scope: session.scope,
                 redirectUri: authCallback,
                 state: session.state,
@@ -90,6 +94,7 @@ const extensionAuthController = asyncHandler(async (req, res, next) => {
         const oauthConfig = {companyId: companyId, domain: config.domain || "https://api.fynd.com", apiKey: config.extension.api_key, apiSecret: config.extension.api_secret};
         const oauthClient = new OAuthClient(oauthConfig);
         await oauthClient.verifyCallback(req.query);
+        let ext = config.ext;
 
         let token = oauthClient.raw_token;
         let sessionExpires = new Date(Date.now() + token.expires_in * 1000);
@@ -120,7 +125,7 @@ const extensionAuthController = asyncHandler(async (req, res, next) => {
             session.scope = ext.scopes;
             session.state = req.extSession.state;
             session.extension_id = ext.api_key;
-            offlineTokenRes.access_token_validity = platformConfig.oauthClient.token_expires_at;
+            offlineTokenRes.access_token_validity = oauthClient.token_expires_at;
             offlineTokenRes.access_mode = 'offline';
             session.updateToken(offlineTokenRes);
 

@@ -1,7 +1,7 @@
 const { httpStatus } = require("../../constants");
 const { AuthorizationError } = require("../common/customError");
 const config = require("../config");
-const { fdkExtension } = require("../fdk/index")
+// const { fdkExtension } = require("../fdk/index")
 const { getHashChecksum, getHmacChecksum } = require("../utils/signatureUtils");
 
 const verifyPlatformChecksum = (req, res, next) => {

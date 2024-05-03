@@ -68,9 +68,42 @@ class OAuthClient {
     }
   }
 
+  // startAuthorization(options) {
+  //   // Logger({ level: "INFO", message: "Starting Authorization..." });
+  //   logger.info("Starting Authorization...");
+  //   let query = {
+  //     client_id: this.config.apiKey,
+  //     scope: options.scope.join(","),
+  //     redirect_uri: options.redirectUri,
+  //     state: options.state,
+  //     access_mode: options.access_mode,
+  //     response_type: "code",
+  //   };
+  //   const queryString = querystring.stringify(query);
+  //   const companyId = options.companyId;
+
+  //   let reqPath = `/service/panel/authentication/v1.0/company/${companyId}/oauth/authorize?${queryString}`;
+  //   let signingOptions = {
+  //     method: "GET",
+  //     host: new URL(this.config.domain).host,
+  //     path: reqPath,
+  //     body: null,
+  //     headers: {},
+  //   };
+  //   const signature = sign(signingOptions, {
+  //     signQuery: true,
+  //   });
+  //   // Logger({ level: "INFO", message: "Authorization successful.!" });
+  //   logger.info("Authorization successful.!");
+  //   const urlObj = new URL(reqPath, this.config.domain);
+  //   urlObj.searchParams.set("x-fp-date", signature["x-fp-date"] || signature.headers["x-fp-date"]);
+  //   urlObj.searchParams.set("x-fp-signature", signature["x-fp-signature"] || signature.headers["x-fp-signature"]);
+
+  //   return urlObj.href;
+  // }
+
   startAuthorization(options) {
-    // Logger({ level: "INFO", message: "Starting Authorization..." });
-    logger.info("Starting Authorization...");
+    // Logger({ type: "INFO", message: "Starting Authorization..." });
     let query = {
       client_id: this.config.apiKey,
       scope: options.scope.join(","),
@@ -80,26 +113,20 @@ class OAuthClient {
       response_type: "code",
     };
     const queryString = querystring.stringify(query);
-    const companyId = options.companyId;
 
-    let reqPath = `/service/panel/authentication/v1.0/company/${companyId}/oauth/authorize?${queryString}`;
+    let reqPath = `/service/panel/authentication/v1.0/company/${this.config.companyId}/oauth/authorize?${queryString}`;
     let signingOptions = {
       method: "GET",
       host: new URL(this.config.domain).host,
       path: reqPath,
       body: null,
       headers: {},
-    };
-    const signature = sign(signingOptions, {
       signQuery: true,
-    });
-    // Logger({ level: "INFO", message: "Authorization successful.!" });
-    logger.info("Authorization successful.!");
-    const urlObj = new URL(reqPath, this.config.domain);
-    urlObj.searchParams.set("x-fp-date", signature["x-fp-date"] || signature.headers["x-fp-date"]);
-    urlObj.searchParams.set("x-fp-signature", signature["x-fp-signature"] || signature.headers["x-fp-signature"]);
+    };
+    signingOptions = sign(signingOptions);
+    // Logger({ type: "INFO", message: "Authorization successful.!" });
 
-    return urlObj.href;
+    return `${this.config.domain}${signingOptions.path}`;
   }
 
   async verifyCallback(query) {

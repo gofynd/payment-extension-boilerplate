@@ -5,11 +5,12 @@ const AggregatorProcessor = require("../services/processor");
 const asyncHandler = require("express-async-handler");
 const { httpStatus, ActionType } = require("../../constants");
 const logger = require("../common/logger");
-
+const config = require("../config");
 //@desc create order aggregator
 //@route POST /api/v1/payment_session/:gid
 //@access public
 exports.createOrderHandler = asyncHandler(async (req, res, next) => {
+    config.companyId = req.headers['x-company-id'];
     let request_payload = req.body;
     const instance = new AggregatorProcessor();
     const response = await instance.createOrder(request_payload);

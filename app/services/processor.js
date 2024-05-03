@@ -5,11 +5,12 @@ const Aggregator = require("./aggregators/aggregator");
 const { Order, Transaction, User } = require("../models/models");
 const { BadRequestError, NotFoundError, AuthorizationError } = require("../common/customError");
 const { Settings, httpStatus, ActionType } = require("../../constants");
-const { fdkExtension } = require("../fdk/index")
+// const { fdkExtension } = require("../fdk/index")
 const { getHmacChecksum, compareHashDigest } = require("../utils/signatureUtils");
 const config = require("../config");
 const removeTrailingSlash = require("../utils/commonUtils");
-
+const { generateToken } = require("../extension/extensionHelper");
+const { version } = require('../../package.json');
 
 class AggregatorFactory {
 
@@ -418,12 +419,27 @@ class AggregatorProcessor {
 
         logger.info("Updating Payment status on Platform: %O", JSON.stringify(payload));
 
-        let platformClient = await fdkExtension.getPlatformClient(order.meta.request.company_id);
-        const applicationClient = platformClient.application(order.app_id);
-        const sdkResponse = await applicationClient.payment.updatePaymentSession({gid: order.gid, body: payload});
+        // let platformClient = await fdkExtension.getPlatformClient(order.meta.request.company_id);
+        // const applicationClient = platformClient.application(order.app_id);
+        // const sdkResponse = await applicationClient.payment.updatePaymentSession({gid: order.gid, body: payload});
+        
+         const token = generateToken();
+          const rawRequest = {
+            method: "put",
+            url: `${config.extension.fp_api_server}/service/platform/payment/v1.0/company/${config.companyId}/application/${order.app_id}/payment/session/${order.gid}`,
+            headers: {
+                Authorization: `Basic ${token}`,
+                "Content-Type": "application/json",
+                'x-ext-lib-version': `js/${version}`
+            },
+            data: payload
+        };
+        rawRequest = JSON.parse(JSON.stringify(rawRequest));
+        let updatePaymentSessionResponse = await AxiosHelper.request(rawRequest);
+
 
         logger.info(
-            "updatePlatformPaymentStatus[%s] Platform Syncing response: %O", source, JSON.stringify(sdkResponse)
+            "updatePlatformPaymentStatus[%s] Platform Syncing response: %O", source, JSON.stringify(updatePaymentSessionResponse)
         );
     }
 
@@ -517,11 +533,25 @@ class AggregatorProcessor {
 
         logger.info("Updating Refund status on Platform: %O", JSON.stringify(payload));
 
-        let platformClient = await fdkExtension.getPlatformClient(order.meta.request.company_id);
-        const applicationClient = platformClient.application(order.app_id);
-        const sdkResponse = await applicationClient.payment.updateRefundSession({gid: order.gid, requestId: transaction.refund_request_id, body: payload});
+        // let platformClient = await fdkExtension.getPlatformClient(order.meta.request.company_id);
+        // const applicationClient = platformClient.application(order.app_id);
+        // const sdkResponse = await applicationClient.payment.updateRefundSession({gid: order.gid, requestId: transaction.refund_request_id, body: payload});
+        
+        const token = generateToken(config.extension.api_key, config.extension.api_secret);
+         const rawRequest = {
+           method: "put",
+           url: `${config.extension.fp_api_server}/service/platform/payment/v1.0/company/${config.companyId}/application/${order.app_id}/payment/${order.gid}/refund/session/${transaction.refund_request_id}`,
+           headers: {
+               Authorization: `Basic ${token}`,
+               "Content-Type": "application/json",
+               'x-ext-lib-version': `js/${version}`
+           },
+           data: payload 
+       };
+       rawRequest = JSON.parse(JSON.stringify(rawRequest));
+       let updateRefundSessionResponse = await AxiosHelper.request(rawRequest);
         logger.info(
-            "updatePlatformRefundStatus[%s] Platform Syncing response: %O", source, JSON.stringify(sdkResponse)
+            "updatePlatformRefundStatus[%s] Platform Syncing response: %O", source, JSON.stringify(updateRefundSessionResponse)
         );
     }
 

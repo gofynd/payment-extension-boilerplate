@@ -41,6 +41,40 @@ function startAuthorization(options) {
     return urlObj.href;
 }
 
+async function renewAccessToken(isOfflineToken = false) {
+  try {
+    // Logger({ level: "INFO", message: "Renewing Access token..." });
+    logger.info("Renewing Access token...");
+    let res;
+    if (isOfflineToken) {
+      let requestCacheKey = `${this.config.apiKey}:${this.config.companyId}`;
+      if (!refreshTokenRequestCache[requestCacheKey]) {
+        refreshTokenRequestCache[requestCacheKey] = await getAccesstokenObj({
+          grant_type: "refresh_token",
+          refresh_token: this.refreshToken,
+        });
+      }
+      res = await refreshTokenRequestCache[requestCacheKey].finally(() => {
+        delete refreshTokenRequestCache[requestCacheKey];
+      });
+    } else {
+      res = await getAccesstokenObj({
+        grant_type: "refresh_token",
+        refresh_token: this.refreshToken,
+      });
+    }
+    this.setToken(res);
+    this.token_expires_at =
+      new Date().getTime() + this.token_expires_in * 1000;
+    Logger({ level: "INFO", message: "Done." });
+    return res;
+  } catch (error) {
+    if (error.isAxiosError) {
+      throw new FDKTokenIssueError(error.message);
+    }
+    throw error;
+  }
+}
 
 function getAuthCallback(base_url) {
     return urljoin(base_url, "/fp/auth");
@@ -81,9 +115,14 @@ async function verifyCallback(query) {
     }
   }
   
+function generateToken(apiKey, apiSecret) {
+    const token = Buffer.from(`${apiKey}:${apiSecret}`, "utf8").toString("base64");
+    return token;
+}
 
 module.exports = {
     startAuthorization: startAuthorization,
     getAuthCallback: getAuthCallback,
-    verifyCallback: verifyCallback
+    verifyCallback: verifyCallback,
+    generateToken: generateToken,
 };

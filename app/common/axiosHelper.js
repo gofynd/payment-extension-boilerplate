@@ -8,6 +8,8 @@ const { ServerResponseError } = require("../extension/error_codes");
 const createCurl = require("./curlHelper");
 const { version } = require("../../package.json");
 const logger = require("../common/logger");
+const log = require("loglevel");
+
 axios.defaults.withCredentials = true;
 
 function getTransformer(config) {
@@ -92,7 +94,7 @@ const AxiosHelper = axios.create({
 AxiosHelper.interceptors.request.use(
   function (request) {
     try {
-      const logLevel = getLoggerLevel();
+      const logLevel = log.getLevel();
       if (logLevel <= log.levels.DEBUG) {
         const curl = createCurl(request);
         log.debug(curl);
@@ -195,6 +197,32 @@ AxiosHelper.interceptors.response.use(
     }
   }
 );
+
+async function execute(conf, method, url, query, body, xHeaders, options) {
+  const token = await conf.oauthClient.getAccessToken();
+
+  const extraHeaders = conf.extraHeaders.reduce((acc, curr) => {
+    acc = { ...acc, ...curr };
+    return acc;
+  }, {});
+
+  let rawRequest = {
+    baseURL: conf.domain,
+    method: method,
+    url: url,
+    params: query,
+    data: body,
+    headers: {
+      Authorization: "Bearer " + token,
+      ...extraHeaders,
+      ...xHeaders,
+    },
+    responseHeaders: options.responseHeaders,
+  };
+  rawRequest = JSON.parse(JSON.stringify(rawRequest));
+
+  return fdkAxios.request(rawRequest);
+}
 
 module.exports = {
   AxiosHelper,

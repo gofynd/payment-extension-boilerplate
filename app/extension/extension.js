@@ -145,7 +145,8 @@ let data = {
             // Writee you code here to return initial launch url after suth process complete
             console.log(`Authorized extension for ${req.query['company_id']}`)
             console.log(req.extension.base_url);
-            return `${req.extension.base_url}/company/${req.query['company_id']}/application/${req.query['application_id']}`;
+            return `${req.extension.base_url}/company/${req.query['company_id']}`;
+            // return `${req.extension.base_url}/company/${req.query['company_id']}/application/${req.query['application_id']}`;
         },
         
         uninstall: deleteCredentialsHandler
