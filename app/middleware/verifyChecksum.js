@@ -43,9 +43,10 @@ const verifyExtensionAuth = (req, res, next) => {
 
 const verifyApplicationId = async (req, res, next) => {
     const applicationId = req.params.app_id;
-    const companyId = req.headers['x-company-id'];
+    const companyId = req.headers['x-company-id'] || req.params.company_id;
 
     try {
+        // TODO: Remove the fdk call use API call instead, API is giving unauthorized response for now.
         // let platformClient = await fdkExtension.getPlatformClient(companyId);
         // const response = await platformClient.application(applicationId).configuration.getApplicationById();
         const token = generateToken(config.extension.api_key, config.extension.api_secret);

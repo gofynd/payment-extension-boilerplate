@@ -21,7 +21,7 @@ const CREDENTIAL_FIELDS = [
 //@access private TODO: add auth
 exports.createSecretsHandler = asyncHandler(async (req, res, next) => {
     let app_id = req.headers['x-application-id'];
-    let creds = req.body.data;
+    let creds = req.body.data || req.body;
     let data = {};
     for (var i=0;i<creds.length;i++){
         data[creds[i].slug] = creds[i].value;

@@ -11,7 +11,7 @@ class WebhookRegistry {
     constructor() {
         this._handlerMap = null;
         this._config = null;
-        this._fdkConfig = null;
+        this._extConfig = null;
     }
 
     async initialize(config, fdkConfig) {
@@ -28,7 +28,7 @@ class WebhookRegistry {
         config.subscribe_on_install = config.subscribe_on_install === undefined ? true : config.subscribe_on_install;
         this._handlerMap = {};
         this._config = config;
-        this._fdkConfig = fdkConfig;
+        this._extConfig = fdkConfig;
 
         const handlerConfig = {};
 
@@ -84,7 +84,7 @@ class WebhookRegistry {
     }
 
     get _webhookUrl() {
-        return `${this._fdkConfig.base_url}${this._config.api_path}`;
+        return `${this._extConfig.base_url}${this._config.api_path}`;
     }
 
     _isConfigUpdated(subscriberConfig) {
@@ -115,7 +115,7 @@ class WebhookRegistry {
 
     async syncEvents(platformClient, config = null, enableWebhooks) {
         if (config) {
-            await this.initialize(config, this._fdkConfig);
+            await this.initialize(config, this._extConfig);
         }
         if (!this.isInitialized){
             throw new InvalidWebhookConfig('Webhook registry not initialized');
@@ -130,7 +130,7 @@ class WebhookRegistry {
 
         if (!subscriberConfig) {
             subscriberConfig = {
-                "name": this._fdkConfig.api_key,
+                "name": this._extConfig.api_key,
                 "webhook_url": this._webhookUrl,
                 "association": {
                     "company_id": platformClient.config.companyId,
@@ -140,7 +140,7 @@ class WebhookRegistry {
                 "status": "active",
                 "auth_meta": {
                     "type": "hmac",
-                    "secret": this._fdkConfig.api_secret
+                    "secret": this._extConfig.api_secret
                 },
                 "event_id": [],
                 "email_id": this._config.notification_email
@@ -156,8 +156,8 @@ class WebhookRegistry {
             subscriberConfig = { id, name, webhook_url, association, status, auth_meta, email_id };
             subscriberConfig.event_id = [];
             existingEvents = event_configs.map(event => event.id);
-            if (auth_meta.secret !== this._fdkConfig.api_secret) {
-                auth_meta.secret = this._fdkConfig.api_secret;
+            if (auth_meta.secret !== this._extConfig.api_secret) {
+                auth_meta.secret = this._extConfig.api_secret;
                 configUpdated = true;
             }
             if (enableWebhooks !== undefined) {
@@ -179,7 +179,7 @@ class WebhookRegistry {
         try {
             if (registerNew) {
                 await platformClient.webhook.registerSubscriberToEvent({ body: subscriberConfig });
-                if (this._fdkConfig.debug) {
+                if (this._extConfig.debug) {
                     const event_map = Object.keys(eventConfig.eventsMap).reduce((map, eventName) => {
                         map[eventConfig.eventsMap[eventName]] = eventName;
                         return map;
@@ -196,7 +196,7 @@ class WebhookRegistry {
 
                 if (eventDiff.length || configUpdated) {
                     await platformClient.webhook.updateSubscriberConfig({ body: subscriberConfig });
-                    if (this._fdkConfig.debug) {
+                    if (this._extConfig.debug) {
                         const event_map = Object.keys(eventConfig.eventsMap).reduce((map, eventName) => {
                             map[eventConfig.eventsMap[eventName]] = eventName;
                             return map;
@@ -277,7 +277,7 @@ class WebhookRegistry {
     verifySignature(req) {
         const reqSignature = req.headers['x-fp-signature'];
         const { body } = req;
-        const calcSignature = hmacSHA256(JSON.stringify(body), this._fdkConfig.api_secret).toString();
+        const calcSignature = hmacSHA256(JSON.stringify(body), this._extConfig.api_secret).toString();
         if (reqSignature !== calcSignature) {
             throw new InvalidHMacError(`Signature passed does not match calculated body signature`);
         }
@@ -317,7 +317,7 @@ class WebhookRegistry {
 
     async getSubscriberConfig(platformClient) {
         try {
-            const subscriberConfig = await platformClient.webhook.getSubscribersByExtensionId({ extensionId: this._fdkConfig.api_key });
+            const subscriberConfig = await platformClient.webhook.getSubscribersByExtensionId({ extensionId: this._extConfig.api_key });
             return subscriberConfig.items[0];
         }
         catch(err){
@@ -340,7 +340,7 @@ class WebhookRegistry {
                 eventObj.version = handlerConfig[key].version;
                 data.push(eventObj);
             });
-            let url = `${this._fdkConfig.cluster}/service/common/webhook/v1.0/events/query-event-details`;
+            let url = `${this._extConfig.cluster}/service/common/webhook/v1.0/events/query-event-details`;
             const rawRequest = {
                 method: "post",
                 url: url,
