@@ -3,7 +3,7 @@ const urljoin = require('url-join');
 // const { Logger } = require("../common/logger")
 const querystring = require("query-string");
 const { sign } = require("../common/requestSigner");
-const { OAuthCodeError } = require("./error_codes");
+const { OAuthCodeError, TokenIssueError } = require("./error_codes");
 const logger = require("../common/logger");
 
 function startAuthorization(options) {
@@ -70,7 +70,7 @@ async function renewAccessToken(isOfflineToken = false) {
     return res;
   } catch (error) {
     if (error.isAxiosError) {
-      throw new FDKTokenIssueError(error.message);
+      throw new TokenIssueError(error.message);
     }
     throw error;
   }
@@ -109,7 +109,7 @@ async function verifyCallback(query) {
       token_expires_at = new Date().getTime() + token_expires_in * 1000;
     } catch (error) {
       if (error.isAxiosError) {
-        throw new FDKTokenIssueError(error.message);
+        throw new TokenIssueError(error.message);
       }
       throw error;
     }

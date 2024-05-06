@@ -45,20 +45,15 @@ app.get('/company/:company_id/application/:application_id', (req, res) => {
 });
 
   
-//   app.get('*', (req, res) => {
-//       res.contentType('text/html');
-//       res.sendFile(path.resolve(__dirname, '../build/index.html'))
-//   });
+  app.get('*', (req, res) => {
+      res.contentType('text/html');
+      res.sendFile(path.resolve(__dirname, '../build/index.html'))
+  });
 
 
 
 app.engine('html', require('ejs').renderFile);
 app.set('view engine', 'html');
 app.set('views', path.join(__dirname, 'views'));
-
-app.get('*', (req, res) => { 
-    const fieldsArray = Object.values(CREDENTIAL_FIELDS);
-    // res.render('index', { fields: fieldsArray, app_id: "65e9a30be1794f161cf385b3" }); 
-}); 
 
 module.exports = app;
