@@ -45,11 +45,10 @@ app.get('/company/:company_id/application/:application_id', (req, res) => {
 });
 
   
-  app.get('*', (req, res) => {
+app.get('*', (req, res) => {
       res.contentType('text/html');
       res.sendFile(path.resolve(__dirname, '../build/index.html'))
   });
-
 
 
 app.engine('html', require('ejs').renderFile);

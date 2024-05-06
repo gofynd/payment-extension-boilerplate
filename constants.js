@@ -22,3 +22,8 @@ exports.httpErrorTitle = {
     500: "Internal Server Error",
 }
 
+exports.ActionType = {
+    HTMLSTRING: "htmlString",
+    REDIRECT: "redirector",
+    POLLING: "pollingLink"
+}

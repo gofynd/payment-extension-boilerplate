@@ -8,11 +8,7 @@ const {
     refundHandler,
     processRefundWebhook,
     renderPGHandler,
-    processPaymentUpdateStatus,
-    getPaymentDetailsHandler,
-    processPaymentCancelHandler,
-    processShipmentUpdate,
-    validateCustomer
+    getPaymentDetailsHandler
 } = require("../controllers/orderController")
 
 
@@ -26,12 +22,6 @@ orderRouter.post('/payment_session/:gid/refund', verifyPlatformChecksum, refundH
 orderRouter.post('/webhook/payment', processWebhook);
 orderRouter.post('/webhook/refund', processRefundWebhook);
 orderRouter.get('/pgloader/:_id', renderPGHandler);
-orderRouter.post('/payment_update', processPaymentUpdateStatus);//remove
-
-orderRouter.get('/payment/cancel/:_id', processPaymentCancelHandler); //remove
-
-orderRouter.post('/payment/shipment', verifyPlatformChecksum, processShipmentUpdate) //remove
-orderRouter.post('/customer/validation', verifyPlatformChecksum, validateCustomer)  //remove
 
 // add mock pg route for success or failure
 
