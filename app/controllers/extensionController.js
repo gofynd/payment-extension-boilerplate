@@ -160,7 +160,7 @@ const extensionAuthController = asyncHandler(async (req, res, next) => {
 const extensionUninstallController = asyncHandler(async (req, res, next) => {
     try {
         const ext = config.ext;
-        let { company_id } = req.body;
+        let { company_id } = req.body.companyId;
         let sid;
         if (!ext.isOnlineAccessMode()) {
             sid = Session.generateSessionId(false, {

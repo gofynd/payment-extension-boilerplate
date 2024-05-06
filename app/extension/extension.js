@@ -124,7 +124,7 @@ class Extension {
     }
 }
 
-async function deleteCredentialsHandler (){
+async function deleteCredentialsHandler (req){
     const { company_id } = req.body;
     console.log(`Uninstalling extension for company: ${company_id}`);
     await Secret.deleteMany({ company_id: company_id });

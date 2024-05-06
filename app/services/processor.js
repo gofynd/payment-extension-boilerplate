@@ -419,10 +419,13 @@ class AggregatorProcessor {
 
         logger.info("Updating Payment status on Platform: %O", JSON.stringify(payload));
 
-        // let platformClient = await fdkExtension.getPlatformClient(order.meta.request.company_id);
-        // const applicationClient = platformClient.application(order.app_id);
-        // const sdkResponse = await applicationClient.payment.updatePaymentSession({gid: order.gid, body: payload});
+        let platformClient = await fdkExtension.getPlatformClient(order.meta.request.company_id);
+        const applicationClient = platformClient.application(order.app_id);
+        const updatePaymentSessionResponse = await applicationClient.payment.updatePaymentSession({gid: order.gid, body: payload});
+
+        // Remove above call and use below API call instead.
         
+        /*
         const token = generateToken(config.extension.api_key, config.extension.api_secret);
           const rawRequest = {
             method: "put",
@@ -436,6 +439,7 @@ class AggregatorProcessor {
         };
         rawRequest = JSON.parse(JSON.stringify(rawRequest));
         let updatePaymentSessionResponse = await AxiosHelper.request(rawRequest);
+        */
 
 
         logger.info(
@@ -533,10 +537,13 @@ class AggregatorProcessor {
 
         logger.info("Updating Refund status on Platform: %O", JSON.stringify(payload));
 
-        // let platformClient = await fdkExtension.getPlatformClient(order.meta.request.company_id);
-        // const applicationClient = platformClient.application(order.app_id);
-        // const sdkResponse = await applicationClient.payment.updateRefundSession({gid: order.gid, requestId: transaction.refund_request_id, body: payload});
+        let platformClient = await fdkExtension.getPlatformClient(order.meta.request.company_id);
+        const applicationClient = platformClient.application(order.app_id);
+        const updateRefundSessionResponse = await applicationClient.payment.updateRefundSession({gid: order.gid, requestId: transaction.refund_request_id, body: payload});
         
+        // Remove above fdk call and use below API call.
+
+        /*
         const token = generateToken(config.extension.api_key, config.extension.api_secret);
          const rawRequest = {
            method: "put",
@@ -550,6 +557,7 @@ class AggregatorProcessor {
        };
        rawRequest = JSON.parse(JSON.stringify(rawRequest));
        let updateRefundSessionResponse = await AxiosHelper.request(rawRequest);
+    */
         logger.info(
             "updatePlatformRefundStatus[%s] Platform Syncing response: %O", source, JSON.stringify(updateRefundSessionResponse)
         );

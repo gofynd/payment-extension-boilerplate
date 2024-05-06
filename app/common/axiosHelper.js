@@ -94,7 +94,7 @@ AxiosHelper.interceptors.request.use(
   function (request) {
     try {
       const logLevel = log.getLevel();
-      if (logLevel <= log.levels.DEBUG) {
+      if (logLevel <= log.levels.ERROR) {
         const curl = createCurl(request);
         log.debug(curl);
       }
