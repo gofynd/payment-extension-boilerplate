@@ -1,55 +1,42 @@
 const express = require('express');
-const healthRouter = require("./routes/health.router");
-const extensionRoutes = require('./routes/extension.router');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const path = require("path");
 
-const { getExtensionInstanceHandler } = require('./extension/extension');
-const orderRouter = require('./routes/order.router');
+const { fdkExtension } = require("./fdk");
+const errorHandler = require('./middleware/errorHandler');
+const orderRouter = require("./routes/order.router");
 const { credsRouter, apiRouter } = require('./routes/creds.router');
-const CREDENTIAL_FIELDS = require('./common/formData');
-const config = require('./config');
 
-getExtensionInstanceHandler();
 const app = express();
-
 
 app.use(cookieParser("ext.session"));
 app.use(bodyParser.json({
-    limit: '2mb'
-  }));
+  limit: '2mb'
+}));
 
-  app.use(express.urlencoded({ extended: false }))
-// app.use("/", fpExtension.fdkHandler)
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(express.static(path.resolve(__dirname, "../build/")));
 
-app.use("/", healthRouter);
-app.use("/", extensionRoutes);
+app.use("/", fdkExtension.fdkHandler);
 app.use('/api/v1', orderRouter);
 app.use('/api/v1', credsRouter);
-app.use('/protected/v1', apiRouter); // uncomment these lines for local and comment below 3 lines
 
-// const apiRoutes = fdkExtension.apiRoutes; // comment
-// apiRoutes.use('/v1', apiRouter); // comment
-// app.use('/protected', apiRoutes); // comment
+const apiRoutes = fdkExtension.apiRoutes;
+apiRoutes.use('/v1', apiRouter);
+app.use('/protected', apiRoutes);
 
-// app.use("/", extensionRouter.routes);
+app.use(errorHandler);
+
 app.get('/company/:company_id', (req, res) => {
-    res.contentType('text/html');
-      res.sendFile(path.resolve(__dirname, '../build/index.html'))
-  })
+  res.contentType('text/html');
+    res.sendFile(path.resolve(__dirname, '../build/index.html'))
+})
 
-app.get('/company/:company_id/application/:application_id', (req, res) => {
-    const fieldsArray = Object.values(CREDENTIAL_FIELDS);
-    res.render('index', { fields: fieldsArray, app_id: req.params.application_id }); 
-});
-
-  
 app.get('*', (req, res) => {
-      res.contentType('text/html');
-      res.sendFile(path.resolve(__dirname, '../build/index.html'))
-  });
-
+    res.contentType('text/html');
+    res.sendFile(path.resolve(__dirname, '../build/index.html'))
+});
 
 app.engine('html', require('ejs').renderFile);
 app.set('view engine', 'html');
