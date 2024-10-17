@@ -1,4 +1,5 @@
 const crypto = require("node:crypto");
+const logger = require("../common/logger")
 
 function getHashChecksum(message, secret) {
     const hmac = crypto.createHash('sha256');

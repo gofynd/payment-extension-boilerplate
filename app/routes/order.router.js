@@ -1,6 +1,6 @@
-const express = require('express');
-const orderRouter = express.Router();
-const { verifyPlatformChecksum, verifyFrontendChecksum } = require('../middleware/verifyChecksum');
+const { Router } = require('homelander/router')
+const orderRouter = new Router();
+const { verifyGringottsChecksum, verifyStatusChecksum, verifyFrontendChecksum } = require('../middleware/verifyChecksum');
 const {
     createOrderHandler,
     processWebhook,
@@ -8,21 +8,26 @@ const {
     refundHandler,
     processRefundWebhook,
     renderPGHandler,
-    getPaymentDetailsHandler
+    processPaymentUpdateStatus,
+    getPaymentDetailsHandler,
+    getRefundDetailsHandler,
+    processPaymentCancelHandler
 } = require("../controllers/orderController")
 
 
-orderRouter.post('/payment_session/:gid', verifyPlatformChecksum, createOrderHandler);
-orderRouter.get('/payment_session/:gid', verifyPlatformChecksum, getPaymentDetailsHandler);
+orderRouter.post('/payment_session/:gid', verifyGringottsChecksum, createOrderHandler);
+orderRouter.get('/payment_session/:gid', verifyStatusChecksum, getPaymentDetailsHandler);
 
 orderRouter.get('/payment_callback/:gid', paymentCallbackHandler);
 orderRouter.post('/payment_callback', paymentCallbackHandler);
 
-orderRouter.post('/payment_session/:gid/refund', verifyPlatformChecksum, refundHandler);
+orderRouter.post('/payment_session/:gid/refund', verifyGringottsChecksum, refundHandler);
+orderRouter.get('/payment_session/:gid/refund', verifyStatusChecksum, getRefundDetailsHandler);
 orderRouter.post('/webhook/payment', processWebhook);
 orderRouter.post('/webhook/refund', processRefundWebhook);
 orderRouter.get('/pgloader/:_id', renderPGHandler);
+orderRouter.post('/payment_update', processPaymentUpdateStatus);
 
-// add mock pg route for success or failure
+orderRouter.get('/payment/cancel/:_id', processPaymentCancelHandler);
 
-module.exports = orderRouter;
+module.exports = orderRouter.getRouter();

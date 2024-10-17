@@ -6,8 +6,9 @@ body {
     margin: 20px;
   }
   
+
   #root {
-    max-width: 600px;
+    max-width: 900px;
     margin: 0 auto;
     background-color: #fff;
     padding: 20px;
@@ -15,9 +16,16 @@ body {
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   }
   
+  #form-header {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
   h1 {
     color: #333;
-    font-size: 24px; 
+    font-size: 34px; 
   }
   
   form {
@@ -25,6 +33,7 @@ body {
   }
   
   label {
+    flex: 2;
     display: block;
     font-weight: bold;
     margin-bottom: 5px;
@@ -32,7 +41,8 @@ body {
   }
   
   input {
-    width: 100%;
+    flex: 3;
+      /* width: 100%; */
     padding: 8px;
     margin-bottom: 10px;
     box-sizing: border-box;
@@ -46,13 +56,21 @@ body {
     color: white;
     cursor: pointer;
     font-size: 16px; 
+    width: 100%;
+    margin-top: 10px;
   }
   
   input[type="submit"]:hover {
     background-color: #45a049;
   }
+
+  a {
+    font-size: 16px;
+  }
   
-  
+  .form-field {
+    display: flex;
+  }
   
   .success-banner {
     padding: 20px;

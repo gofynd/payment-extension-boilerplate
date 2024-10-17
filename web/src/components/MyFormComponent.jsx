@@ -2,9 +2,12 @@
 import React, { useState } from 'react';
 import { getApplication } from '../helper/utils';
 import MainService from "../services/main-service";
+import Tooltip from "./Tooltip"
 import './MyFormComponent.css';
 
 const MyFormComponent = ({ params }) => {
+  const [showOptionalParams, setShowOptionalParams] = useState(false);
+
   const initialFormData = params.reduce((acc, param) => {
     acc[param.slug] = param.value || '';
     return acc;
@@ -59,11 +62,34 @@ const MyFormComponent = ({ params }) => {
 
   return (
     <div id="root">
-      <h1>Credentials</h1>
+      <div id='form-header'>
+        <h1>Credentials</h1>
+      </div>
       <form method="post" onSubmit={handleSubmit}>
-        {params.map((param, index) => (
-          <div key={index}>
-            <label htmlFor={param.name}>{param.name}{param.required && <>*</>}</label>
+        {params.map((param, index) => param.required && (
+          <div className='form-field' key={index}>
+            <label htmlFor={param.name}>
+              {param.name}{param.required && <>*</>}
+              {param.tip && <Tooltip message={param.tip}/>}
+            </label>
+            <input
+              type={param.type}
+              id={param.slug}
+              required={param.required}
+              name={param.name}
+              value={formData[param.slug]}
+              onChange={handleInputChange}
+            />
+            <br />
+          </div>
+        ))}
+        
+        {showOptionalParams && params.map((param, index) => !param.required && (
+          <div className='form-field' key={index}>
+            <label htmlFor={param.name}>
+              {param.name}{param.required && <>*</>}
+              {param.tip && <Tooltip message={param.tip}/>}
+            </label>
             <br />
             <input
               type={param.type}
@@ -76,6 +102,9 @@ const MyFormComponent = ({ params }) => {
             <br />
           </div>
         ))}
+        <a onClick={() => setShowOptionalParams(!showOptionalParams)}>
+          <u>{showOptionalParams ? 'Hide Additional Fields' : 'Show Additional Fields'}</u>
+        </a>
         <input type="submit" value="Submit" />
       </form>
       {showSuccessBanner && (

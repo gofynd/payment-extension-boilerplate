@@ -9,39 +9,64 @@ const { AggregatorStatusMapper, Secret } = require("../models/models");
 const EncryptHelper = require("../utils/encryptUtils");
 const { deleteKeyFromRedis } = require("../utils/aggregatorUtils");
 
-// display flag displays field on the credentials page of onbording.
+
 const CREDENTIAL_FIELDS = [
-    {name: "Creds field 1", slug: "cred1", required: true, display: true},
-    {name: "Creds field 2", slug: "cred2", required: true, display: true},
-    {name: "Creds field 3", slug: "cred3", required: true, display: true},
-]
+    { name: "Channel ID", slug: "channelId", required: true, display: true },
+    { name: "Transaction Type", slug: "transactionType", required: true, display: true },
+    { name: "Circle ID", slug: "circleId", required: true, display: true },
+    { name: "Checksum Key", slug: "checksum_key", required: true, display: true },
+    { name: "Refund Checksum Key", slug: "refund_checksum_key", required: true, display: true },
+    { name: "API Domain", slug: "api_domain", required: true, display: true, value: "https://rtss-sit.jioconnect.com/jiopaypg" },
+    { name: "Encrypt Secret", slug: "encrypt_secret", required: false, display: true },
+    { name: "Encrypt IV", slug: "encrypt_iv", required: false, display: true },
+    { name: "Payment Link", slug: "payment_link", required: false, display: false, tip: "API domain of Jioonepay Payment Link" },
+    { name: "API Domain Wallet", slug: "api_domain_wallet", required: false, display: true, value: "https://rrsatrpos01.ril.com/DEV_JPMWalletAPI/api/v1.0/JPMWalletPayment", tip: "API domain for wallet refunds" },
+    { name: "Wallet Refund URL", slug: "wallet_refund_url", required: false, display: true, value: "https://devfin.ril.com/WalletCreditRefundAPI/api/v1.0/ClosedLoopRefunds", tip: "Refund URL meant for JM wallet/Giftcard/Employee Gift Card refunds." },
+    { name: "Merchant Id", slug: "merchant_id", required: false, display: true },
+    { name: "Business Flow", slug: "business_flow", required: false, display: true },
+    { name: "Business Type", slug: "business_type", required: false, display: true },
+    { name: "RONE User ID", slug: "rone_uid", required: false, display: true },
+    { name: "RONE User Password", slug: "rone_pass", required: false, display: true },
+    { name: "RONE Checksum Key", slug: "rone_checksum_key", required: false, display: true },
+    { name: "RONE G-UID", slug: "rone_g_uid", required: false, display: true },
+    { name: "RONE StoreNo", slug: "rone_store_no", required: false, display: true, value: "R280" },
+    { name: "RONE Refund URL", slug: "rone_refund_url", required: false, display: true },
+    { name: "Success URL", slug: "success_redirect_url", required: false, display: true, tip: "Payment Success URL for custom redirection" },
+    { name: "Failed URL", slug: "failed_redirect_url", required: false, display: true, tip: "Payment Failure URL for custom redirection" },
+    { name: "COD Eligibility URL", slug: "cod_eligibility_url", required: false, display: true },
+    { name: "Action", slug: "action", required: false, display: true, value: "redirect", tip: "Supports json and redirect. Default value is redirect." },
+];
 
 //@desc create merchant credentials
 //@route POST /api/v1/secrets
 //@access private TODO: add auth
 exports.createSecretsHandler = asyncHandler(async (req, res, next) => {
-    let app_id = req.headers['x-application-id'];
-    let creds = req.body.data || req.body;
+    // TODO: update request to object {slug: value ...} instead of [{slug: slug, value: value}, ...]
+    let app_id = req.headers['x-application-id'];  // req.body.app_id;
+    let creds = req.body.data;
     let data = {};
-    for (var i=0;i<creds.length;i++){
+    for (var i = 0; i < creds.length; i++) {
         data[creds[i].slug] = creds[i].value;
     }
-    console.log(`creating secrets for app_id: ${app_id}`);
-
     let secrets = EncryptHelper.encrypt(config.extension.encrypt_secret, JSON.stringify(data));
 
     await Secret.findOneAndUpdate(
         { app_id: app_id },
         {
-            secrets: secrets
+            secrets: secrets,
         },
         { upsert: true, new: false }
     );
 
     const REDIS_KEY = `${config.extension_slug}:MerchantAggregatorConfig:appId:${app_id}`;
     secrets = await deleteKeyFromRedis(REDIS_KEY);
-
-    res.status(httpStatus.CREATED).json(data);
+    if (req.path.startsWith('/secrets')) {
+        res.status(httpStatus.CREATED).json({
+            success: true
+        });
+    } else {
+        res.status(httpStatus.CREATED).json(data);
+    }
 });
 
 //@desc get merchant credentials
@@ -52,78 +77,31 @@ exports.getSecretsHandler = asyncHandler(async (req, res, next) => {
     if (!secret) {
         res.status(httpStatus.OK).json({
             success: true,
-            app_id: req.params.app_id,
             is_active: false,
-            data:CREDENTIAL_FIELDS
+            app_id: req.params.app_id,
+            data: CREDENTIAL_FIELDS
         });
         return res;
     }
     let data = EncryptHelper.decrypt(config.extension.encrypt_secret, secret.secrets);
     let creds = []
-    for (var i=0; i<CREDENTIAL_FIELDS.length; i++) {
+    for (var i = 0; i < CREDENTIAL_FIELDS.length; i++) {
         creds.push({
             "slug": CREDENTIAL_FIELDS[i].slug,
             "name": CREDENTIAL_FIELDS[i].name,
             "required": CREDENTIAL_FIELDS[i].required,
             "display": CREDENTIAL_FIELDS[i].display,
+            "tip": CREDENTIAL_FIELDS[i].tip,
             "value": data[CREDENTIAL_FIELDS[i].slug]
         })
     }
-
-    res.status(httpStatus.OK).json({
+    const responseData = {
         success: true,
         app_id: req.params.app_id,
         is_active: true,
-        data: creds
-    });
-});
-
-
-exports.deleteCredentialsHandler = asyncHandler(async (req) => {
-    const { company_id } = req.body;
-    console.log(`Uninstalling extension for company: ${company_id}`);
-    await Secret.deleteMany({ company_id: company_id });
-});
-
-
-exports.getCredentials = asyncHandler(async (req, res) => {
-    
-    logger.info("secrets for app_id %s", req.params.app_id);
-    let secret = await Secret.findOne({ app_id: req.params.app_id })
-    let data = {};
-    if (secret) {
-        data = EncryptHelper.decrypt(config.extension.encrypt_secret, secret.secrets);
+        data: req.path.startsWith('/secrets')? []: creds
     }
-    let creds = []
-    for (var i=0; i<CREDENTIAL_FIELDS.length; i++) {
-        creds.push({
-            "slug": CREDENTIAL_FIELDS[i].slug,
-            "name": CREDENTIAL_FIELDS[i].name,
-            "required": CREDENTIAL_FIELDS[i].required,
-            "display": CREDENTIAL_FIELDS[i].display,
-            "value": data[CREDENTIAL_FIELDS[i].slug]
-        })
-    }
-    res.render('../../public/credentials.ejs', { params: creds });
-});
-
-
-exports.setCredentials = asyncHandler(async (req, res) => {
-    let app_id = req.params.app_id;
-    let data = req.body;
-    const companyId = req.headers['x-company-id'];
-    let secrets = EncryptHelper.encrypt(config.extension.encrypt_secret, JSON.stringify(data));
-
-    await Secret.findOneAndUpdate(
-        { app_id: app_id },
-        {
-            secrets: secrets,
-            company_id: companyId
-        },
-        { upsert: true, new: false }
-    );
-
-    res.status(httpStatus.CREATED).json({});
+    res.status(httpStatus.OK).json(responseData);
 });
 
 
@@ -154,7 +132,7 @@ exports.createStatusMapperHandler = asyncHandler(async (req, res, next) => {
         });
     }
     try {
-        const statusMapper = await AggregatorStatusMapper.create({ 
+        const statusMapper = await AggregatorStatusMapper.create({
             journey_type: req.body.journey_type,
             aggregator_status: req.body.aggregator_status,
             status: req.body.status

@@ -1,16 +1,13 @@
 'use strict';
 
-
 const AggregatorProcessor = require("../services/processor");
 const asyncHandler = require("express-async-handler");
 const { httpStatus, ActionType } = require("../../constants");
-const logger = require("../common/logger");
-const config = require("../config");
+
 //@desc create order aggregator
 //@route POST /api/v1/payment_session/:gid
 //@access public
 exports.createOrderHandler = asyncHandler(async (req, res, next) => {
-    config.companyId = req.headers['x-company-id'];
     let request_payload = req.body;
     const instance = new AggregatorProcessor();
     const response = await instance.createOrder(request_payload);
@@ -24,14 +21,12 @@ exports.renderPGHandler = asyncHandler(async (req, res, next) => {
     let request_payload = req.params
     const instance = new AggregatorProcessor();
     const response = await instance.renderPG(request_payload)
-    
 
-    if (response.action == ActionType.HTMLSTRING){
+    if (response.action == ActionType.HTMLSTRING) {
         res.writeHead(200, { 'Content-Type': 'text/html' });
         res.end(response.htmlString);
     }
     else {
-        console.log(response)
         res.status(httpStatus.TEMP_REDIRECT).render(response.action, response);
     }
 })
@@ -45,9 +40,25 @@ exports.getPaymentDetailsHandler = asyncHandler(async (req, res, next) => {
         ...req.query,
         ...req.body
     };
-    request_payload['headers'] = {...req.headers}
+    request_payload['headers'] = { ...req.headers }
     const instance = new AggregatorProcessor();
     const response = await instance.getPaymentDetails(request_payload);
+    return res.status(httpStatus.OK).json(response);
+});
+
+
+//@desc get refund details
+//@route GET /api/v1/payment_session/:gid/refund
+//@access public
+exports.getRefundDetailsHandler = asyncHandler(async (req, res, next) => {
+    let request_payload = {
+        ...req.params,
+        ...req.query,
+        ...req.body
+    };
+    request_payload['headers'] = { ...req.headers }
+    const instance = new AggregatorProcessor();
+    const response = await instance.getRefundDetails(request_payload);
     return res.status(httpStatus.OK).json(response);
 });
 
@@ -61,7 +72,7 @@ exports.paymentCallbackHandler = asyncHandler(async (req, res, next) => {
         ...req.query,
         ...req.body
     };
-    request_payload['headers'] = {...req.headers}
+    request_payload['headers'] = { ...req.headers }
     const instance = new AggregatorProcessor();
     const response = await instance.processCallback(request_payload);
     return res.status(httpStatus.REDIRECT).render(ActionType.REDIRECT, response);
@@ -95,12 +106,15 @@ exports.processWebhook = asyncHandler(async (req, res, next) => {
     });
 });
 
+// can be merged with above webhook?
 //@desc refund status webhook
 //@route POST /api/v1/webhook/refund
 //@access public
 exports.processRefundWebhook = asyncHandler(async (req, res, next) => {
-    const webhook_payload = req.body;
-    webhook_payload["checksum"] = req.headers["checksum"];
+    const webhook_payload = {
+        headers: req.headers,
+        data: req.body
+    }
     const instance = new AggregatorProcessor();
     await instance.processRefundWebhook(webhook_payload)
     return res.status(httpStatus.OK).json({
@@ -120,4 +134,17 @@ exports.processPaymentUpdateStatus = asyncHandler(async (req, res, next) => {
     const instance = new AggregatorProcessor();
     const response = await instance.processPaymentUpdateStatus(requestPayload)
     return res.status(httpStatus.OK).json(response);
+});
+
+
+exports.processPaymentCancelHandler = asyncHandler(async (req, res, next) => {
+    let requestPayload = {
+        ...req.params,
+        ...req.query,
+        ...req.body
+    };
+    requestPayload['headers'] = { ...req.headers }
+    const instance = new AggregatorProcessor();
+    const response = await instance.processPaymentCancel(requestPayload);
+    return res.status(httpStatus.OK).redirect(response.cancelUrl);
 });

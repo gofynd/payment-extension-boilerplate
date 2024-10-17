@@ -1,77 +1,20 @@
 {
-  "name": "mock-ext",
+  "name": "Boilerplate",
   "version": "1.0.0",
   "private": true,
   "main": "index.js",
   "dependencies": {
-    "@gofynd/nitrozen-react": "^2.0.2",
-    "@newrelic/native-metrics": "^10.0.1",
-    "@sentry/node": "^7.66.0",
-    "@testing-library/jest-dom": "^5.16.5",
-    "@testing-library/react": "^13.4.0",
-    "@testing-library/user-event": "^13.5.0",
-    "axios": "^1.2.1",
-    "axios-curlirize": "^1.3.7",
     "base-64": "^1.0.0",
-    "bluebird": "^3.7.2",
-    "bootstrap": "^5.2.3",
-    "convict": "^6.2.3",
-    "cookie-parser": "^1.4.6",
     "crypto-js": "^4.1.1",
     "dotenv": "^16.3.1",
     "ejs": "^3.1.9",
-    "express": "^4.18.2",
     "express-async-handler": "^1.2.0",
-    "ioredis": "^5.2.2",
     "lodash": "^4.17.21",
-    "loglevel": "^1.9.1",
-    "luxon": "^3.4.0",
-    "mongodb-uri": "^0.9.7",
-    "mongoose": "^7.3.4",
-    "newrelic": "^10.5.0",
-    "package.json": "^0.0.0",
-    "qrcode": "^1.5.3",
-    "query-string": "^7.1.3",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-router-dom": "^6.6.1",
-    "react-scripts": "^5.0.1",
-    "url-join": "^4.0.1",
-    "uuid": "^9.0.1",
-    "validator": "^13.11.0",
-    "web-vitals": "^2.1.4",
-    "window-or-global": "^1.0.1",
-    "winston": "^3.3.3"
+    "luxon": "^3.4.0"
   },
   "scripts": {
     "start": "node index.js",
-    "dev": "nodemon index.js",
-    "test": "jest --updateSnapshot --projects src app --no-cache --detectOpenHandles --json --outputFile=./coverage/coverage.json",
-    "serve": "react-scripts start",
-    "build": "react-scripts build"
-  },
-  "jest": {
-    "projects": [
-      "app/jest.config.js"
-    ]
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
+    "dev": "nodemon index.js"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"

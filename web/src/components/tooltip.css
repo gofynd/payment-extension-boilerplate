@@ -1,0 +1,26 @@
+/* Tooltip.css */
+.tooltip-container {
+    display: inline-block;
+    position: relative;
+}
+
+.tooltip-icon {
+    cursor: pointer;
+    margin-left: 5px;
+    color: grey;
+    font-size: 13px;
+}
+
+.tooltip-message {
+    position: absolute;
+    background-color: black;
+    color: white;
+    padding: 5px;
+    border-radius: 5px;
+    font-size: 12px;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    z-index: 1;
+}
