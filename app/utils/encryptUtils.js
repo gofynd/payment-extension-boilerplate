@@ -38,7 +38,6 @@ class EncryptHelper {
     }
 
     static decrypt(secretKey, data) {
-        // TODO: fix encryption and decrypt script
         let {enc_iv, gateway_secret, authTag} = data;
         const key = Buffer.from(decode(secretKey, 'utf-8'), 'hex');
         const iv = Buffer.from(decode(enc_iv), 'hex');

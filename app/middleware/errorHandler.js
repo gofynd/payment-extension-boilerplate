@@ -1,5 +1,3 @@
-const { httpStatus, httpErrorTitle } = require("../../constants");
-
 const errorHandler = (err, req, res, next) => {
     if (err) {
         console.log(`[ERR] Stack trace: ${err.stack}`);

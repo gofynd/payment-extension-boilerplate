@@ -4,7 +4,7 @@ const {
     createOrderHandler,
     getPaymentDetailsHandler,
     paymentCallbackHandler,
-    refundHandler,
+    createRefundHandler,
     getRefundDetailsHandler,
     processWebhook,
     processRefundWebhook,
@@ -15,7 +15,7 @@ const orderRouter = express.Router();
 orderRouter.post('/payment_session/:gid', verifyPlatformChecksum, createOrderHandler);
 orderRouter.get('/payment_session/:gid', verifyStatusChecksum, getPaymentDetailsHandler);
 
-orderRouter.post('/payment_session/:gid/refund', verifyPlatformChecksum, refundHandler);
+orderRouter.post('/payment_session/:gid/refund', verifyPlatformChecksum, createRefundHandler);
 orderRouter.get('/payment_session/:gid/refund', verifyStatusChecksum, getRefundDetailsHandler);
 
 orderRouter.post('/payment_callback', paymentCallbackHandler);

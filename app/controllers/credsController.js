@@ -1,10 +1,7 @@
-'use strict';
-
 const asyncHandler = require("express-async-handler");
 const { httpStatus } = require("../../constants");
-const { NotFoundError, BadRequestError } = require("../common/customError");
 const config = require("../config");
-const { AggregatorStatusMapper, Secret } = require("../models/models");
+const { Secret } = require("../models/models");
 const EncryptHelper = require("../utils/encryptUtils");
 const { deleteKeyFromRedis } = require("../utils/aggregatorUtils");
 
@@ -15,9 +12,9 @@ const CREDENTIAL_FIELDS = [
 
 //@desc create merchant credentials
 //@route POST /api/v1/secrets
-//@access private TODO: add auth
-exports.createSecretsHandler = asyncHandler(async (req, res, next) => {
-    let app_id = req.headers['x-application-id'];  // req.body.app_id;
+//@access private
+exports.createSecretsHandler = asyncHandler(async (req, res) => {
+    let app_id = req.params.app_id;  // req.body.app_id;
     let creds = req.body.data;
     let data = {};
     for (var i = 0; i < creds.length; i++) {
@@ -46,8 +43,9 @@ exports.createSecretsHandler = asyncHandler(async (req, res, next) => {
 
 //@desc get merchant credentials
 //@route GET /api/v1/secrets
-//@access private TODO: add auth
-exports.getSecretsHandler = asyncHandler(async (req, res, next) => {
+//@access private
+exports.getSecretsHandler = asyncHandler(async (req, res) => {
+    const app_id = req.params.app_id;
     let secret = await Secret.findOne({ app_id: req.params.app_id })
     if (!secret) {
         res.status(httpStatus.OK).json({

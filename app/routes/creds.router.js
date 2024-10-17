@@ -11,8 +11,9 @@ const {
 } = require("../controllers/credsController")
 
 
+// TODO: check if frontend and backend are correct
 // called from frontend
-credsRouter.post('/secrets', verifyExtensionAuth, createSecretsHandler);
+credsRouter.post('/secrets/:app_id', verifyExtensionAuth, createSecretsHandler);
 credsRouter.get('/secrets/:app_id', verifyExtensionAuth, getSecretsHandler);
 
 // called from platform

@@ -5,9 +5,9 @@ const { RedisStorage } = require("fdk-extension-javascript/express/storage");
 // const { redisClient } = require("./../common/redis.init");
 
 let fdkExtension = setupFdk({
-    api_key: config.extension.api_key,
-    api_secret: config.extension.api_secret,
-    base_url: config.extension.base_url,
+    api_key: config.api_key,
+    api_secret: config.api_secret,
+    base_url: config.base_url,
     callbacks: {
         auth: async (req) => {
             // Writee you code here to return initial launch url after suth process complete

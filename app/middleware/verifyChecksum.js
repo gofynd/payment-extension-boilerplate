@@ -1,4 +1,4 @@
-const { AuthorizationError } = require("../common/customError");
+const { AuthorizationError } = require("../utils/errorUtils");
 const config = require("../config");
 const { getHmacChecksum } = require("../utils/signatureUtils");
 

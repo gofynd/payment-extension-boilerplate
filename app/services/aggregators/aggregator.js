@@ -473,7 +473,7 @@ class Aggregator {
         */
         let totalAppliedOfferAmount = 0.0;
         let paidAmount = 0.0;
-        const offerMops = ["207", "315"]; //TODO: Remove hardcoding and Make this Configurable.
+        const offerMops = ["207", "315"];
         const offerList = [];
         const updatedPaymentDetail = [];
 
