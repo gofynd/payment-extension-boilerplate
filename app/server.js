@@ -30,12 +30,12 @@ app.use(errorHandler);
 
 app.get('/company/:company_id', (req, res) => {
   res.contentType('text/html');
-    res.sendFile(path.resolve(__dirname, '../build/index.html'))
+    res.sendFile(path.resolve(__dirname, '../web/build/index.html'))
 })
 
 app.get('*', (req, res) => {
     res.contentType('text/html');
-    res.sendFile(path.resolve(__dirname, '../build/index.html'))
+    res.sendFile(path.resolve(__dirname, '../web/build/index.html'))
 });
 
 app.engine('html', require('ejs').renderFile);

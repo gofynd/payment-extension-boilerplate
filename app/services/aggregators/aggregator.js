@@ -1,22 +1,8 @@
-const Base = require("./base");
-const _ = require('lodash');
-const { getAggregatorStatusMapper, makeRequest, getRedisData, setRedisData, tryOr } = require("../../utils/aggregatorUtils");
-const { getHmacChecksum } = require("../../utils/signatureUtils");
-const { getISTDateTime, calculateTimeDelta } = require("../../utils/dateUtils");
-const { AuthorizationError, BadRequestError } = require("../../common/customError");
-const logger = require("../../common/logger");
 const config = require("../../config");
 const { aggregatorConfig } = require("./config");
-const { ActionType, httpStatus, RedisKeys } = require("../../../constants");
-const EncryptHelper = require("../../utils/encryptUtils");
 const { getCheckoutPayload, getCheckoutChecksum, getLinkPayload, getLinkChecksum } = require("./payloads");
-const createWalletRefund = require("./wallets");
-const removeTrailingSlash = require("../../utils/commonUtils");
 
-
-let REDIS_ORDER_STATUS = RedisKeys.REDIS_ORDER_STATUS
-
-class Jio extends Base {
+class Aggregator {
     constructor(appId) {
         super();
         this.appId = appId;
@@ -392,7 +378,7 @@ class Jio extends Base {
         // }
         let response = null;
         let reason = 'Initiated Refund';
-        logger.info('[processRefund] Data received for refund', data);
+        console.log('[processRefund] Data received for refund', data);
         data.payment_mode = data.meta?.payment_mode;
         data.mop = data.meta.mop;
 
@@ -982,4 +968,4 @@ class Jio extends Base {
     }
 }
 
-module.exports = Jio;
+module.exports = Aggregator;

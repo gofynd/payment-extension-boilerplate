@@ -1,7 +1,4 @@
 const { getAggregatorStatusMapper, tryOr, getMerchantAggregatorConfig } = require("../utils/aggregatorUtils");
-const logger = require("../common/logger");
-const qrcode = require('qrcode');
-const _ = require('lodash');
 const Aggregator = require("./aggregators/aggregator");
 const { Order, Transaction, User } = require("../models/models");
 const { BadRequestError, NotFoundError, AuthorizationError } = require("../common/customError");
@@ -12,7 +9,6 @@ const config = require("../config");
 const removeTrailingSlash = require("../utils/commonUtils");
 const { jioRefundMopMapping, jioMopMapping } = require("./aggregators/config");
 const { maskSensitiveFields } = require("../common/maskLogs");
-const { LOGGER_TYPE } = require("homelander/tracing");
 
 
 class AggregatorFactory {
@@ -60,7 +56,7 @@ class AggregatorProcessor {
             g_user_id: data.g_user_id,
             locale: data.locale
         });
-        logger.info(`[DB] Inserted order for order id ${data.fynd_platform_id}`);
+        console.log(`[DB] Inserted order for order id ${data.fynd_platform_id}`);
         const transactionData = {
             gid: data.gid,
             fynd_platform_id: data.fynd_platform_id,
@@ -92,7 +88,7 @@ class AggregatorProcessor {
         }
 
         const transaction = await Transaction.create(transactionData);
-        logger.info(`[DB] Inserted transaction for order id ${transactionData.fynd_platform_id}`);
+        console.log(`[DB] Inserted transaction for order id ${transactionData.fynd_platform_id}`);
         await User.findOneAndUpdate(
             {
                 g_user_id: data.g_user_id,
@@ -173,7 +169,7 @@ class AggregatorProcessor {
             throw error;
         }
 
-        logger.info("[FDKRESPONSE] lineItemData received from getPaymentSession", lineItemData);
+        console.log("[FDKRESPONSE] lineItemData received from getPaymentSession", lineItemData);
         data['lineItemData'] = lineItemData;
         const instance = await AggregatorFactory.createInstance({ appId: data.app_id });
 
@@ -186,7 +182,7 @@ class AggregatorProcessor {
             redirect_url: removeTrailingSlash(config.extension.base_url) + "/api/v1/pgloader/" + _id,
             action: instance.action
         }
-        logger.info("[RESDATA] Response for createPaymentSession::post", responseData);
+        console.log("[RESDATA] Response for createPaymentSession::post", responseData);
         return responseData;
     }
 
@@ -240,7 +236,7 @@ class AggregatorProcessor {
             },
             { new: true, returnNewDocument: true }
         );
-        logger.info(`[DB] Updating transaction for order id ${transaction.fynd_platform_id}`);
+        console.log(`[DB] Updating transaction for order id ${transaction.fynd_platform_id}`);
         paymentDetails.forEach((payment) => {
             const transactionData = {
                 gid: orderData.gid,
@@ -274,7 +270,7 @@ class AggregatorProcessor {
     }
 
     async processCallback(data) {
-        logger.info('[REQDATA] Request body for processCallBack::post', data);
+        console.log('[REQDATA] Request body for processCallBack::post', data);
         const fynd_platform_id = data.responseData.transactionRefNumber;
         const order = await Order.findOne({ fynd_platform_id: fynd_platform_id });
         if (!order) {
@@ -292,12 +288,12 @@ class AggregatorProcessor {
             action: "redirect",
             redirectUrl: encodeURIComponent(redirectUrl)
         };
-        logger.info('[RESDATA] Response for processCallBack::post', responseData);
+        console.log('[RESDATA] Response for processCallBack::post', responseData);
         return responseData;
     };
 
     async getPaymentDetails(data) {
-        logger.info('[REQDATA] Request params/query for getPaymentDetails::get', data);
+        console.log('[REQDATA] Request params/query for getPaymentDetails::get', data);
         const forwardTransaction = await Transaction.findOne({ gid: data.gid });
         const order = await Order.findOne({ gid: data.gid });
         if (!forwardTransaction) {
@@ -367,12 +363,12 @@ class AggregatorProcessor {
                 "payment_detail": aggResponse.paymentDetails
             }
         };
-        logger.info('[RESDATA] Response for getPaymentDetails::get', responseData);
+        console.log('[RESDATA] Response for getPaymentDetails::get', responseData);
         return responseData;
     };
 
     async getRefundDetails(data) {
-        logger.info('[REQDATA] Request params/query for getRefundDetails::get', data);
+        console.log('[REQDATA] Request params/query for getRefundDetails::get', data);
         const forwardTransaction = await Transaction.findOne({ gid: data.gid });
         const order = await Order.findOne({ gid: data.gid });
         if (!forwardTransaction) {
@@ -386,7 +382,7 @@ class AggregatorProcessor {
             journey_type: "refund",
             aggregator_payment_refund_details: aggResponse.refunds,
         };
-        logger.info('[RESDATA] Response for getRefundDetails::get', responseData);
+        console.log('[RESDATA] Response for getRefundDetails::get', responseData);
         return responseData;
     };
 
@@ -404,7 +400,7 @@ class AggregatorProcessor {
         //     }
         // }
 
-        logger.info('[REQDATA] Request body for processRefund::post', data);
+        console.log('[REQDATA] Request body for processRefund::post', data);
         const payment_modes = jioRefundMopMapping[data.meta?.payment_mode] || [];
         payment_modes.push(data.meta.payment_mode);
 
@@ -460,7 +456,7 @@ class AggregatorProcessor {
         const applicationClient = await fdkExtension.getApplicationClient(data.app_id, token);
 
         const shipmentDetails = await applicationClient.order.getShipmentById({ shipmentId: data.request_id });
-        logger.info("[processRefund] Shipment Details", shipmentDetails);
+        console.log("[processRefund] Shipment Details", shipmentDetails);
         data.storeCode = shipmentDetails?.shipment?.fulfilling_store?.code;
         data.articleTags = shipmentDetails?.shipment?.bags?.[0]?.article?.tags;
 
@@ -536,12 +532,12 @@ class AggregatorProcessor {
                 balance_transaction: "" // ...?
             }
         };
-        logger.info('[RESDATA] Response for processRefund::post', responseData);
+        console.log('[RESDATA] Response for processRefund::post', responseData);
         return responseData;
     };
 
     async processWebhook(requestPayload) {
-        logger.info('[REQDATA] Request body for processWebhook::post', requestPayload);
+        console.log('[REQDATA] Request body for processWebhook::post', requestPayload);
         let data = requestPayload.data;
         const fynd_platform_id = data.transactionRefNumber;
 
@@ -572,7 +568,7 @@ class AggregatorProcessor {
 
         await this.upsertTransactions(order, webhookResponse, "forward", "webhook");
         const responseData = await this.updateGringottsPaymentStatus(order, webhookResponse, "webhook");
-        logger.info("[RESDATA] Response for processWebhook::post", responseData);
+        console.log("[RESDATA] Response for processWebhook::post", responseData);
     }
 
     async updateGringottsPaymentStatus(order, response, source) {
@@ -659,7 +655,7 @@ class AggregatorProcessor {
             }
         };
 
-        const checksum = getHmacChecksum(JSON.stringify(payload), config.extension.gringotts_api_salt);
+        const checksum = getHmacChecksum(JSON.stringify(payload), config.extension.api_secret);
         payload["checksum"] = checksum
         const fieldsToMask = [];
         paymentDetails.forEach((detail, index) => {
@@ -711,7 +707,7 @@ class AggregatorProcessor {
                 }
             }
         */
-        logger.info('[REQDATA] Request body for processRefundWebhook::post', data);
+        console.log('[REQDATA] Request body for processRefundWebhook::post', data);
         const transaction = await Transaction.findOne({ refund_request_id: data.data.transactionRefNumber });
         const order = await Order.findOne({ gid: transaction.gid });
 
@@ -732,7 +728,7 @@ class AggregatorProcessor {
             }
         );
         const response = await this.updateGringottsRefundStatus(order, transaction, webhookResponse.status, data, "refund_webhook", webhookResponse.reason);
-        logger.info('[RESDATA] Response for processRefundWebhook::post', response);
+        console.log('[RESDATA] Response for processRefundWebhook::post', response);
     }
 
     async updateGringottsRefundStatus(order, transaction, status, data, source, reason = "") {
@@ -783,7 +779,7 @@ class AggregatorProcessor {
             },
         }
 
-        const checksum = getHmacChecksum(JSON.stringify(payload), config.extension.gringotts_api_salt);
+        const checksum = getHmacChecksum(JSON.stringify(payload), config.extension.api_secret);
         payload["checksum"] = checksum;
         const fieldsToMask = [];
 
@@ -822,7 +818,7 @@ class AggregatorProcessor {
     }
 
     async processPaymentUpdateStatus(requestPayload) {
-        logger.info('[REQDATA] Request body for processPaymentUpdateStatus::post', requestPayload);
+        console.log('[REQDATA] Request body for processPaymentUpdateStatus::post', requestPayload);
         let data = requestPayload.data
         const gid = data.gid;
 
@@ -835,7 +831,7 @@ class AggregatorProcessor {
 
         const instance = await AggregatorFactory.createInstance({ appId: order.app_id });
         let paymentUpdateResponse = await instance.paymentUpdateStatus(data, order);
-        logger.info("[JIOPP] processPaymentUpdateStatus response", { response: paymentUpdateResponse });
+        console.log("[JIOPP] processPaymentUpdateStatus response", { response: paymentUpdateResponse });
 
         if (data.counter < Settings.pollingDuration) {
             data.counter = parseInt(data.counter) + 1
@@ -846,7 +842,7 @@ class AggregatorProcessor {
         }
 
         if (!paymentUpdateResponse.retry) {
-            logger.info("[DB] Updating transaction");
+            console.log("[DB] Updating transaction");
             await Transaction.updateOne(
                 { gid: data.gid },
                 {
@@ -863,7 +859,7 @@ class AggregatorProcessor {
                 }
             );
             // const response = await this.updateGringottsPaymentStatus(order, paymentUpdateResponse, "update");
-            // logger.info("[JIOPP] processPaymentUpdateStatus Gringotts Syncing response: %O", JSON.stringify(response));
+            // console.log("[JIOPP] processPaymentUpdateStatus Gringotts Syncing response: %O", JSON.stringify(response));
         }
         const responseData = {
             "status": paymentUpdateResponse.status,
@@ -876,12 +872,12 @@ class AggregatorProcessor {
             "counter": data.counter || 1,
             "returnUrl": order.meta.success_url
         };
-        logger.info('[RESDATA] Response for processPaymentUpdateStatus::post', responseData);
+        console.log('[RESDATA] Response for processPaymentUpdateStatus::post', responseData);
         return responseData;
     }
 
     async processPaymentCancel(requestPayload) {
-        logger.info('[REQDATA] Request body for processPaymentCancel::post', requestPayload);
+        console.log('[REQDATA] Request body for processPaymentCancel::post', requestPayload);
 
         const transaction = await Transaction.findById(requestPayload._id);
         if (!transaction) {
@@ -924,7 +920,7 @@ class AggregatorProcessor {
             "cancelUrl": order.meta.cancel_url,
             "message": "Transaction is Cancelled."
         };
-        logger.info('[RESDATA] Request body for processPaymentCancel::post', responseData);
+        console.log('[RESDATA] Request body for processPaymentCancel::post', responseData);
         return responseData;
     }
 }

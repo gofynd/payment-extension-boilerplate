@@ -1,8 +1,5 @@
-'use strict';
-
 const AggregatorProcessor = require("../services/processor");
 const asyncHandler = require("express-async-handler");
-const { httpStatus, ActionType } = require("../../constants");
 
 //@desc create order aggregator
 //@route POST /api/v1/payment_session/:gid
@@ -13,23 +10,6 @@ exports.createOrderHandler = asyncHandler(async (req, res, next) => {
     const response = await instance.createOrder(request_payload);
     res.status(httpStatus.CREATED).json(response);
 });
-
-//@desc create order aggregator
-//@route GET /api/v1/pgloader/:_id
-//@access public
-exports.renderPGHandler = asyncHandler(async (req, res, next) => {
-    let request_payload = req.params
-    const instance = new AggregatorProcessor();
-    const response = await instance.renderPG(request_payload)
-
-    if (response.action == ActionType.HTMLSTRING) {
-        res.writeHead(200, { 'Content-Type': 'text/html' });
-        res.end(response.htmlString);
-    }
-    else {
-        res.status(httpStatus.TEMP_REDIRECT).render(response.action, response);
-    }
-})
 
 //@desc get payment details
 //@route GET /api/v1/payment_session/:gid
@@ -120,31 +100,4 @@ exports.processRefundWebhook = asyncHandler(async (req, res, next) => {
     return res.status(httpStatus.OK).json({
         success: true,
     });
-});
-
-// can be merged with above webhook?
-//@desc refund status webhook
-//@route POST /api/v1/webhook/refund
-//@access public
-exports.processPaymentUpdateStatus = asyncHandler(async (req, res, next) => {
-    let requestPayload = {
-        data: req.body,
-        headers: req.headers
-    };
-    const instance = new AggregatorProcessor();
-    const response = await instance.processPaymentUpdateStatus(requestPayload)
-    return res.status(httpStatus.OK).json(response);
-});
-
-
-exports.processPaymentCancelHandler = asyncHandler(async (req, res, next) => {
-    let requestPayload = {
-        ...req.params,
-        ...req.query,
-        ...req.body
-    };
-    requestPayload['headers'] = { ...req.headers }
-    const instance = new AggregatorProcessor();
-    const response = await instance.processPaymentCancel(requestPayload);
-    return res.status(httpStatus.OK).redirect(response.cancelUrl);
 });

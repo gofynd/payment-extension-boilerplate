@@ -39,7 +39,12 @@ let config = convict({
     default: 8081,
     env: 'PORT',
     arg: 'port',
-  }
+  },
+  extension_slug: {
+    doc: "extension slug",
+    default: "dummy",
+    env: "",
+  },
 });
 
 config = config.get();
