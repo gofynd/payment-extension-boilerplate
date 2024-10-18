@@ -9,14 +9,17 @@ axios.interceptors.request.use((config) => {
 });
 
 const MainService = {
-  getAllApplications(params = {}) {
-    return axios.get(URLS.GET_ALL_APPLICATIONS());
+ async getAllApplications(params = {}) {
+    const res= await axios.get(await URLS.GET_ALL_APPLICATIONS());
+    return res;
   },
-  getAllCredentialFields(app_id, params = {}) {
-    return axios.get(URLS.GET_CREDENTIALS(app_id));
+ async getAllCredentialFields(app_id, company_id, params = {}) {
+    const res= await axios.get(await URLS.GET_CREDENTIALS(app_id, company_id));
+    return res;
   },
-  submitCredentials(app_id, body, params = {}) {
-    return axios.post(URLS.POST_CREDENTIALS(app_id), body);
+ async submitCredentials(app_id, company_id, body, params = {}) {
+    const res= await axios.post(await URLS.POST_CREDENTIALS(app_id, company_id), body);
+    return res;
   },
 };
 

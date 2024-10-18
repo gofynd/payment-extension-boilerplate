@@ -11,13 +11,12 @@ const {
 } = require("../controllers/credsController")
 
 
-// TODO: check if frontend and backend are correct
-// called from frontend
-credsRouter.post('/secrets/:app_id', verifyExtensionAuth, createSecretsHandler);
-credsRouter.get('/secrets/:app_id', verifyExtensionAuth, getSecretsHandler);
-
 // called from platform
-apiRouter.get('/credentials/:app_id', verifyApplicationId, getSecretsHandler);
+credsRouter.get('/secrets/:company_id/:app_id', verifyExtensionAuth, getSecretsHandler);
+
+// called from frontend
+apiRouter.get('/credentials/:company_id/:app_id', verifyApplicationId, getSecretsHandler);
+apiRouter.post('/credentials/:company_id/:app_id', verifyApplicationId, getSecretsHandler);
 
 module.exports = {
     credsRouter: credsRouter,

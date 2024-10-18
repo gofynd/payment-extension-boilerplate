@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from "react";
-
 import "./style/home.css";
 import MyFormComponent from "../components/MyFormComponent";
 import Loader from "../components/Loader";
 import MainService from "../services/main-service";
-import { getApplication } from "../helper/utils";
+import { getApplication, getCompany } from "../helper/utils";
 
 
 export default function Home() {
@@ -20,8 +19,9 @@ export default function Home() {
     setPageLoading(true);
     try {
       const appId = getApplication();
-      const { data } = await MainService.getAllCredentialFields(appId);
-      setParams(data.data);
+      const companyId = getCompany();
+      const respnse = await MainService.getAllCredentialFields(appId, companyId);
+      setParams(respnse.data.data);
       setPageLoading(false);
     } catch (e) {
       setPageLoading(false);

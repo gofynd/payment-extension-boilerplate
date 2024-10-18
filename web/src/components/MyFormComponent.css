@@ -1,104 +1,85 @@
 
 
 body {
-    font-family: 'Arial', sans-serif;
-    background-color: #f4f4f4;
-    margin: 20px;
-  }
-  
+  font-family: 'Arial', sans-serif;
+  background-color: #f4f4f4;
+  margin: 20px;
+}
 
-  #root {
-    max-width: 900px;
-    margin: 0 auto;
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 5px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  }
-  
-  #form-header {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
+#root {
+  max-width: 600px;
+  margin: 0 auto;
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
 
-  h1 {
-    color: #333;
-    font-size: 34px; 
-  }
-  
-  form {
-    margin-top: 20px;
-  }
-  
-  label {
-    flex: 2;
-    display: block;
-    font-weight: bold;
-    margin-bottom: 5px;
-    font-size: 16px; 
-  }
-  
-  input {
-    flex: 3;
-      /* width: 100%; */
-    padding: 8px;
-    margin-bottom: 10px;
-    box-sizing: border-box;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 14px; 
-  }
-  
-  input[type="submit"] {
-    background-color: #4caf50;
-    color: white;
-    cursor: pointer;
-    font-size: 16px; 
-    width: 100%;
-    margin-top: 10px;
-  }
-  
-  input[type="submit"]:hover {
-    background-color: #45a049;
-  }
+h1 {
+  color: #333;
+  font-size: 24px; 
+}
 
-  a {
-    font-size: 16px;
-  }
+form {
+  margin-top: 20px;
+}
+
+label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 5px;
+  font-size: 16px; 
+}
+
+input {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 10px;
+  box-sizing: border-box;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px; 
+}
+
+input[type="submit"] {
+  background-color: #2E31BE;
+  color: white;
+  cursor: pointer;
+  font-size: 16px; 
+}
+
+input[type="submit"]:hover {
+  background-color: #2729b5;
+}
+
+
+
+.success-banner {
+  padding: 20px;
+  background-color: #2E31BE; 
+  color: #ffffff; 
+  font-size: 20px; 
+  text-align: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000; 
+
   
-  .form-field {
-    display: flex;
-  }
-  
-  .success-banner {
-    padding: 20px;
-    background-color: #4caf50; 
-    color: #ffffff; 
-    font-size: 20px; 
-    text-align: center;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    z-index: 1000; 
-  
-    
-    animation: fadeEffect 1s; 
-  }
-  
-  @keyframes fadeEffect {
-    from { opacity: 0; } 
-    to { opacity: 1; } 
-  }
-  
-  .fade-out {
-    animation: fadeOutEffect 3s; 
-  }
-  
-  @keyframes fadeOutEffect {
-    from { opacity: 1; } 
-    to { opacity: 0; } 
-  }
-  
+  animation: fadeEffect 1s; 
+}
+
+@keyframes fadeEffect {
+  from { opacity: 0; } 
+  to { opacity: 1; } 
+}
+
+.fade-out {
+  animation: fadeOutEffect 3s; 
+}
+
+@keyframes fadeOutEffect {
+  from { opacity: 1; } 
+  to { opacity: 0; } 
+}

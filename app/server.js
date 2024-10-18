@@ -16,7 +16,7 @@ app.use(bodyParser.json({
 }));
 
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(express.static(path.resolve(__dirname, "../build/")));
+app.use(express.static(path.resolve(__dirname, "../web/build/")));
 
 app.use("/", fdkExtension.fdkHandler);
 app.use('/api/v1', orderRouter);
@@ -28,10 +28,10 @@ app.use('/protected', apiRoutes);
 
 app.use(errorHandler);
 
-app.get('/company/:company_id', (req, res) => {
+app.get('/company/:company_id/application/:app_id', (req, res) => {
   res.contentType('text/html');
-    res.sendFile(path.resolve(__dirname, '../web/build/index.html'))
-})
+    res.sendFile(path.resolve(__dirname, '../web/build/index.html'));
+});
 
 app.get('*', (req, res) => {
     res.contentType('text/html');

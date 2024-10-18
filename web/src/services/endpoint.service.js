@@ -10,18 +10,26 @@ if (
   root.process.env &&
   root.process.NODE_ENV === "test"
 ) {
-  envVars.EXAMPLE_MAIN_URL = "https://api.xyz.com";
+  envVars.EXAMPLE_MAIN_URL = "https://rational-gently-kit.ngrok-free.app";
 }
 
 const Endpoints = {
   GET_ALL_APPLICATIONS() {
     return urlJoin(envVars.EXAMPLE_MAIN_URL, "/api/v1.0/applications");
   },
-  GET_CREDENTIALS(app_id) {
-    return urlJoin(envVars.EXAMPLE_MAIN_URL, "/protected/v1/credentials/", app_id);
+  GET_CREDENTIALS(app_id, company_id) {
+    return urlJoin(
+      envVars.EXAMPLE_MAIN_URL,
+      "/protected/v1/credentials/",
+      company_id, "/", app_id
+    );
   },
-  POST_CREDENTIALS(app_id) {
-    return urlJoin(envVars.EXAMPLE_MAIN_URL, "/protected/v1/credentials/", app_id);
+  POST_CREDENTIALS(app_id, company_id) {
+    return urlJoin(
+      envVars.EXAMPLE_MAIN_URL,
+      "/protected/v1/credentials/",
+      company_id, "/", app_id
+    );
   },
 };
 
