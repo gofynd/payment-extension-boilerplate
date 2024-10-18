@@ -1,13 +1,13 @@
 const asyncHandler = require("express-async-handler");
-const { httpStatus } = require("../../constants");
-const config = require("../config");
-const { Secret } = require("../models/models");
-const EncryptHelper = require("../utils/encryptUtils");
-const { deleteKeyFromRedis } = require("../utils/aggregatorUtils");
 
+const config = require("../config");
+const EncryptHelper = require("../utils/encryptUtils");
+const { fdkExtension } = require("../fdk/index");
+
+const encryption_key = config.defaultEncryptionKey;
 
 const CREDENTIAL_FIELDS = [
-    { name: "API token", slug: "api_token", required: true, display: true },
+    { name: "API Key", slug: "api_key", required: true, display: true },
 ];
 
 //@desc create merchant credentials
@@ -20,25 +20,13 @@ exports.createSecretsHandler = asyncHandler(async (req, res) => {
     for (var i = 0; i < creds.length; i++) {
         data[creds[i].slug] = creds[i].value;
     }
-    let secrets = EncryptHelper.encrypt(config.extension.encrypt_secret, JSON.stringify(data));
+    // Use any encryption method
+    let secrets = EncryptHelper.encrypt(encryption_key, JSON.stringify(data));
 
-    await Secret.findOneAndUpdate(
-        { app_id: app_id },
-        {
-            secrets: secrets,
-        },
-        { upsert: true, new: false }
-    );
+    // TODO: save secrets in custom meta
+    let platformClient = await fdkExtension.getPlatformClient(company_id);
 
-    const REDIS_KEY = `${config.extension_slug}:MerchantAggregatorConfig:appId:${app_id}`;
-    secrets = await deleteKeyFromRedis(REDIS_KEY);
-    if (req.path.startsWith('/secrets')) {
-        res.status(httpStatus.CREATED).json({
-            success: true
-        });
-    } else {
-        res.status(httpStatus.CREATED).json(data);
-    }
+    res.status(httpStatus.CREATED).json(data);
 });
 
 //@desc get merchant credentials
@@ -46,17 +34,21 @@ exports.createSecretsHandler = asyncHandler(async (req, res) => {
 //@access private
 exports.getSecretsHandler = asyncHandler(async (req, res) => {
     const app_id = req.params.app_id;
-    let secret = await Secret.findOne({ app_id: req.params.app_id })
-    if (!secret) {
+
+    // TODO: get secrets from custom meta
+    const secrets = {};
+    
+    if (!secrets) {
         res.status(httpStatus.OK).json({
             success: true,
             is_active: false,
-            app_id: req.params.app_id,
+            app_id: app_id,
             data: CREDENTIAL_FIELDS
         });
         return res;
     }
-    let data = EncryptHelper.decrypt(config.extension.encrypt_secret, secret.secrets);
+
+    let data = EncryptHelper.decrypt(encryption_key, secrets);
     let creds = []
     for (var i = 0; i < CREDENTIAL_FIELDS.length; i++) {
         creds.push({

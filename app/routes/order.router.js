@@ -23,4 +23,4 @@ orderRouter.post('/payment_callback', paymentCallbackHandler);
 orderRouter.post('/webhook/payment', processWebhook);
 orderRouter.post('/webhook/refund', processRefundWebhook);
 
-module.exports = orderRouter.getRouter();
+module.exports = orderRouter;

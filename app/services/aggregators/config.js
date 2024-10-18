@@ -1,10 +1,8 @@
 exports.aggregatorConfig = {
-    'createOrder': '/initiate/payment/request',
-    'refund': '/api/v2/initiate-refund',
-    'orderStatus': '/v2/payment/txn-status',
-    'resendPayment': '/rposasp/resend/paymentlink',
-    'refundStatus': '/api/v2/refund-status',
-    'walletRefund': '/api/v1.0/JPMWalletPayment',
+    'createOrder': '/api/payment/request',
+    'orderStatus': '/api/payment/status',
+    'createRefund': '/api/initiate-refund',
+    'refundStatus': '/api/refund/status',
 };
 
 exports.aggregatorStatusMapperConfig = {

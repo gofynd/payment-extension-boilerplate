@@ -19,7 +19,7 @@ let config = convict({
   },
   base_url: {
     doc: "extension base_url",
-    default: "https://68b5-14-142-187-98.ngrok-free.app",
+    default: "http://localhost:3000/",
     env: "EXTENSION_BASE_URL",
   },
   fp_api_server: {
@@ -45,6 +45,11 @@ let config = convict({
     default: "dummy",
     env: "",
   },
+  encryption_key: {
+    doc: "encryption key for saving credentials",
+    default: "",
+    env: "ENCRYPTION_KEY",
+  }
 });
 
 config = config.get();

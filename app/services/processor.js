@@ -1,28 +1,8 @@
-const { getAggregatorStatusMapper, tryOr, getMerchantAggregatorConfig } = require("../utils/aggregatorUtils");
 const Aggregator = require("./aggregators/aggregator");
-const { Order, Transaction, User } = require("../models/models");
-const { BadRequestError, NotFoundError, AuthorizationError } = require("../utils/errorUtils");
-const { Settings, httpStatus, ActionType } = require("../../constants");
+const { BadRequestError, NotFoundError } = require("../utils/errorUtils");
 const Fdkfactory = require("../fdk")
-const { getHmacChecksum } = require("../utils/signatureUtils");
 const config = require("../config");
-const removeTrailingSlash = require("../utils/commonUtils");
-const { jioRefundMopMapping, jioMopMapping } = require("./aggregators/config");
 
-
-class AggregatorFactory {
-    static async createInstance(kwargs) {
-        const instance = new AggregatorFactory();
-        return await instance.initObject(Aggregator, kwargs)
-    }
-
-    async initObject(aggregatorClass, kwargs) {
-        let aggregator = new aggregatorClass(aggregatorClass)
-        let secrets = await getMerchantAggregatorConfig(kwargs)
-        await aggregator.setAggregatorConfig(secrets)
-        return aggregator
-    }
-}
 
 class AggregatorProcessor {
 
@@ -30,255 +10,119 @@ class AggregatorProcessor {
         if (!this.fdkExtension) {
             this.fdkExtension = await Fdkfactory.fdkExtension();
         }
-        return this.fdkExtension;
     }
 
-    async saveOrderDetails(data, orderResponse) {
-        data.billing_address.geo_location = data.billing_address.geo_location || {};
-        data.shipping_address.geo_location = data.shipping_address.geo_location || {};
-        const paymentCompleteRedirectUrl = orderResponse.meta.payment_complete_redirect_url;
-        await Order.create({
-            gid: data.gid,
-            fynd_platform_id: data.fynd_platform_id,
-            aggregator_order_id: orderResponse.aggregatorOrderId,
-            amount: data.amount,
-            payment_methods: data.payment_methods,
-            billing_address: data.billing_address,
-            shipping_address: data.shipping_address,
-            currency: data.currency,
-            app_id: data.app_id,
-            meta: {
-                request: data,
-                success_url: paymentCompleteRedirectUrl.success_redirect_url || data.success_url,
-                cancel_url: paymentCompleteRedirectUrl.failed_redirect_url || data.cancel_url,
-            },
-            g_user_id: data.g_user_id,
-            locale: data.locale
-        });
-        console.log(`[DB] Inserted order for order id ${data.fynd_platform_id}`);
-        const transactionData = {
-            gid: data.gid,
-            fynd_platform_id: data.fynd_platform_id,
-            g_user_id: data.g_user_id,
-            aggregator_order_id: orderResponse.aggregatorOrderId,
-            aggregator_payment_id: orderResponse.aggregatorPaymentId,
-            amount: data.amount,
-            current_status: orderResponse.status,
-            journey_type: orderResponse.journeyType,
-            status: [{
-                status: orderResponse.status,
-                meta: {
-                    pgResponse: orderResponse.meta.response.data,
-                    redirectInfo: orderResponse.redirectInfo
-                }
-            }]
-        }
-        if (orderResponse.action === ActionType.HTMLSTRING) {
-            transactionData.status[0].meta.redirectInfo = {
-                action: ActionType.HTMLSTRING,
-                htmlString: orderResponse.meta.response?.htmlForm
-            }
-        }
-        else if (orderResponse.action === ActionType.REDIRECT) {
-            transactionData.status[0].meta.redirectInfo = {
-                action: ActionType.REDIRECT,
-                redirectUrl: orderResponse.meta.response._links.redirect.href
-            }
-        }
-
-        const transaction = await Transaction.create(transactionData);
-        console.log(`[DB] Inserted transaction for order id ${transactionData.fynd_platform_id}`);
-        await User.findOneAndUpdate(
-            {
-                g_user_id: data.g_user_id,
-                app_id: data.app_id
-            },
-            {
-                name: data.customer_name,
-                mobile: data.customer_contact,
-                email: data.customer_email,
-            },
-            { upsert: true, new: false },
-        );
-        return transaction._id;
-    }
-
-    async createOrder(data) {
+    async createOrder(request_payload) {
         /*
-        Args: data(Dict object) = contains createOrder Payload
+        Refer this page for more info
+        https://partners.fynd.com/help/docs/partners/extension/payments/building-payment-extension/payment-flow/initiatePaymentSession
+
+        Payload:
+        {
+            "customer_name": "Customer Name",
+            "customer_email": "email@gmail.com",
+            "app_id": "000000000000000000000001",
+            "company_id": "1",
+            "customer_contact": "8888888888",
+            "gid": "TR662637B30D570001",
+            "fynd_platform_id": "FY662A607D0EC6524BEA",
+            "g_user_id": "65fc3a26b7e85bd44752641a",
+            "amount": 100000,
+            "currency": "INR",
+            "merchant_locale": "en",
+            "locale": "en",
+            "mode": "live",
+            "journey_type": "forward",
+            "payment_methods": [
+                {
+                    "code": "DUMMY",
+                    "name": "DUMMY",
+                    "sub_payment_mode": []
+                }
+            ],
+            "success_url": "https://fynd.com/cart/order-status?success=true&status=complete&order_id=FY662A607D0EC6524BEA&aggregator_name=Dummy&cart_id=662a5d614d4cd74ae13afe36",
+            "cancel_url": "https://fynd.com/cart/order-status?success=false&status=failed&order_id=FY662A607D0EC6524BEA&aggregator_name=Dummy&cart_id=662a5d614d4cd74ae13afe36",
+            "billing_address": {
+                "area": "Bengalur",
+                "city": "Bangalore",
+                "name": "Customer name",
+                "email": "email@gmail.com",
+                "phone": "8888888888",
+                "state": "Karnataka",
+                "address": "Bengalur",
+                "country": "India",
+                "pincode": "560077",
+                "landmark": "Bengalur",
+                "area_code": "560077",
+                "pos_state": "Karnataka",
+                "address_id": 3535,
+                "address_type": "home",
+                "area_code_slug": "560077",
+                "country_iso_code": "IN",
+                "country_phone_code": "+91",
+                "g_address_id": "None"
+            },
+            "shipping_address": {
+                "area": "Bengalur",
+                "city": "Bangalore",
+                "name": "Customer name",
+                "email": "email@gmail.com",
+                "phone": "8888888888",
+                "state": "Karnataka",
+                "address": "Bengalur",
+                "country": "India",
+                "pincode": "560077",
+                "landmark": "Bengalur",
+                "area_code": "560077",
+                "pos_state": "Karnataka",
+                "address_id": 3535,
+                "address_type": "home",
+                "area_code_slug": "560077",
+                "country_iso_code": "IN",
+                "country_phone_code": "+91",
+                "g_address_id": "None"
+            },
+            "kind": "sale",
+            "initiated_at": 1714053246,
+            "cod_eligibility": true,
+            "meta": {}
+        }
     
         Retuns:
-            action: render/redirect
-            url: if actions == redirect then URL is mandatory else htmlString required to render page
-            g_id: Global order ID(gringotts Order ID)
+            gid: transaction gid
+            redirect_url: payment gateway checkout url
+            success: true/false
     
-        Sample payload that aggregator createOrder function returns
-            {
-                "gid": "FY2132141234AD231",
-                "aggregatorOrderId": "ord_2345sadsa65",
-                "status": "started",
-                "amount": 7654.02,
-                "action": "redirect/render",
-                "url": "https://rtss-sit.jioconnect.com/myjio-payment-link-service/initiate/payment/request",
-                "htmlString": "<html> ... </html>"
-                "aggregatorUserID": "CUST_7654345678",
-                "app_id": "a98765dasd0987d6sa5das65",
-                "meta": {
-                    "response": {...}
-                }
-            }
+        Return sample payload
+        {
+            "gid": "TR64D4E4250DB0CBEF1D",
+            "redirect_url": "https://pg-url.com/payments/payment_id_001",
+            "success": false
+        }
         */
-        const fieldsToMask = [
-            'customer_name',
-            'customer_email',
-            'customer_contact',
-            'billing_address.area',
-            'billing_address.name',
-            'billing_address.city',
-            'billing_address.address',
-            'billing_address.pincode',
-            'billing_address.area_code',
-            'billing_address.state',
-            'shipping_address.area',
-            'shipping_address.name',
-            'shipping_address.city',
-            'shipping_address.address',
-            'shipping_address.pincode',
-            'shipping_address.area_code',
-            'shipping_address.state'
-        ];
-        logger.mask(LOGGER_TYPE.info, fieldsToMask, "[REQDATA] Request body for createPaymentSession::post", data);
-        if ((await Order.find({ gid: data.gid })).length !== 0) {
-            throw new BadRequestError("duplicate order id " + data.gid);
-        }
-        let lineItemData = null;
-        try {
-            const fdkExtension = await this.getFdkExtension();
-            const platformClient = await fdkExtension.getPlatformClient(data.company_id);
-            const applicationClient = platformClient.application(data.app_id);
-            lineItemData = await applicationClient.payment.getPaymentSession({
-                gid: data.gid,
-                lineItem: true
-            });
-            if (!lineItemData) {
-                throw new BadRequestError(`lineItemData for ${data.fynd_platform_id} not found`);
-            }
-        } catch (error) {
-            logger.error(`[ERR] Create Payment Session failed for ${data.fynd_platform_id} due to ${error.message || "some issue"}`);
-            throw error;
-        }
 
-        console.log("[FDKRESPONSE] lineItemData received from getPaymentSession", lineItemData);
-        data['lineItemData'] = lineItemData;
-        const instance = await AggregatorFactory.createInstance({ appId: data.app_id });
+        console.log("Payload received from platform", request_payload);
+        const gid = request_payload.gid;
 
-        let orderResponse = await instance.createOrder(data);
-        // Save into DB
-        const _id = await this.saveOrderDetails(data, orderResponse)
+        const aggregator = new Aggregator(appId);
+        const redirectUrl = await aggregator.createOrder(request_payload);
+
         const responseData = {
             success: true,
-            _id: _id,
-            redirect_url: removeTrailingSlash(config.extension.base_url) + "/api/v1/pgloader/" + _id,
-            action: instance.action
+            redirect_url: redirectUrl,
+            gid: gid,
         }
-        console.log("[RESDATA] Response for createPaymentSession::post", responseData);
+        console.log("Response for create payment", responseData);
         return responseData;
     }
 
-    async renderPG(data) {
-        const transaction = await Transaction.findById(data._id);
-        if (!transaction) {
-            throw new NotFoundError("transaction not found");
-        }
+    async processCallback(request_payload) {
+        console.log('Payload for process callback', request_payload);
 
-        let redirectInfo = transaction.status[0].meta.redirectInfo;
-        if (redirectInfo.action == ActionType.POLLING) {
-            const qrOption = {
-                margin: 7,
-                width: 330
-            };
-            const qrString = redirectInfo.paymentLink;
-            redirectInfo.pollingData["qrImage"] = await qrcode.toDataURL(qrString, qrOption);
-            redirectInfo.pollingData["expiry"] = Settings.pollingDuration
-            redirectInfo.pollingData['_id'] = data._id;
-            redirectInfo.pollingData['cancelUrl'] = config.extension.base_url + `/api/v1/payment/cancel/${data._id}`;
-        };
+        const gid = await Aggregator.getOrderFromCallback(request_payload);
 
-        return redirectInfo;
-    }
-
-    async upsertTransactions(orderData, pgResponse, journeyType, source) {
-        const paymentDetails = _.cloneDeep(pgResponse.paymentDetail);
-        const firstTransaction = paymentDetails.shift();
-        let updateBlock = {
-            // payment_mode: firstTransaction.paymentMethods[0].code,
-            payment_mode: firstTransaction.paymentMethods[0].code,
-            amount: firstTransaction.amount,
-            current_status: firstTransaction.status,
-        }
-        if (source === "webhook") {
-            updateBlock['aggregator_payment_id'] = firstTransaction.aggregatorTransactionId;
-            updateBlock['invoice_no'] = firstTransaction.invoiceNumber;
-        }
-
-        const transaction = await Transaction.findOneAndUpdate(
-            { gid: orderData.gid },
-            {
-                $set: updateBlock,
-                $push: {
-                    status: {
-                        status: firstTransaction.status,
-                        source: source,
-                        meta: pgResponse.meta,
-                    }
-                }
-            },
-            { new: true, returnNewDocument: true }
-        );
-        console.log(`[DB] Updating transaction for order id ${transaction.fynd_platform_id}`);
-        paymentDetails.forEach((payment) => {
-            const transactionData = {
-                gid: orderData.gid,
-                g_user_id: orderData.g_user_id,
-                aggregator_order_id: orderData.aggregator_order_id,
-                amount: payment.amount,
-                current_status: payment.status,
-                journey_type: journeyType,
-                payment_mode: payment.paymentMethods[0].code,
-                status: {
-                    status: payment.status,
-                    source: source,
-                    meta: pgResponse.meta
-                }
-            };
-            if (source === "webhook") {
-                transactionData['aggregator_payment_id'] = payment.aggregatorTransactionId;
-                transactionData['invoice_no'] = payment.invoiceNumber;
-            }
-            Transaction.updateOne(
-                {
-                    gid: transactionData.gid,
-                    payment_mode: transactionData.payment_mode
-                },
-                transactionData,
-                { upsert: true },
-            ).catch(function (err) {
-                logger.error(`[DB] Failed to update transaction for order id ${transaction.fynd_platform_id}`);
-            });
-        });
-    }
-
-    async processCallback(data) {
-        console.log('[REQDATA] Request body for processCallBack::post', data);
-        const fynd_platform_id = data.responseData.transactionRefNumber;
-        const order = await Order.findOne({ fynd_platform_id: fynd_platform_id });
-        if (!order) {
-            throw new NotFoundError("order not found " + fynd_platform_id);
-        }
-        data.aggregatorOrderId = order.aggregator_order_id;
-
-        const instance = await AggregatorFactory.createInstance({ appId: order.app_id });
-        const callbackResponse = await instance.processCallback(data, order);
+        const aggregator = await Aggregator({ appId: order.app_id });
+        const callbackResponse = await aggregator.processCallback(request_payload);
 
         await this.upsertTransactions(order, callbackResponse, "forward", "callback");
         // await this.updateGringottsPaymentStatus(order, callbackResponse, "callback");

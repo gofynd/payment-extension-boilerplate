@@ -1,151 +1,70 @@
 const config = require("../../config");
+const { BadRequestError } = require("../../utils/errorUtils");
 const { aggregatorConfig } = require("./config");
-const { getCheckoutPayload, getCheckoutChecksum, getLinkPayload, getLinkChecksum } = require("./payloads");
 
 class Aggregator {
     constructor(appId) {
-        super();
         this.appId = appId;
     }
 
     async setAggregatorConfig(secrets) {
         // This function used to set the payment gateways configs
         this.secretsDict = secrets;
-        this.channelId = secrets.channelId;
-        this.circleId = secrets.circleId;
-        this.transactionType = secrets.transactionType;
-        this.checksum_key = secrets.checksum_key;
-        this.refund_checksum_key = secrets.refund_checksum_key;
-        this.payment_link = secrets.payment_link;
-        this.api_domain = secrets.api_domain;
-        this.encrypt_secret = secrets.encrypt_secret;
-        this.encrypt_iv = secrets.encrypt_iv;
-        this.link_expiry = secrets.link_expiry || 15;
-        this.success_redirect_url = secrets.success_redirect_url;
-        this.failed_redirect_url = secrets.failed_redirect_url;
-        this.action = secrets.action;
+        this.apiToken = secrets.api_token;
     }
 
+    static async getOrderFromCallback(callbackPayload){
+        const gid = callbackPayload.transactionReferenceId;
+        return gid;
+    }
 
-    async createOrder(data) {
+    static async getOrderFromWebhook(webhookPayload){
+        const gid = webhookPayload.transactionReferenceId;
+        return gid;
+    }
+
+    static async getOrderFromRefundWebhook(webhookPayload){
+        const gid = webhookPayload.transactionReferenceId;
+        return gid;
+    }
+
+    async createOrder(payload) {
         /*
-        Sample createOrder API response
-        {
-            'linkId': 'e7811fa71cb048d58bf345d61e88743a',
-            'success': true,
-            'transactionRefNumber': ' JM000000001',
-        }
-        Returns:
-        200CREATED {
-            aggregatorOrderId: string,
-            status: 'initiated',
-            journeyType: 'forward',
-            amount: float,
-            action: 'redirect',
-            url: URL that redirect to PG,
-            aggregatorUserID: string,
-            meta: {
-                response: Dict
-            }
-        }
-    
-        400/500 {
-            status: 'failed',
-            journeyType: 'forward',
-            amount: float,
-            meta: {
-                response: dict
-            }
-        }
-    
+        Returns: redirect_url for payment page
         */
 
-        let payload = {}
-        let checksumValue = ""
+        const customerData = {
+            customer_name: payload.customer_name,
+            customer_contact: payload.customer_contact,
+            customer_email: payload.customer_email,
+        }
 
-        const customer = {
-            customer_name: data.meta?.customer_details?.name || data.customer_name,
-            customer_contact: data.meta?.customer_details?.mobile || data.customer_contact,
-            customer_email: data.meta?.customer_details?.email || data.customer_email,
+        const body = {
+            // Create payment gateway specific body here
+            amount: payload.amount,
+            currency: payload.currency,
+            transactionReferenceId: payload.gid,
+            customer: customerData,
+            address: payload.billing_address,
         }
-        if (data.payment_methods?.some((method) => method?.code?.toUpperCase() == 'JIOPPLINK')) {
-            payload = await getLinkPayload(data, this.secretsDict, customer);
-            checksumValue = await getLinkChecksum(payload, this.secretsDict);
-        } else {
-            payload = await getCheckoutPayload(data, this.secretsDict, customer);
-            checksumValue = await getCheckoutChecksum(payload, this.secretsDict);
-        }
-        const url = this.api_domain + aggregatorConfig.createOrder;
+
+        const url = config.pgBaseUrl + aggregatorConfig.createOrder;
+
         const headers = {
-            "X-JIO-PAYLOAD-AUTH": checksumValue,
             "ContentType": "application/json"
         };
-        const logData = {
-            purpose: "Creating Order",
-            entityValue: payload.transactionRefNumber,
-            entityName: "transactionRefNumber"
-        }
-        const response = await makeRequest({
+
+        const response = await axios.axios({
             method: 'POST',
             url: url,
-            data: payload,
-            headers: headers,
-            logData
+            data: body,
+            headers: headers
         });
-        if (response.status === httpStatus.OK) {
 
-            let redirectInfo = {}
-            let payment_methods = data.payment_methods;
-
-            if (payment_methods.find((method) => method.code.toUpperCase() == 'JIOPPLINK')) {
-                redirectInfo = {
-                    action: ActionType.POLLING,
-                    paymentLink: this.payment_link + `?transactionRefNumber=${data.gid}&channelId=${this.channelId}`,
-                    pollingLink: removeTrailingSlash(config.extension.base_url) + '/api/v1/payment_update',
-                    pollingData: {
-                        gid: data.gid,
-                        amount: data.amount,
-                        _id: data._id
-                    }
-                }
-            } else {
-                redirectInfo = {
-                    action: ActionType.HTMLSTRING,
-                    htmlString: Buffer.from(response.data.htmlForm, 'base64').toString('utf-8')
-                }
-            }
-
-            const orderResponse = {
-                aggregatorOrderId: response.data.linkId,
-                aggergatorPaymentId: response.data.linkId,
-                status: "initiated",
-                journeyType: "forward",
-                amount: data.amount,
-                redirectInfo: redirectInfo,
-                aggregatorUserID: null,
-                meta: {
-                    request: { ...payload, ...headers },
-                    response: response.data,
-                    payment_complete_redirect_url: await this.createRedirectUrls(
-                        data.fynd_platform_id,
-                        data.gid
-                    )
-                }
-            };
-            return orderResponse;
+        if (response.status === 200) {
+            return response.payment_url;
         }
-        return {
-            aggregatorOrderId: data.gid,
-            aggergatorPaymentId: null,
-            status: "failed",
-            journeyType: "forward",
-            amount: data.amount,
-            aggregatorUserID: null,
-            meta: {
-                request: { ...payload, ...headers },
-                response: response
-            }
-        };
+        throw new BadRequestError("Bad request")
     }
 
     async createRedirectUrls(orderId, gid) {

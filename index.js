@@ -1,15 +1,9 @@
 require("dotenv").config();
 const config = require("./app/config");
+const app = require("./app/server");
 
-async function startServer() {
-  const app = require("./app/server");
-  (async () => {
-    handler = await app.initApp();
-  })();
-}
+const port = config.port || 3000;
 
-const init = async () => {
-  startServer();
-};
-
-init();
+app.listen(port, () => {
+  console.log(`Example app listening at http://localhost:${port}`);
+});

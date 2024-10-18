@@ -20,6 +20,6 @@ credsRouter.get('/secrets/:app_id', verifyExtensionAuth, getSecretsHandler);
 apiRouter.get('/credentials/:app_id', verifyApplicationId, getSecretsHandler);
 
 module.exports = {
-    credsRouter: credsRouter.getRouter(),
-    apiRouter: apiRouter.getRouter()
+    credsRouter: credsRouter,
+    apiRouter: apiRouter
 }
