@@ -2,6 +2,7 @@ const Aggregator = require("./aggregators/aggregator");
 const { BadRequestError, NotFoundError } = require("../utils/errorUtils");
 const Fdkfactory = require("../fdk")
 const config = require("../config");
+const { getHmacChecksum } = require("../utils/signatureUtils");
 
 
 class AggregatorProcessor {
@@ -104,7 +105,7 @@ class AggregatorProcessor {
         console.log("Payload received from platform", request_payload);
         const gid = request_payload.gid;
 
-        const aggregator = new Aggregator(appId);
+        const aggregator = new Aggregator(request_payload.app_id, request_payload.company_id);
         const redirectUrl = await aggregator.createOrder(request_payload);
 
         const responseData = {
@@ -121,17 +122,19 @@ class AggregatorProcessor {
 
         const gid = await Aggregator.getOrderFromCallback(request_payload);
 
-        const aggregator = await Aggregator({ appId: order.app_id });
+        const aggregator = await Aggregator(request_payload.app_id, request_payload.company_id);
         const callbackResponse = await aggregator.processCallback(request_payload);
 
-        await this.upsertTransactions(order, callbackResponse, "forward", "callback");
-        // await this.updateGringottsPaymentStatus(order, callbackResponse, "callback");
+        const { amount, currency, status } = callbackResponse;
+        await this.updatePlatformPaymentStatus(gid, amount, currency, status, request_payload);
+
         const redirectUrl = callbackResponse.status == "complete" ? order.meta.success_url : order.meta.cancel_url;
+
         const responseData = {
             action: "redirect",
             redirectUrl: encodeURIComponent(redirectUrl)
         };
-        console.log('[RESDATA] Response for processCallBack::post', responseData);
+        console.log('Response for processCallBack::post', responseData);
         return responseData;
     };
 
@@ -410,126 +413,34 @@ class AggregatorProcessor {
         }
 
         await this.upsertTransactions(order, webhookResponse, "forward", "webhook");
-        const responseData = await this.updateGringottsPaymentStatus(order, webhookResponse, "webhook");
+        const responseData = await this.updatePlatformPaymentStatus(order, webhookResponse, "webhook");
         console.log("[RESDATA] Response for processWebhook::post", responseData);
     }
 
-    async updateGringottsPaymentStatus(order, response, source) {
-        // Call gringotts api
-        order.billing_address.address_type = order.billing_address.address_type || "other";
-        order.shipping_address.address_type = order.shipping_address.address_type || "other";
-        order.billing_address.geo_location = order.billing_address.geo_location || {};
-        order.shipping_address.geo_location = order.billing_address.geo_location || {};
-        const paymentDetails = []
-        response.paymentDetail?.forEach((paymentDetail) => {
-            paymentDetail.paymentMethods?.forEach((paymentMethod) => {
-                paymentMethod.code = jioMopMapping[paymentMethod.code] || paymentMethod.code;
-            });
-            paymentDetails.push({
-                "payment_id": paymentDetail.aggregatorTransactionId || order.aggregator_order_id,
-                "aggregator_order_id": order.aggregator_order_id,
-                "aggregator_customer_id": "",
-                "captured": true,
-                "status": paymentDetail.status,
-                "amount_captured": paymentDetail.amount,
-                "amount_refunded": 0,
-                "amount": paymentDetail.amount,
-                "gid": order.gid,
-                "g_user_id": order.g_user_id,
-                "currency": order.currency,
-                "merchant_locale": order.meta.request.merchant_locale,
-                "locale": order.meta.request.locale,
-                "mode": order.meta.request.mode || "",
-                "payment_methods": paymentDetail.paymentMethods,
-                "success_url": order.meta.success_url,
-                "cancel_url": order.meta.cancel_url,
-                "billing_address": order.billing_address,
-                "shipping_address": order.shipping_address,
-                "kind": order.meta.request.kind,
-                "created": String(Date.parse(order.createdAt))
-            })
-        });
-
-        const offerList = []
-        const totalAppliedOfferAmount = response?.appliedPaymentOffers?.totalAppliedOfferAmount || 0.0;
-        response.appliedPaymentOffers.offerList.forEach((offer) => {
-            offerList.push({
-                "offer_amount": offer?.amount || 0.0,
-                "offer_code": offer?.mop,
-                "offer_description": offer?.modeOfPaymentDesc,
-                "offer_id": offer?.offerId,
-            })
-        });
-
-        let prev_payment_mode = "JIOPP"
-        order.meta.request.payment_methods.forEach((payment_method) => {
-            if (["JIOPP", "JIOPPLINK"].includes(payment_method?.code))
-                prev_payment_mode = payment_method?.code;
-        });
-        const payload = {
-            "gid": order.gid,
-            "status": response.status,
-            "total_amount": order.amount,
-            "currency": order.currency,
-            "source": source,
-            "applied_payment_offers": {
-                "total_applied_offer_amount": totalAppliedOfferAmount,
-                "offer_list": offerList
-            },
-            "payment_details": paymentDetails,
+    async updatePlatformPaymentStatus(gid, amount, currency, status, request_payload) {
+        payload = {
+            "gid": gid,
             "order_details": {
-                "gid": order.gid,
-                "amount": order.amount,
-                "currency": order.currency,
-                "aggregator": config.extension.aggregator_slug,
-                "status": response.status,
-                "aggregator_order_details": {
-                    "aggregator_order_id": order.gid,
-                    "amount": order.amount,
-                    "currency": order.currency,
-                    "aggregator": "Jio",
-                    "status": response.status
-                }
+                "gid": gid,
+                "amount": amount,
+                "status": status,
+                "currency": currency,
+                "aggregator_order_details": request_payload,
+                "aggregator": "Dummy"
             },
-            "meta": {
-                "prev_payment_mode": prev_payment_mode || "JIOPP",
-                "product_spec_id": response.meta.productSpecId,
-                "payment_detail": response.meta.paymentDetail
-            }
-        };
+            "status": status,
+            "currency": currency,
+            "payment_details": [],
+            "total_amount": amount,
+        }
 
         const checksum = getHmacChecksum(JSON.stringify(payload), config.extension.api_secret);
         payload["checksum"] = checksum
-        const fieldsToMask = [];
-        paymentDetails.forEach((detail, index) => {
-            if (detail?.billing_address) {
-                fieldsToMask.push(
-                    `payment_details[${index}].billing_address.area`,
-                    `payment_details[${index}].billing_address.name`,
-                    `payment_details[${index}].billing_address.city`,
-                    `payment_details[${index}].billing_address.address`,
-                    `payment_details[${index}].billing_address.pincode`,
-                    `payment_details[${index}].billing_address.area_code`,
-                    `payment_details[${index}].billing_address.state`
-                )
-            }
-            if (detail?.shipping_address) {
-                fieldsToMask.push(
-                    `payment_details[${index}].shipping_address.area`,
-                    `payment_details[${index}].shipping_address.name`,
-                    `payment_details[${index}].shipping_address.city`,
-                    `payment_details[${index}].shipping_address.address`,
-                    `payment_details[${index}].shipping_address.pincode`,
-                    `payment_details[${index}].shipping_address.area_code`,
-                    `payment_details[${index}].shipping_address.state`
-                )
-            }
-        });
-        logger.mask(LOGGER_TYPE.info, fieldsToMask, "[FDKREQUEST] Updating Payment status on Gringotts", payload);
+
         const fdkExtension = await this.getFdkExtension();
-        const platformClient = await fdkExtension.getPlatformClient(order.meta.request.company_id);
-        const applicationClient = platformClient.application(order.app_id);
-        const sdkResponse = await applicationClient.payment.updatePaymentSession({ gid: order.gid, body: payload });
+        const platformClient = await fdkExtension.getPlatformClient(this.company_id);
+        const applicationClient = platformClient.application(this.app_id);
+        const sdkResponse = await applicationClient.payment.updatePaymentSession({ gid: gid, body: payload });
         return sdkResponse;
     }
 
@@ -658,113 +569,6 @@ class AggregatorProcessor {
         const applicationClient = platformClient.application(order.app_id);
         const sdkResponse = await applicationClient.payment.updateRefundSession({ gid: order.gid, requestId: transaction.refund_request_id, body: payload });
         return sdkResponse;
-    }
-
-    async processPaymentUpdateStatus(requestPayload) {
-        console.log('[REQDATA] Request body for processPaymentUpdateStatus::post', requestPayload);
-        let data = requestPayload.data
-        const gid = data.gid;
-
-        const order = await Order.findOne({ gid: gid });
-
-        if (!order) {
-            logger.error(`Order not found: ${gid}`);
-            throw new NotFoundError("Order not found");
-        }
-
-        const instance = await AggregatorFactory.createInstance({ appId: order.app_id });
-        let paymentUpdateResponse = await instance.paymentUpdateStatus(data, order);
-        console.log("[JIOPP] processPaymentUpdateStatus response", { response: paymentUpdateResponse });
-
-        if (data.counter < Settings.pollingDuration) {
-            data.counter = parseInt(data.counter) + 1
-        }
-        if (data.counter >= Settings.pollingDuration ||
-            !(['pending', 'initiated'].includes(paymentUpdateResponse.status))) {
-            paymentUpdateResponse.retry = false
-        }
-
-        if (!paymentUpdateResponse.retry) {
-            console.log("[DB] Updating transaction");
-            await Transaction.updateOne(
-                { gid: data.gid },
-                {
-                    $set: {
-                        aggregator_payment_id: paymentUpdateResponse.aggregatorTransactionId,
-                        current_status: paymentUpdateResponse.status
-                    },
-                    $push: {
-                        status: {
-                            status: paymentUpdateResponse.status,
-                            meta: paymentUpdateResponse.meta
-                        },
-                    }
-                }
-            );
-            // const response = await this.updateGringottsPaymentStatus(order, paymentUpdateResponse, "update");
-            // console.log("[JIOPP] processPaymentUpdateStatus Gringotts Syncing response: %O", JSON.stringify(response));
-        }
-        const responseData = {
-            "status": paymentUpdateResponse.status,
-            "successURL": order.meta.success_url,
-            "cancelURL": order.meta.cancel_url,
-            "success": true,
-            "gid": data.gid,
-            "amount": data.amount,
-            "retry": paymentUpdateResponse.retry,
-            "counter": data.counter || 1,
-            "returnUrl": order.meta.success_url
-        };
-        console.log('[RESDATA] Response for processPaymentUpdateStatus::post', responseData);
-        return responseData;
-    }
-
-    async processPaymentCancel(requestPayload) {
-        console.log('[REQDATA] Request body for processPaymentCancel::post', requestPayload);
-
-        const transaction = await Transaction.findById(requestPayload._id);
-        if (!transaction) {
-            logger.error("Transaction Not Found.")
-            throw new NotFoundError("transaction not found");
-        }
-
-        const order = await Order.findOne({ gid: transaction.gid });
-
-        if (transaction.current_status != "initiated") {
-            return {
-                "success": true,
-                "cancelled": false,
-                "cancelUrl": order.meta.cancel_url,
-                "message": `Transaction is not Cancelled as the transaction is moved to ${transaction.current_status} statue`
-            }
-        }
-
-        const instance = await AggregatorFactory.createInstance({ appId: order.app_id });
-        const cancelResponse = await instance.processCancelPayment(requestPayload, order);
-
-        await Transaction.updateOne(
-            { _id: transaction._id },
-            {
-                $set: {
-                    current_status: cancelResponse.status
-                },
-                $push: {
-                    status: {
-                        status: cancelResponse.status,
-                        meta: cancelResponse.meta
-                    },
-                }
-            }
-        )
-        const response = await this.updateGringottsPaymentStatus(order, cancelResponse, "cancel");
-        const responseData = {
-            "success": true,
-            "cancelled": true,
-            "cancelUrl": order.meta.cancel_url,
-            "message": "Transaction is Cancelled."
-        };
-        console.log('[RESDATA] Request body for processPaymentCancel::post', responseData);
-        return responseData;
     }
 }
 
