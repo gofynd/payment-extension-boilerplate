@@ -50,7 +50,7 @@ const MyFormComponent = ({ params }) => {
 
     const body = createBody(formData)
     try {
-      const response = await MainService.submitCredentials(getApplication(), getCompany, { 'data': body })
+      const response = await MainService.submitCredentials(getApplication(), getCompany(), { 'data': body })
 
       if (response.status === 201) {
         setShowSuccessBanner(true);

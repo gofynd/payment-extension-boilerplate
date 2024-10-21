@@ -21,14 +21,14 @@ const Endpoints = {
     return urlJoin(
       envVars.EXAMPLE_MAIN_URL,
       "/protected/v1/credentials/",
-      company_id, "/", app_id
+      company_id, app_id
     );
   },
   POST_CREDENTIALS(app_id, company_id) {
     return urlJoin(
       envVars.EXAMPLE_MAIN_URL,
       "/protected/v1/credentials/",
-      company_id, "/", app_id
+      company_id, app_id
     );
   },
 };

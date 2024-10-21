@@ -63,6 +63,11 @@ class Aggregator {
             data: body,
             headers: headers
         });
+        // Demo response from payment gateway
+        // const response = {
+        //     status: 200,
+        //     payment_url: "https://api.razorpay.com/accept-payment/pay_id_1234567890/"
+        // }
 
         if (response.status === 200) {
             return response.payment_url;

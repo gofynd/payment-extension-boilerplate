@@ -47,11 +47,13 @@ let config = convict({
   },
   encryption_key: {
     doc: "encryption key for saving credentials",
-    default: "",
+    default: "48da21568076dcaaca47d479055b43c3e266a9cb108289e60732a42802b50472",
     env: "ENCRYPTION_KEY",
   }
 });
 
-config = config.get();
+config.validate({ allowed: 'strict' });
 
-module.exports = config;
+const configProperties = config.getProperties();
+
+module.exports = configProperties;

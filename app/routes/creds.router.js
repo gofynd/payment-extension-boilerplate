@@ -12,11 +12,11 @@ const {
 
 
 // called from platform
-credsRouter.get('/secrets/:company_id/:app_id', verifyExtensionAuth, getSecretsHandler);
+credsRouter.get('/secrets/:app_id', verifyExtensionAuth, getSecretsHandler);
 
 // called from frontend
 apiRouter.get('/credentials/:company_id/:app_id', verifyApplicationId, getSecretsHandler);
-apiRouter.post('/credentials/:company_id/:app_id', verifyApplicationId, getSecretsHandler);
+apiRouter.post('/credentials/:company_id/:app_id', verifyApplicationId, createSecretsHandler);
 
 module.exports = {
     credsRouter: credsRouter,

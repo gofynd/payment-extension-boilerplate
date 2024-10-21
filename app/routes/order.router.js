@@ -18,7 +18,7 @@ orderRouter.get('/payment_session/:gid', verifyStatusChecksum, getPaymentDetails
 orderRouter.post('/payment_session/:gid/refund', verifyPlatformChecksum, createRefundHandler);
 orderRouter.get('/payment_session/:gid/refund', verifyStatusChecksum, getRefundDetailsHandler);
 
-orderRouter.post('/payment_callback', paymentCallbackHandler);
+orderRouter.post('/payment_callback/:company_id/:app_id', paymentCallbackHandler);
 
 orderRouter.post('/webhook/payment', processWebhook);
 orderRouter.post('/webhook/refund', processRefundWebhook);
