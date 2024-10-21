@@ -289,19 +289,20 @@ class AggregatorProcessor {
         console.log('Request body for Refund Webhook', webhookPayload);
 
         let data = webhookPayload.data;
-        const request_id = await Aggregator.getOrderFromRefundWebhook(data);
+        const {gid, request_id} = await Aggregator.getOrderFromRefundWebhook(data);
 
         const aggregator = new Aggregator({ app_id: data.app_id, company_id: data.company_id });
         const webhookResponse = await aggregator.processRefundWebhook(webhookPayload);
 
         const { amount, currency, status, payment_id, refund_utr } = webhookResponse;
-        const payload = this.createRefundUpdatePayload(request_id, amount, currency, status, payment_id, refund_utr, webhookPayload.data);
-        await this.updatePlatformRefundStatus(data.app_id, data.company_id, request_id, request_id, payload);
+        const payload = this.createRefundUpdatePayload(gid, request_id, amount, currency, status, payment_id, refund_utr, webhookPayload.data);
+        await this.updatePlatformRefundStatus(data.app_id, data.company_id, gid, request_id, payload);
 
-        console.log('Response for Refund Webhook', response);
+        console.log('Webhook processed');
     }
 
-    createRefundUpdatePayload(gid, amount, currency, status, payment_id, refund_utr, aggregator_payload) {
+    createRefundUpdatePayload(gid, request_id, amount, currency, status, payment_id, refund_utr, aggregator_payload) {
+        amount = amount * 100;
         return {
             gid: gid,
             status: status,
@@ -309,7 +310,7 @@ class AggregatorProcessor {
             total_amount: amount,
             refund_details: [{
                 status: status,
-                request_id: gid,
+                request_id: request_id,
                 payment_id: payment_id,
                 refund_utr: refund_utr,
                 amount: amount,
@@ -319,7 +320,7 @@ class AggregatorProcessor {
             payment_details: {
                 gid: gid,
                 status: status,
-                aggregator_order_id: "",
+                aggregator_order_id: payment_id,
                 payment_id: payment_id,
                 mode: config.env,
                 amount: amount,
@@ -342,7 +343,7 @@ class AggregatorProcessor {
 
         let platformClient = await fdkExtension.getPlatformClient(company_id);
         const applicationClient = platformClient.application(app_id);
-        const sdkResponse = await applicationClient.payment.updateRefundSession({ gid: gid, requestId: gid, body: payload });
+        const sdkResponse = await applicationClient.payment.updateRefundSession({ gid: gid, requestId: request_id, body: payload });
         return sdkResponse;
     }
 }

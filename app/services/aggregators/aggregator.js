@@ -25,8 +25,11 @@ class Aggregator {
     }
 
     static async getOrderFromRefundWebhook(webhookPayload){
-        const gid = webhookPayload.transactionReferenceId;
-        return gid;
+        // Splitting both here from transaction id
+        const orderIdCombined = webhookPayload.transactionReferenceId;
+        const gid = orderIdCombined.split("-")[0];
+        const request_id = orderIdCombined.split("-")[1];
+        return {gid, request_id};
     }
 
     async createOrder(payload) {
@@ -77,15 +80,16 @@ class Aggregator {
 
 
     async createRefund(request_payload) {
-        const { aggregator_payment_id: forwardPaymentId, request_id, amount, currency } = request_payload;
+        const { aggregator_payment_id: forwardPaymentId, gid, request_id, amount, currency } = request_payload;
 
+        const orderIdCombined = `${gid}-${request_id}`
         // Prepare payload for refund
         const payload = {
             amount: {
                 value: amount / 100,
                 currency_code: currency,
             },
-            invoice_id: request_id,
+            invoice_id: orderIdCombined,
         };
     
         // Generate refund URL
