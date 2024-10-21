@@ -76,6 +76,47 @@ class Aggregator {
     }
 
 
+    async processRefund(request_payload) {
+        const { aggregator_payment_id: forwardPaymentId, request_id, amount, currency } = request_payload;
+
+        // Prepare payload for refund
+        const payload = {
+            amount: {
+                value: amount / 100,
+                currency_code: currency,
+            },
+            invoice_id: request_id,
+        };
+    
+        // Generate refund URL
+        const url = config.pgBaseUrl + '/v2/payments/captures/' + forwardPaymentId + '/refund';
+
+        const response = await axios.axios({
+            method: "POST",
+            url: url,
+            data: payload,
+        });
+        // Demo refund initiate response
+        // const response = {
+        //     success: true,
+        //     refund_utr: "ICIC2098423058020",
+        //     refund_id: "890342354509842",
+        // }
+
+        if(response.status === 200){
+            return {
+                status: refundStatus.INITIATED,
+                refund_utr: response.refund_utr,
+                payment_id: response.refund_id,
+            }
+        }
+
+        return {
+            status: refundStatus.FAILED,
+        }
+
+    }
+
     async processCallback(callbackPayload) {
         /*
         Customize function as per callback payload
@@ -112,63 +153,6 @@ class Aggregator {
         };
     }
 
-    async processRefund(data) {
-        // request:
-        // {
-        //     'gid': '<fynd_order_id>',
-        //     'object': 'refund',
-        //     'request_id': '',
-        //     'amount': amount in paise integer,
-        //     'currency': '',
-        //     'status': 'initiate'
-        //     'meta': {
-        //          'payment_mode': 'NB'
-        //     }
-        // }
-        let response = null;
-        let reason = 'Initiated Refund';
-        console.log('[processRefund] Data received for refund', data);
-        data.payment_mode = data.meta?.payment_mode;
-        data.mop = data.meta.mop;
-
-        if (
-            ['RONE', 'PERFIOS', 'JM_WALLET', 'JMWALLET', 'GIFT_CARD', 'GIFTCARD', 'EGV'].includes(data.payment_mode.toUpperCase())
-        ) {
-            response = await createWalletRefund(data, this.secretsDict)
-        } else {
-            response = await this.initiate_jio_refund(this.api_domain + aggregatorConfig.refund, data)
-        }
-        if (response.status === httpStatus.OK && response?.data?.code === 200) {
-            const refundResponse = {
-                aggregatorActionId: response.data.refundId,
-                status: response?.data?.refund_status || 'refund_pending',
-                journeyType: 'refund',
-                amount: data.amount,
-                requestId: data.request_id,
-                reason: reason,
-                meta: {
-                    response: response.data
-                }
-            };
-            return refundResponse;
-        } else if (response.success === false && response.errors && response.errors.length > 0) {
-            if (Array.isArray(response.errors)) {
-                reason = `${error.reason} - ${error.details}`;
-            } else {
-                reason = response.errors;
-            }
-        }
-        return {
-            status: response?.data?.refund_status || 'refund_failed',
-            journeyType: 'refund',
-            amount: data.amount,
-            requestId: data.request_id,
-            reason: reason,
-            meta: {
-                response: response
-            }
-        };
-    }
 
     async verifyChecksum(payload) {
         // Add logic to verify callback and webhook

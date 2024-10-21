@@ -140,175 +140,6 @@ class AggregatorProcessor {
         return responseData;
     };
 
-    async getRefundDetails(data) {
-        console.log('[REQDATA] Request params/query for getRefundDetails::get', data);
-        const forwardTransaction = await Transaction.findOne({ gid: data.gid });
-        const order = await Order.findOne({ gid: data.gid });
-        if (!forwardTransaction) {
-            throw new NotFoundError("transaction for order " + data.gid);
-        }
-
-        const instance = await AggregatorFactory.createInstance({ appId: order.app_id });
-        const aggResponse = await instance.getRefundDetails(data, data.gid, order.fynd_platform_id);
-        const responseData = {
-            gid: data.gid,
-            journey_type: "refund",
-            aggregator_payment_refund_details: aggResponse.refunds,
-        };
-        console.log('[RESDATA] Response for getRefundDetails::get', responseData);
-        return responseData;
-    };
-
-    async processRefund(data) {
-        // request:
-        // {
-        //     "gid": "<fynd_order_id>",
-        //     "object": "refund",
-        //     "request_id": "",
-        //     "amount": amount in paise integer,
-        //     "currency": "",
-        //     "status": "initiate",
-        //     "meta": {
-        //         "payment_mode": "NB",
-        //     }
-        // }
-
-        console.log('[REQDATA] Request body for processRefund::post', data);
-        const payment_modes = jioRefundMopMapping[data.meta?.payment_mode] || [];
-        payment_modes.push(data.meta.payment_mode);
-
-        let transaction_ids = data.meta?.transaction_ids || [data.gid];
-
-        let forwardTransaction = await Transaction.findOne({
-            gid: { "$in": transaction_ids },
-            journey_type: "forward",
-            payment_mode: { "$in": payment_modes },
-        });
-        if (!forwardTransaction) {
-            forwardTransaction = await Transaction.findOne({
-                gid: { "$in": transaction_ids },
-                journey_type: "forward",
-                payment_mode: { "$nin": payment_modes },
-            });
-        }
-        if (!forwardTransaction) {
-            throw new NotFoundError("no transaction for payment_mode " + data.meta?.payment_mode);
-        }
-        const order = await Order.findOne({ gid: { "$in": transaction_ids } });
-
-        if (forwardTransaction.current_status !== "complete" || !forwardTransaction.aggregator_payment_id) {
-            throw new BadRequestError(
-                "transaction pending aggregator {" + data.gid + "} current status: " + forwardTransaction.current_status
-            );
-        }
-        data.meta.mop = forwardTransaction.payment_mode;
-        data.meta.forwardTransactionId = forwardTransaction.fynd_platform_id;
-
-        const existingRefund = await Transaction.findOne({
-            refund_request_id: data.request_id,
-            payment_mode: data.meta?.payment_mode,
-            amount: data.amount,
-        });
-
-        if (existingRefund && existingRefund.current_status === "refund_done") {
-            throw new BadRequestError(
-                "duplicate refund request " + data.gid
-            )
-        }
-        const orderData = order.meta.request;
-        data.external_id = orderData?.meta?.external_id;
-        data.customer_contact = orderData.meta?.customer_details?.mobile || orderData?.customer_contact;
-        data.forwardPaymentId = forwardTransaction.aggregator_payment_id;
-        data.invoiceNumber = forwardTransaction.invoice_no;
-        data.g_user_id = forwardTransaction.g_user_id;
-        data.fynd_platform_id = forwardTransaction.fynd_platform_id;
-
-        const fdkExtension = await this.getFdkExtension();
-        const platformClient = await fdkExtension.getPlatformClient(data.company_id);
-        const { token } = await platformClient.application(data.app_id).configuration.getApplicationById();
-        const applicationClient = await fdkExtension.getApplicationClient(data.app_id, token);
-
-        const shipmentDetails = await applicationClient.order.getShipmentById({ shipmentId: data.request_id });
-        console.log("[processRefund] Shipment Details", shipmentDetails);
-        data.storeCode = shipmentDetails?.shipment?.fulfilling_store?.code;
-        data.articleTags = shipmentDetails?.shipment?.bags?.[0]?.article?.tags;
-
-        const instance = await AggregatorFactory.createInstance({ appId: order.app_id });
-        const refundResponse = await instance.processRefund(data);
-        const status_mapper = await getAggregatorStatusMapper(refundResponse.status, refundResponse.journeyType);
-
-        const refundTransaction = await Transaction.create({
-            gid: data.gid,
-            fynd_platform_id: forwardTransaction.fynd_platform_id,
-            g_user_id: forwardTransaction.g_user_id,
-            aggregator_order_id: forwardTransaction.aggregator_order_id,
-            aggregator_payment_id: forwardTransaction.aggregator_payment_id,
-            refund_request_id: data.request_id,
-            aggregator_refund_id: refundResponse.aggregatorActionId,
-            amount: data.amount,
-            current_status: status_mapper.status,
-            journey_type: refundResponse.journeyType,
-            payment_mode: data.meta?.payment_mode,
-            reason: refundResponse.reason,
-            status: [{
-                status: status_mapper.status,
-                meta: {
-                    refundMeta: refundResponse.meta.response.data
-                }
-            }]
-        });
-        let payment_methods = []
-        if (data.meta?.payment_mode) {
-            payment_methods.push({
-                code: data.meta?.payment_mode
-            })
-        } else {
-            payment_methods.push(order.payment_methods)
-        }
-
-        const responseData = {
-            gid: forwardTransaction.gid,
-            aggregator_payment_details: {
-                payment_id: forwardTransaction.aggregator_payment_id,
-                aggregator_order_id: forwardTransaction.aggregator_order_id,
-                aggregator_customer_id: "",  // aggregator customer id?
-                captured: forwardTransaction.current_status == "complete",
-                amount_captured: forwardTransaction.amount,   // is it different then amount?
-                amound_refunded: refundTransaction.amount,
-                gid: forwardTransaction.gid,
-                g_user_id: forwardTransaction.g_user_id,
-                amount: order.amount,
-                currency: order.currency,
-                merchant_locale: order.meta.request.merchant_locale,
-                locale: order.meta.request.locale,
-                mode: order.meta.request.mode,
-                payment_methods: payment_methods,
-                success_url: order.meta.success_url,
-                cancel_url: order.meta.cancel_url,
-                billing_address: order.meta.request.billing_address,
-                shipping_address: order.meta.request.shipping_address,
-                kind: order.meta.request.kind,
-                initiated_at: order.meta.request.initiated_at
-            },
-            aggregator_payment_refund_details: {
-                request_id: data.request_id,
-                amount: refundTransaction.amount,
-                status: refundTransaction.current_status,
-                currency: order.currency,
-                refund_utr: refundTransaction.aggregator_refund_id,
-                payment_id: refundTransaction.aggregator_payment_id,
-                reason: data.reason,
-                receipt_number: refundTransaction.aggregator_refund_id,
-                transfer_reversal: "", // ...?
-                source_transfer_reversal: "", // ...?
-                created: Date.parse(refundTransaction.createdAt),
-                balance_transaction: "" // ...?
-            }
-        };
-        console.log('[RESDATA] Response for processRefund::post', responseData);
-        return responseData;
-    };
-
     async processWebhook(webhookPayload) {
         console.log('Webhook request body', webhookPayload);
         let data = webhookPayload.data;
@@ -338,6 +169,7 @@ class AggregatorProcessor {
     };
 
     createPaymentUpdatePayload(gid, amount, currency, status, payment_id, aggregatorResponse){
+        amount = amount * 100; // Convert to paise/cents before sending to platform
         return {
             "gid": gid,
             "order_details": {
@@ -350,21 +182,22 @@ class AggregatorProcessor {
             },
             "status": status,
             "currency": currency,
+            "total_amount": amount,
             "payment_details": [{
                 gid,
                 amount,
                 currency,
                 payment_id: payment_id,
                 mode: config.env,
-                success_url: "",
-                cancel_url: "",
+                success_url: "https://rational-gently-kit.ngrok-free.app/company/1987",
+                cancel_url: "https://rational-gently-kit.ngrok-free.app/company/1987",
                 amount_captured: amount,
                 payment_methods: [{}],
                 g_user_id: "<User id if exists>",
                 aggregator_order_id: payment_id,
                 status: status,
+                created: String(Date.now()),
             }],
-            "total_amount": amount,
         }
     }
 
@@ -382,6 +215,75 @@ class AggregatorProcessor {
         const sdkResponse = await applicationClient.payment.updatePaymentSession({ gid: gid, body: payload });
         return sdkResponse;
     }
+
+    async createRefund(request_payload) {
+        /*
+        Refer this page for more info
+        https://partners.fynd.com/help/docs/partners/extension/payments/building-payment-extension/refund-flow/initiateRefundSession
+
+        Example Payload:
+        {
+            "gid": "TR67160B990EA2149E59",
+            "request_id": "17294985400131760447",
+            "app_id": "650182068a75e06863ecbb75",
+            "amount": 33300,
+            "currency": "INR",
+            "mode": "live",
+            "journey_type": "CANCELLED_CUSTOMER",
+            "status": "initiate",
+            "meta": {
+                "payment_mode": "dummy_payments",
+                "transaction_ids": [
+                    "TR67160B990EA2149E59"
+                ]
+            },
+            "company_id": 1987,
+            "aggregator_order_id": "23409284357024800293403584934",
+            "aggregator_payment_id": "23409284357024800293403584934"
+        }
+        */
+
+        console.log('Request body for create refund', request_payload);
+
+        const aggregator = new Aggregator();
+        const refundResponse = await aggregator.processRefund(request_payload);
+
+        const { amount, currency, request_id, gid } = request_payload;
+        const { status, refund_utr, payment_id } = refundResponse;
+        const responseData = {
+            gid,
+            aggregator_payment_refund_details: {
+                status,
+                amount,
+                currency,
+                request_id,
+                refund_utr,
+                payment_id,
+            },
+        };
+        console.log('Response for create refund', responseData);
+        return responseData;
+    };
+
+    async getRefundDetails(data) {
+        console.log('[REQDATA] Request params/query for getRefundDetails::get', data);
+        const forwardTransaction = await Transaction.findOne({ gid: data.gid });
+        const order = await Order.findOne({ gid: data.gid });
+        if (!forwardTransaction) {
+            throw new NotFoundError("transaction for order " + data.gid);
+        }
+
+        const instance = await AggregatorFactory.createInstance({ appId: order.app_id });
+        const aggResponse = await instance.getRefundDetails(data, data.gid, order.fynd_platform_id);
+        const responseData = {
+            gid: data.gid,
+            journey_type: "refund",
+            aggregator_payment_refund_details: aggResponse.refunds,
+        };
+        console.log('[RESDATA] Response for getRefundDetails::get', responseData);
+        return responseData;
+    };
+
 
     async processRefundWebhook(data) {
         /* sample webhook payload
