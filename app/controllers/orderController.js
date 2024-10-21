@@ -81,10 +81,14 @@ exports.processWebhook = asyncHandler(async (req, res) => {
 //@route POST /api/v1/webhook/refund
 //@access public
 exports.processRefundWebhook = asyncHandler(async (req, res) => {
-    const webhook_payload = {
-        data: req.body,
+    let webhook_payload = {
+        data: {
+            ...req.body,
+            ...req.params,
+        },
         headers: req.headers,
-    }
+    };
+
     const processor = new AggregatorProcessor();
     await processor.processRefundWebhook(webhook_payload)
     return res.status(200).json({

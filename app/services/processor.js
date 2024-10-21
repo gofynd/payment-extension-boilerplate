@@ -189,8 +189,8 @@ class AggregatorProcessor {
                 currency,
                 payment_id: payment_id,
                 mode: config.env,
-                success_url: "https://rational-gently-kit.ngrok-free.app/company/1987",
-                cancel_url: "https://rational-gently-kit.ngrok-free.app/company/1987",
+                success_url: "",
+                cancel_url: "",
                 amount_captured: amount,
                 payment_methods: [{}],
                 g_user_id: "<User id if exists>",
@@ -246,7 +246,7 @@ class AggregatorProcessor {
         console.log('Request body for create refund', request_payload);
 
         const aggregator = new Aggregator();
-        const refundResponse = await aggregator.processRefund(request_payload);
+        const refundResponse = await aggregator.createRefund(request_payload);
 
         const { amount, currency, request_id, gid } = request_payload;
         const { status, refund_utr, payment_id } = refundResponse;
@@ -285,130 +285,64 @@ class AggregatorProcessor {
     };
 
 
-    async processRefundWebhook(data) {
-        /* sample webhook payload
-            Webhook request data:
-            refund Ok: {
-                "success": true,
-                "refundId": "TESTJIOGROCERY0028552",
-                "transactionRefNumber": "TESTJIOGROCERY002812",
-                "transactionDateTime": "2020-06-24T05:58:49",
-                "transactionType": "REFUND",
-                "channelId": "JIOGROCERIES",
-                "paymentDetail": {
-                    "totalAmount": "1.00",
-                    "instrumentReference": "200624670001615017",
-                    "instrumentDate": "2020-06-24T05:58:49"
-                }
-            }
-        */
-        console.log('[REQDATA] Request body for processRefundWebhook::post', data);
-        const transaction = await Transaction.findOne({ refund_request_id: data.data.transactionRefNumber });
-        const order = await Order.findOne({ gid: transaction.gid });
+    async processRefundWebhook(webhookPayload) {
+        console.log('Request body for Refund Webhook', webhookPayload);
 
-        const instance = await AggregatorFactory.createInstance({ appId: order.app_id });
-        const webhookResponse = await instance.processRefundWebhook(data, transaction);
-        await Transaction.updateOne(
-            { refund_request_id: data.data.transactionRefNumber },
-            {
-                $set: {
-                    current_status: webhookResponse.status
-                },
-                $push: {
-                    status: {
-                        status: webhookResponse.status,
-                        meta: data
-                    }
-                }
-            }
-        );
-        const response = await this.updateGringottsRefundStatus(order, transaction, webhookResponse.status, data, "refund_webhook", webhookResponse.reason);
-        console.log('[RESDATA] Response for processRefundWebhook::post', response);
+        let data = webhookPayload.data;
+        const request_id = await Aggregator.getOrderFromRefundWebhook(data);
+
+        const aggregator = new Aggregator({ app_id: data.app_id, company_id: data.company_id });
+        const webhookResponse = await aggregator.processRefundWebhook(webhookPayload);
+
+        const { amount, currency, status, payment_id, refund_utr } = webhookResponse;
+        const payload = this.createRefundUpdatePayload(request_id, amount, currency, status, payment_id, refund_utr, webhookPayload.data);
+        await this.updatePlatformRefundStatus(data.app_id, data.company_id, request_id, request_id, payload);
+
+        console.log('Response for Refund Webhook', response);
     }
 
-    async updateGringottsRefundStatus(order, transaction, status, data, source, reason = "") {
-        // Call gringotts api
-        order.billing_address.address_type = order.billing_address.address_type || "other";
-        order.shipping_address.address_type = order.shipping_address.address_type || "other";
-        const payload = {
-            "gid": order.gid,
-            "status": status,
-            "total_amount": order.amount,
-            "currency": order.currency,
-            "refund_details": [{
-                "request_id": transaction.refund_request_id,
-                "amount": transaction.amount,
-                "currency": order.currency,
-                "refund_utr": data.refundId,
-                "payment_id": transaction.aggregator_order_id,
-                "status": status,
-                "reason": reason,
-                "receipt_number": data.refundId,
-                "transfer_reversal": "",
-                "source_transfer_reversal": "",
-                "created": String(Date.parse(transaction.createdAt)),
-                "balance_transaction": ""
+    createRefundUpdatePayload(gid, amount, currency, status, payment_id, refund_utr, aggregator_payload) {
+        return {
+            gid: gid,
+            status: status,
+            currency: currency,
+            total_amount: amount,
+            refund_details: [{
+                status: status,
+                request_id: gid,
+                payment_id: payment_id,
+                refund_utr: refund_utr,
+                amount: amount,
+                currency: currency,
+                created: String(Date.now())
             }],
-            "payment_details": {
-                "payment_id": transaction.aggregator_order_id,
-                "aggregator_order_id": transaction.aggregator_order_id,
-                "aggregator_customer_id": "",
-                "captured": true,
-                "status": status,
-                "amount_captured": order.amount,
-                "amount_refunded": transaction.amount,
-                "gid": order.gid,
-                "g_user_id": transaction.g_user_id,
-                "amount": order.amount,
-                "currency": order.currency,
-                "merchant_locale": order.meta.request.merchant_locale,
-                "locale": order.meta.request.locale,
-                "mode": order.meta.request.mode,
-                "payment_methods": order.payment_methods,
-                "success_url": order.meta.success_url,
-                "cancel_url": order.meta.cancel_url,
-                "billing_address": order.billing_address,
-                "shipping_address": order.shipping_address,
-                "kind": order.meta.request.kind,
-                "created": String(Date.parse(order.createdAt)),
+            payment_details: {
+                gid: gid,
+                status: status,
+                aggregator_order_id: "",
+                payment_id: payment_id,
+                mode: config.env,
+                amount: amount,
+                success_url: "",
+                cancel_url: "",
+                amount_captured: amount,
+                payment_methods: [{}],
+                g_user_id: "<User id if exists>",
+                currency: currency,
+                amount_refunded: amount,
+                created: String(Date.now())
             },
+            meta: aggregator_payload,
         }
+    }
 
-        const checksum = getHmacChecksum(JSON.stringify(payload), config.extension.api_secret);
+    async updatePlatformRefundStatus(app_id, company_id, gid, request_id, payload) {
+        const checksum = getHmacChecksum(JSON.stringify(payload), config.api_secret);
         payload["checksum"] = checksum;
-        const fieldsToMask = [];
 
-        if (payload?.payment_details?.billing_address) {
-
-            fieldsToMask.push(
-                `payment_details.billing_address.area`,
-                `payment_details.billing_address.name`,
-                `payment_details.billing_address.city`,
-                `payment_details.billing_address.address`,
-                `payment_details.billing_address.pincode`,
-                `payment_details.billing_address.area_code`,
-                `payment_details.billing_address.state`
-            )
-        }
-
-        if (payload?.payment_details?.shipping_address) {
-            fieldsToMask.push(
-                `payment_details.shipping_address.area`,
-                `payment_details.shipping_address.name`,
-                `payment_details.shipping_address.city`,
-                `payment_details.shipping_address.address`,
-                `payment_details.shipping_address.pincode`,
-                `payment_details.shipping_address.area_code`,
-                `payment_details.shipping_address.state`
-            )
-        }
-
-        logger.mask(LOGGER_TYPE.info, fieldsToMask, "[FDKREQUEST] Updating Refund status on Gringotts", payload);
-
-        const fdkExtension = await this.getFdkExtension();
-        let platformClient = await fdkExtension.getPlatformClient(order.meta.request.company_id);
-        const applicationClient = platformClient.application(order.app_id);
-        const sdkResponse = await applicationClient.payment.updateRefundSession({ gid: order.gid, requestId: transaction.refund_request_id, body: payload });
+        let platformClient = await fdkExtension.getPlatformClient(company_id);
+        const applicationClient = platformClient.application(app_id);
+        const sdkResponse = await applicationClient.payment.updateRefundSession({ gid: gid, requestId: gid, body: payload });
         return sdkResponse;
     }
 }

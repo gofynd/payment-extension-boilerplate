@@ -21,6 +21,6 @@ orderRouter.get('/payment_session/:gid/refund', verifyStatusChecksum, getRefundD
 orderRouter.post('/payment_callback/:company_id/:app_id', paymentCallbackHandler);
 
 orderRouter.post('/webhook/payment/:company_id/:app_id', processWebhook);
-orderRouter.post('/webhook/refund', processRefundWebhook);
+orderRouter.post('/webhook/refund/:company_id/:app_id', processRefundWebhook);
 
 module.exports = orderRouter;

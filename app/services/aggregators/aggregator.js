@@ -76,7 +76,7 @@ class Aggregator {
     }
 
 
-    async processRefund(request_payload) {
+    async createRefund(request_payload) {
         const { aggregator_payment_id: forwardPaymentId, request_id, amount, currency } = request_payload;
 
         // Prepare payload for refund
@@ -199,9 +199,6 @@ class Aggregator {
     }
 
     async getOrderDetails(gid) {
-        /*
-        Customize function as per webhook payload
-        */
 
         let amount;
         let currency;
@@ -248,6 +245,48 @@ class Aggregator {
             currency,
             status,
             payment_id,
+        };
+    }
+
+    async processRefundWebhook(webhookPayload) {
+        /*
+        Customize function as per webhook payload
+        */
+
+        const amount = webhookPayload.data.amount;
+        const currency = "INR";
+        let status = null;
+        let payment_id = null;
+        let refund_utr = null;
+
+        // Verify webhook
+        const checksum = await this.verifyChecksum(webhookPayload);
+
+        if (!checksum) {  // checksum verification failed
+            console.log('Request Unauthorised, checksum mismatch');
+            status = refundStatus.FAILED;
+            return {
+                amount,
+                currency,
+                status,
+            };
+        }
+        else if(webhookPayload.data.status === "REFUND_PENDING"){
+            status = refundStatus.PENDING;
+        }
+        else {
+            status = refundStatus.COMPLETE;
+            payment_id = webhookPayload.data.payment_id;
+            refund_utr = webhookPayload.data.refund_utr;
+        }
+
+        console.log("Webhook return value", {amount, currency, status})
+        return {
+            amount,
+            currency,
+            status,
+            payment_id,
+            refund_utr,
         };
     }
 
