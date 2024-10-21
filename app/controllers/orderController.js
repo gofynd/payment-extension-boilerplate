@@ -29,7 +29,7 @@ exports.getPaymentDetailsHandler = asyncHandler(async (req, res) => {
     let params = req.params;
     const processor = new AggregatorProcessor();
     const response = await processor.getPaymentDetails(params);
-    return res.status(httpStatus.OK).json(response);
+    return res.status(200).json(response);
 });
 
 
@@ -54,9 +54,8 @@ exports.paymentCallbackHandler = asyncHandler(async (req, res) => {
     };
     const processor = new AggregatorProcessor();
     const response = await processor.processCallback(request_payload);
-    return res.status(308).render(ActionType.REDIRECT, response);
+    return res.status(308).render("redirector", response);
 });
-
 
 
 //@desc payment status update webhook
@@ -64,7 +63,10 @@ exports.paymentCallbackHandler = asyncHandler(async (req, res) => {
 //@access public
 exports.processWebhook = asyncHandler(async (req, res) => {
     let webhook_payload = {
-        data: req.body,
+        data: {
+            ...req.body,
+            ...req.params,
+        },
         headers: req.headers,
     };
 

@@ -84,6 +84,7 @@ class Aggregator {
         const amount = callbackPayload.amount;
         const currency = "INR";
         let status = null;
+        let payment_id = null;
 
         // Verify Callback
         const checksum = await this.verifyChecksum(callbackPayload);
@@ -97,14 +98,17 @@ class Aggregator {
                 status,
             };
         }
-        else {
-            status = paymentStatus.SUCCESS
+        else if(callbackPayload.status === "PAYMENT_COMPLETE"){
+            status = paymentStatus.COMPLETE;
+            payment_id = callbackPayload.transaction_id;
         }
 
+        console.log("Callback return value", {amount, currency, status})
         return {
             amount,
             currency,
             status,
+            payment_id,
         };
     }
 
@@ -176,9 +180,10 @@ class Aggregator {
         Customize function as per webhook payload
         */
 
-        const amount = webhookPayload.amount;
+        const amount = webhookPayload.data.amount;
         const currency = "INR";
         let status = null;
+        let payment_id = null;
 
         // Verify webhook
         const checksum = await this.verifyChecksum(webhookPayload);
@@ -192,117 +197,74 @@ class Aggregator {
                 status,
             };
         }
-        else if(webhookPayload.status === "pending"){
+        else if(webhookPayload.data.status === "PAYMENT_PENDING"){
             status = paymentStatus.PENDING;
         }
         else {
-            status = paymentStatus.SUCCESS;
+            status = paymentStatus.COMPLETE;
+            payment_id = webhookPayload.data.payment_id;
         }
 
+        console.log("Webhook return value", {amount, currency, status})
         return {
             amount,
             currency,
             status,
+            payment_id,
         };
     }
 
-    async getOrderDetails(data, gid, fynd_platform_id, aggregatorOrderId = null) {
+    async getOrderDetails(gid) {
         /*
-        get currect details of given order.
-        Sample API Response
-        200Ok: {
-            'channelId': 'JIOGROCERIES',
-            'transactionType': 'JIOGROCERIES',
-            'transactionRefNumber': '16512181450000076A',
-            'status': 'SUCCESS/PENDING/FAILED',
-            'totalAmount': '420.00',
-            'transactionDateTime': '2022-04-29T13:20:03',
-            'message': 'success',
-            'paymentDetail': [
-                {
-                    'sortId': 1,
-                    'instrumentReference': '12345679',
-                    'amount': '420.00',
-                    'mop': '187',
-                    'modeOfPayment': '23',
-                    'modeOfPaymentDesc': 'UPI',
-                    'instrumentDate': '2022-04-25T16:51:03'
-                }
-            ]
-        }
-        400 BadRequest:{
-            'channelId': 'JIOGROCERIES',
-            'transactionType': 'JIOGROCERIES',
-            'transactionRefNumber': '16512181450000076A',
-            'status': 'PENDING/FAILED',
-            'totalAmount': '420.00',
-            'transactionDateTime': '2022-04-29T13:20:03',
-            'message': 'Declined by bank',
-            'paymentDetail': []
-        }
-    
+        Customize function as per webhook payload
         */
 
-        const payload = {
-            "transactionDateTime": getISTDateTime(),
-            "paymentRefNumber": fynd_platform_id,
-            "merchantId": this.channelId,
-            "businessFlow": this.transactionType
-        }
+        let amount;
+        let currency;
+        let status = null;
+        let payment_id = null;
 
-        const message = `${payload.paymentRefNumber}|${payload.merchantId}|${payload.businessFlow}|${payload.transactionDateTime}`
+        const url = config.pgBaseUrl + aggregatorConfig.orderStatus + "/" + gid;
+
         const headers = {
-            'X-JIO-PAYLOAD-AUTH': getHmacChecksum(message, this.checksum_key).toUpperCase()
-        }
-        const url = this.api_domain + aggregatorConfig.orderStatus
-        const logData = {
-            purpose: "fetching order status",
-            entityName: "order id",
-            entityValue: payload.paymentRefNumber
-        }
-        const response = await makeRequest({
-            method: 'POST',
+            "ContentType": "application/json"
+        };
+
+        const response = await axios.axios({
+            method: 'GET',
             url: url,
-            data: payload,
-            headers: headers,
-            logData
+            headers: headers
         });
+        // Demo response from payment gateway
+        // const response = {
+        //     status: 200,
+        //     payment_status: "PAYMENT_COMPLETE",
+        //     currency: "INR",
+        //     amount: "100.00",
+        //     transaction_id: "20230404011640000850068625351118848",
+        // }
 
-        let responseData = null;
-        let statusMapper = null;
-        if (response.status == httpStatus.OK && !response.code) {
-            responseData = response.data
-            statusMapper = await getAggregatorStatusMapper(responseData.status, "forward");
+        if(response.status === 200){
+            if(response.payment_status === "PAYMENT_COMPLETE"){
+                status = paymentStatus.COMPLETE;
+                payment_id = response.transaction_id
+            }
+            else if(response.payment_status === "PAYMENT_PENDING"){
+                status = paymentStatus.FAILED;
+                payment_id = response.transaction_id
+            }
+            else{
+                status = paymentStatus.FAILED
+            }
         }
 
-        let paymentDetails = [];
-        if (statusMapper.status == 'complete') {
-            response.data.paymentDetail.forEach(paymentDetail => {
-                paymentDetails.push({
-                    aggregatorTransactionId: paymentDetail.instrumentReference,
-                    status: statusMapper.status,
-                    invoiceNumber: paymentDetail.invoiceNumber,
-                    paymentMethods: [{
-                        "code": paymentDetail?.modeOfPayment || order.meta.request?.payment_methods[0]["code"],
-                        "name": paymentDetail?.modeOfPaymentDesc || order.meta.request?.payment_methods[0]["name"],
-                        "meta": {
-                            "mop": paymentDetail?.mop
-                        }
-                    }],
-                    amount: Math.round(paymentDetail.amount * 100, 2),
-                })
-            });
-        }
-
+        console.log("Status return value", {amount, currency, status})
         return {
-            'success': (response.status == httpStatus.OK) && responseData.success,
-            'amount': parseFloat(responseData.totalAmount),
-            'transaction_id': tryOr(() => responseData.paymentDetail[0].instrumentReference, null),
-            'pg_response': responseData,
-            'status': statusMapper.status,
-            'order_id': gid,
-            'paymentDetails': paymentDetails
-        }
+            amount,
+            currency,
+            status,
+            payment_id,
+        };
     }
 
     async getRefundDetails(data, gid, fynd_platform_id, aggregatorOrderId = null) {

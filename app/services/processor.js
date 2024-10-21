@@ -1,6 +1,6 @@
 const Aggregator = require("./aggregators/aggregator");
 const { BadRequestError, NotFoundError } = require("../utils/errorUtils");
-const Fdkfactory = require("../fdk")
+const { fdkExtension } = require("../fdk")
 const config = require("../config");
 const { getHmacChecksum } = require("../utils/signatureUtils");
 
@@ -122,94 +122,21 @@ class AggregatorProcessor {
 
         const gid = await Aggregator.getOrderFromCallback(request_payload);
 
-        const aggregator = await Aggregator(request_payload.app_id, request_payload.company_id);
+        const aggregator = new Aggregator(request_payload.app_id, request_payload.company_id);
         const callbackResponse = await aggregator.processCallback(request_payload);
 
-        const { amount, currency, status } = callbackResponse;
-        await this.updatePlatformPaymentStatus(gid, amount, currency, status, request_payload);
+        const { amount, currency, status, payment_id } = callbackResponse;
+        const payload = this.createPaymentUpdatePayload(gid, amount, currency, status, payment_id, request_payload);
+        await this.updatePlatformPaymentStatus(request_payload.app_id, request_payload.company_id, gid, payload);
 
-        const redirectUrl = callbackResponse.status == "complete" ? order.meta.success_url : order.meta.cancel_url;
+        // TODO: get redirect URL from custom meta field
+        const redirectUrl = status == "complete" ? "https://www.google.com/search?q=success+url" : "cancel_url";
 
         const responseData = {
             action: "redirect",
             redirectUrl: encodeURIComponent(redirectUrl)
         };
-        console.log('Response for processCallBack::post', responseData);
-        return responseData;
-    };
-
-    async getPaymentDetails(data) {
-        console.log('[REQDATA] Request params/query for getPaymentDetails::get', data);
-        const forwardTransaction = await Transaction.findOne({ gid: data.gid });
-        const order = await Order.findOne({ gid: data.gid });
-        if (!forwardTransaction) {
-            throw new NotFoundError("transaction for order " + data.gid);
-        }
-
-        const instance = await AggregatorFactory.createInstance({ appId: order.app_id });
-        const aggResponse = await instance.getOrderDetails(data, data.gid, order.fynd_platform_id);
-        const paymentDetails = []
-        aggResponse.paymentDetails?.forEach((paymentDetail) => {
-            paymentDetail.paymentMethods?.forEach((paymentMethod) => {
-                paymentMethod.code = jioMopMapping[paymentMethod.code] || paymentMethod.code;
-            });
-            paymentDetails.push({
-                "payment_id": paymentDetail.aggregatorTransactionId || order.aggregator_order_id,
-                "aggregator_order_id": order.aggregator_order_id,
-                "aggregator_customer_id": "",
-                "captured": true,
-                "status": paymentDetail.status,
-                "amount_captured": paymentDetail.amount,
-                "amount_refunded": 0,
-                "amount": paymentDetail.amount,
-                "gid": order.gid,
-                "g_user_id": order.g_user_id,
-                "currency": order.currency,
-                "merchant_locale": order.meta.request.merchant_locale,
-                "locale": order.meta.request.locale,
-                "mode": order.meta.request.mode || "",
-                "payment_methods": paymentDetail.paymentMethods,
-                "success_url": order.meta.success_url,
-                "cancel_url": order.meta.cancel_url,
-                "billing_address": order.billing_address,
-                "shipping_address": order.shipping_address,
-                "kind": order.meta.request.kind,
-                "created": String(Date.parse(order.createdAt))
-            })
-        });
-        let prev_payment_mode = "JIOPP"
-        order.meta.request.payment_methods.forEach((payment_method) => {
-            if (["JIOPP", "JIOPPLINK"].includes(payment_method?.code))
-                prev_payment_mode = payment_method?.code;
-        });
-        const responseData = {
-            "gid": order.gid,
-            "status": aggResponse.status,
-            "total_amount": order.amount,
-            "currency": order.currency,
-            "source": "get_status_api",
-            "payment_details": paymentDetails,
-            "order_details": {
-                "gid": order.gid,
-                "amount": order.amount,
-                "currency": order.currency,
-                "aggregator": config.extension.aggregator_slug,
-                "status": aggResponse.status,
-                "aggregator_order_details": {
-                    "aggregator_order_id": order.gid,
-                    "amount": order.amount,
-                    "currency": order.currency,
-                    "aggregator": "Jio",
-                    "status": aggResponse.status
-                }
-            },
-            "meta": {
-                "prev_payment_mode": prev_payment_mode || "JIOPP",
-                "product_spec_id": aggResponse.meta?.productSpecId,
-                "payment_detail": aggResponse.paymentDetails
-            }
-        };
-        console.log('[RESDATA] Response for getPaymentDetails::get', responseData);
+        console.log('Callback response', responseData);
         return responseData;
     };
 
@@ -382,64 +309,76 @@ class AggregatorProcessor {
         return responseData;
     };
 
-    async processWebhook(requestPayload) {
-        console.log('[REQDATA] Request body for processWebhook::post', requestPayload);
-        let data = requestPayload.data;
-        const fynd_platform_id = data.transactionRefNumber;
+    async processWebhook(webhookPayload) {
+        console.log('Webhook request body', webhookPayload);
+        let data = webhookPayload.data;
+        const gid = await Aggregator.getOrderFromWebhook(data);
 
-        let order = await Order.findOne({ fynd_platform_id: fynd_platform_id });
+        const aggregator = new Aggregator({ app_id: data.app_id, company_id: data.company_id });
+        const webhookResponse = await aggregator.processWebhook(webhookPayload);
 
-        if (!order) {
-            logger.error(`Order not found: ${fynd_platform_id}`);
-            throw new NotFoundError("Order not found");
-        }
+        const { amount, currency, status, payment_id } = webhookResponse;
+        const payload = this.createPaymentUpdatePayload(gid, amount, currency, status, payment_id, webhookPayload.data);
+        await this.updatePlatformPaymentStatus(data.app_id, data.company_id, gid, payload);
 
-        const instance = await AggregatorFactory.createInstance({ appId: order.app_id });
-        const webhookResponse = await instance.processWebhook(requestPayload, order);
-
-        const totalAppliedOfferAmount = webhookResponse?.appliedPaymentOffers?.totalAppliedOfferAmount || 0;
-        if (totalAppliedOfferAmount > 0 &&
-            order &&
-            (parseFloat(requestPayload?.data?.totalAmount) + totalAppliedOfferAmount) === (order.amount / 100)
-        ) {
-            // Update amount in order DB if offer applied on PG side
-            order = await Order.findOneAndUpdate(
-                { gid: order.gid },
-                {
-                    $set: { amount: order.amount - Math.round(totalAppliedOfferAmount * 100, 2) }
-                },
-                { new: true, returnNewDocument: true }
-            );
-        }
-
-        await this.upsertTransactions(order, webhookResponse, "forward", "webhook");
-        const responseData = await this.updatePlatformPaymentStatus(order, webhookResponse, "webhook");
-        console.log("[RESDATA] Response for processWebhook::post", responseData);
+        console.log("Webhook complete");
     }
 
-    async updatePlatformPaymentStatus(gid, amount, currency, status, request_payload) {
-        payload = {
+    async getPaymentDetails(data) {
+        console.log('Request for get payment details', data);
+
+        // TODO: How to get app id and company_id here
+        const aggregator = new Aggregator();
+        const aggResponse = await aggregator.getOrderDetails(data.gid);
+        const { amount, currency, status, payment_id } = aggResponse;
+
+        const responseData = this.createPaymentUpdatePayload(data.gid, amount, currency, status, payment_id, aggResponse)
+        console.log('Response for get Payment Details', responseData);
+        return responseData;
+    };
+
+    createPaymentUpdatePayload(gid, amount, currency, status, payment_id, aggregatorResponse){
+        return {
             "gid": gid,
             "order_details": {
                 "gid": gid,
                 "amount": amount,
                 "status": status,
                 "currency": currency,
-                "aggregator_order_details": request_payload,
+                "aggregator_order_details": aggregatorResponse,
                 "aggregator": "Dummy"
             },
             "status": status,
             "currency": currency,
-            "payment_details": [],
+            "payment_details": [{
+                gid,
+                amount,
+                currency,
+                payment_id: payment_id,
+                mode: config.env,
+                success_url: "",
+                cancel_url: "",
+                amount_captured: amount,
+                payment_methods: [{}],
+                g_user_id: "<User id if exists>",
+                aggregator_order_id: payment_id,
+                status: status,
+            }],
             "total_amount": amount,
         }
+    }
 
-        const checksum = getHmacChecksum(JSON.stringify(payload), config.extension.api_secret);
+    async updatePlatformPaymentStatus(
+        app_id,
+        company_id,
+        gid,
+        payload
+    ) {
+        const checksum = getHmacChecksum(JSON.stringify(payload), config.api_secret);
         payload["checksum"] = checksum
 
-        const fdkExtension = await this.getFdkExtension();
-        const platformClient = await fdkExtension.getPlatformClient(this.company_id);
-        const applicationClient = platformClient.application(this.app_id);
+        let platformClient = await fdkExtension.getPlatformClient(company_id);
+        const applicationClient = platformClient.application(app_id);
         const sdkResponse = await applicationClient.payment.updatePaymentSession({ gid: gid, body: payload });
         return sdkResponse;
     }
