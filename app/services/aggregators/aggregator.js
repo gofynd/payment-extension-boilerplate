@@ -231,7 +231,7 @@ class Aggregator {
                 amount = response.data.amount;
             }
             else if(response.data.payment_status === "PAYMENT_PENDING"){
-                status = paymentStatus.FAILED;
+                status = paymentStatus.PENDING;
                 payment_id = response.data.transaction_id;
                 amount = response.data.amount;
             }
@@ -292,110 +292,59 @@ class Aggregator {
     }
 
     async getRefundDetails(data, gid, fynd_platform_id, aggregatorOrderId = null) {
-        /*
-        get currect details of given order.
-        Sample API Response:
-        200: {
-            "success": true,
-            "paymentRefNumber": "16806106980000372M",
-            "instrumentReference": "20230404011640000850068625351118848",
-            "orderAmount": "102.00",
-            "refunds":[
-                {
-                    "refundStatus": "FAILURE",
-                    "refundId": "16806106980000372M524",
-                    "transactionRefNumber": "16806106980000372M_29006",
-                    "refundDateTime": "2023-04-04T00:00:00",
-                    "arn": "",
-                    "paymentDetail": {
-                        "refundAmount": "102.00",
-                        "pgName": "PAYTMPG"
-                    }
-                },
-                {
-                    "refundStatus": "PENDING",
-                    "refundId": "16806106980000372M634",
-                    "transactionRefNumber": "16806106980000372M_29016",
-                    "refundDateTime": "2023-04-04T00:00:00",
-                    "arn": "",
-                    "paymentDetail": {
-                        "refundAmount": "102.00",
-                        "pgName": "PAYTMPG"
-                    }
-                }
-            ]
-        }
-        400: {
-            "success": false,
-            "errors": [{
-                "reason": "Missing required parameter.",
-                "code": "1005",
-                "details": "Request parameters cannot be empty.[paymentRefNumber]"
-            }]
-        }
-        */
 
-        const payload = {
-            "transactionDateTime": getISTDateTime(),
-            "paymentRefNumber": fynd_platform_id,
-            "merchantId": this.channelId,
-            "businessFlow": this.transactionType
-        }
-        const message = `${payload.paymentRefNumber}|${payload.merchantId}|${payload.businessFlow}|${payload.transactionDateTime}`;
+        let amount;
+        const currency = "INR";
+        let status = null;
+        let payment_id = null;
+        let refund_utr = null;
+
+        const url = config.pgBaseUrl + aggregatorConfig.refundStatus + "/" + gid;
+
         const headers = {
-            'X-JIO-PAYLOAD-AUTH': getHmacChecksum(message, this.checksum_key).toUpperCase()
-        }
-        const url = this.api_domain + aggregatorConfig.refundStatus;
-        const logData = {
-            purpose: "fetching refund details",
-            entityName: "order id",
-            entityValue: payload.paymentRefNumber
-        }
-        const response = await makeRequest({
-            method: 'post',
+            "ContentType": "application/json"
+        };
+
+        const response = await axios.get({
+            method: 'GET',
             url: url,
-            data: payload,
-            headers: headers,
-            logData
+            headers: headers
         });
+        // Demo response from payment gateway
+        // const response = {
+        //     status: 200,
+        //     refund_status: "REFUND_COMPLETE",
+        //     currency: "INR",
+        //     amount: "100.00",
+        //     transaction_id: "20230404011640000850068625351118848",
+        //     refund_utr: "ICICI0982435028943"
+        // }
 
-        let responseData = null;
-        let statusMapper = await getAggregatorStatusMapper("", "refund");
-        const refunds = [];
-
-        if (response.status == httpStatus.OK || response.data.status) {
-            responseData = response.data
-            statusMapper = await getAggregatorStatusMapper(responseData.status, "forward");
-
-            responseData.refunds.forEach(refund => {
-                const statusMapper = getAggregatorStatusMapper(refund.refundStatus, 'refund');
-                refunds.push({
-                    "request_id": refund.transactionRefNumber,
-                    "amount": refund.refundAmount * 100,
-                    "status": statusMapper.status,
-                    "currency": "INR",
-                    "refund_utr": refund.refundId,
-                    "payment_id": refund.refundId,
-                    "reason": statusMapper.journeyType,
-                    "receipt_number": refund.arn,
-                    "transfer_reversal": "",
-                    "source_transfer_reversal": "",
-                    "created": refund.refundDateTime,
-                    "balance_transaction": ""
-                })
-            });
-        }
-        else {
-            throw new Error("Error while fetching refund status " + JSON.stringify(response.data.error));
+        if(response.status === 200){
+            if(response.data.refund_status === "REFUND_COMPLETE"){
+                status = refundStatus.COMPLETE;
+                payment_id = response.data.transaction_id;
+                amount = response.data.amount;
+                refund_utr = response.data.refund_utr;
+            }
+            else if(response.data.refund_status === "REFUND_PENDING"){
+                status = refundStatus.PENDING;
+                payment_id = response.data.transaction_id;
+                amount = response.data.amount;
+            }
+            else{
+                status = refundStatus.FAILED
+            }
         }
 
+        console.log("Status return value", {amount, currency, status})
         return {
-            'success': (response.status == httpStatus.OK) && responseData.success,
-            'amount': parseFloat(responseData.totalAmount),
-            'refunds': responseData.refunds,
-            'pg_response': responseData,
-            'gid': gid,
-        }
+            amount,
+            currency,
+            status,
+            payment_id,
+            refund_utr,
+        };
     }
 }
 

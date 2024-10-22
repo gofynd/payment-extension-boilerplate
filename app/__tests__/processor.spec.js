@@ -144,21 +144,18 @@ describe('Aggregator Processor', () => {
     })
 
     test('getRefundDetails', async () => {
-        // TODO: add get refund test case
-        // Aggregator.prototype.getRefundDetails = jest.fn().mockResolvedValue({
-        //     amount: 100,
-        //     currency: "INR",
-        //     status: "pending",
-        //     payment_id: "pay_1234",
-        // });
+        Aggregator.prototype.getRefundDetails = jest.fn().mockResolvedValue({
+            amount: 100,
+            currency: "INR",
+            status: "pending",
+            payment_id: "pay_1234",
+            refund_utr: "refund_293284"
+        });
 
-        // const response = await aggregatorProcessor.getRefundDetails({gid: "TR8273429127187"});
-        // expect(response).toHaveProperty('gid');
-        // expect(response).toHaveProperty('order_details');
-        // expect(response).toHaveProperty('status');
-        // expect(response).toHaveProperty('currency');
-        // expect(response).toHaveProperty('total_amount');
-        // expect(response).toHaveProperty('payment_details');
+        const response = await aggregatorProcessor.getRefundDetails({gid: "TR8273429127187"});
+        console.log(response)
+        expect(response).toHaveProperty('gid');
+        expect(response).toHaveProperty('aggregator_payment_refund_details');
     })
 })
 

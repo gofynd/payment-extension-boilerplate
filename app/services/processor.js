@@ -152,7 +152,6 @@ class AggregatorProcessor {
     async getPaymentDetails(data) {
         console.log('Request for get payment details', data);
 
-        // TODO: How to get app id and company_id here
         const aggregator = new Aggregator();
         const aggResponse = await aggregator.getOrderDetails(data.gid);
         const { amount, currency, status, payment_id } = aggResponse;
@@ -260,21 +259,24 @@ class AggregatorProcessor {
     };
 
     async getRefundDetails(data) {
-        console.log('[REQDATA] Request params/query for getRefundDetails::get', data);
-        const forwardTransaction = await Transaction.findOne({ gid: data.gid });
-        const order = await Order.findOne({ gid: data.gid });
-        if (!forwardTransaction) {
-            throw new NotFoundError("transaction for order " + data.gid);
-        }
+        console.log('Request for get refund details', data);
 
-        const instance = await AggregatorFactory.createInstance({ appId: order.app_id });
-        const aggResponse = await instance.getRefundDetails(data, data.gid, order.fynd_platform_id);
+        const aggregator = new Aggregator();
+        const aggResponse = await aggregator.getRefundDetails(data.gid);
+        const { amount, currency, status, refund_utr, payment_id } = aggResponse;
+
         const responseData = {
-            gid: data.gid,
-            journey_type: "refund",
-            aggregator_payment_refund_details: aggResponse.refunds,
-        };
-        console.log('[RESDATA] Response for getRefundDetails::get', responseData);
+            aggregator_payment_refund_details: [
+                {
+                  amount,
+                  currency,
+                  request_id: payment_id,
+                  status,
+                }
+              ],
+              gid: data.gid,
+        }
+        console.log('Response for get refund Details', responseData);
         return responseData;
     };
 

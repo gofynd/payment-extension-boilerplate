@@ -154,5 +154,30 @@ describe('Aggregator Instance', () => {
         expect(response).toHaveProperty('status', 'complete');
         expect(response).toHaveProperty('payment_id', pg_response.data.transaction_id);
     })
+
+    test('getRefundDetails', async () => {
+        const gid = "TR8903435985201982";
+        const pg_response = {
+                status: 200,
+                data: {
+                    refund_status: "REFUND_COMPLETE",
+                    currency: "INR",
+                    amount: "100.00",
+                    transaction_id: "20230404011640000850068625351118848",
+                    refund_utr: "ICICI0982435028943"
+                }
+            }
+
+        axios.get.mockResolvedValue(pg_response);
+
+        const response = await aggregator.getRefundDetails(gid);
+
+        console.log(response)
+        expect(response).toHaveProperty('amount');
+        expect(response).toHaveProperty('currency');
+        expect(response).toHaveProperty('status', 'refund_done');
+        expect(response).toHaveProperty('payment_id', pg_response.data.transaction_id);
+        expect(response).toHaveProperty('refund_utr', pg_response.data.refund_utr);
+    })
 })
 
