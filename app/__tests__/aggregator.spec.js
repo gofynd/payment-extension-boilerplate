@@ -82,15 +82,77 @@ describe('Aggregator Instance', () => {
         }
         const pg_response = {
             status: 200,
-            payment_url: 'https://pg-url.com/payments/payment_id_001',
+            data: {
+                payment_url: 'https://pg-url.com/payments/payment_id_001',
+            }
         };
 
         axios.post.mockResolvedValue(pg_response);
 
         const response = await aggregator.createOrder(requestPayload);
 
-        expect(response).toEqual(pg_response.payment_url);
+        expect(response).toEqual(pg_response.data.payment_url);
     })
 
+    test('createRefund', async () => {
+        const requestPayload = {
+            "gid": "TR67160B990EA2149E59",
+            "request_id": "17294985400131760447",
+            "app_id": "650182068a75e06863ecbb75",
+            "amount": 33300,
+            "currency": "INR",
+            "mode": "live",
+            "journey_type": "CANCELLED_CUSTOMER",
+            "status": "initiate",
+            "meta": {
+                "payment_mode": "dummy_payments",
+                "transaction_ids": [
+                    "TR67160B990EA2149E59"
+                ]
+            },
+            "company_id": 1987,
+            "aggregator_order_id": "23409284357024800293403584934",
+            "aggregator_payment_id": "23409284357024800293403584934"
+        }
+        const pg_response = {
+            status: 200,
+            data: {
+                success: true,
+                refund_utr: "ICIC2098423058020",
+                refund_id: "890342354509842",
+            }
+        }
+
+        axios.post.mockResolvedValue(pg_response);
+
+        const response = await aggregator.createRefund(requestPayload);
+
+        expect(response).toHaveProperty('status', 'refund_initiated');
+        expect(response).toHaveProperty('refund_utr', pg_response.data.refund_utr);
+        expect(response).toHaveProperty('payment_id', pg_response.data.refund_id);
+    })
+
+    test('getOrderDetails', async () => {
+        const gid = "TR890343598520198";
+        const pg_response = {
+            status: 200,
+            data: {
+                payment_status: "PAYMENT_COMPLETE",
+                currency: "INR",
+                amount: "100.00",
+                transaction_id: "20230404011640000850068625351118848",
+            }
+        }
+
+        axios.get.mockResolvedValue(pg_response);
+
+        const response = await aggregator.getOrderDetails(gid);
+
+        console.log(response)
+        expect(response).toHaveProperty('amount');
+        expect(response).toHaveProperty('currency');
+        expect(response).toHaveProperty('status', 'complete');
+        expect(response).toHaveProperty('payment_id', pg_response.data.transaction_id);
+    })
 })
 

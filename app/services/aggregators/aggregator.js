@@ -68,7 +68,7 @@ class Aggregator {
         // }
 
         if (response.status === 200) {
-            return response.payment_url;
+            return response.data.payment_url;
         }
         throw new BadRequestError("Bad request")
     }
@@ -105,8 +105,8 @@ class Aggregator {
         if(response.status === 200){
             return {
                 status: refundStatus.INITIATED,
-                refund_utr: response.refund_utr,
-                payment_id: response.refund_id,
+                refund_utr: response.data.refund_utr,
+                payment_id: response.data.refund_id,
             }
         }
 
@@ -200,7 +200,7 @@ class Aggregator {
     async getOrderDetails(gid) {
 
         let amount;
-        let currency;
+        let currency = "INR";
         let status = null;
         let payment_id = null;
 
@@ -225,13 +225,15 @@ class Aggregator {
         // }
 
         if(response.status === 200){
-            if(response.payment_status === "PAYMENT_COMPLETE"){
+            if(response.data.payment_status === "PAYMENT_COMPLETE"){
                 status = paymentStatus.COMPLETE;
-                payment_id = response.transaction_id
+                payment_id = response.data.transaction_id;
+                amount = response.data.amount;
             }
-            else if(response.payment_status === "PAYMENT_PENDING"){
+            else if(response.data.payment_status === "PAYMENT_PENDING"){
                 status = paymentStatus.FAILED;
-                payment_id = response.transaction_id
+                payment_id = response.data.transaction_id;
+                amount = response.data.amount;
             }
             else{
                 status = paymentStatus.FAILED
