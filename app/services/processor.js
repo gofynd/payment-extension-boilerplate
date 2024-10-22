@@ -1,17 +1,11 @@
 const Aggregator = require("./aggregators/aggregator");
-const { BadRequestError, NotFoundError } = require("../utils/errorUtils");
+const { NotFoundError } = require("../utils/errorUtils");
 const { fdkExtension } = require("../fdk")
 const config = require("../config");
 const { getHmacChecksum } = require("../utils/signatureUtils");
 
 
 class AggregatorProcessor {
-
-    async getFdkExtension() {
-        if (!this.fdkExtension) {
-            this.fdkExtension = await Fdkfactory.fdkExtension();
-        }
-    }
 
     async createOrder(request_payload) {
         /*

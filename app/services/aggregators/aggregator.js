@@ -1,3 +1,4 @@
+const axios = require('axios');
 const config = require("../../config");
 const { BadRequestError } = require("../../utils/errorUtils");
 const { aggregatorConfig, paymentStatus, refundStatus } = require("./config");
@@ -6,12 +7,6 @@ class Aggregator {
     constructor(app_id, company_id) {
         this.app_id = app_id;
         this.company_id = company_id;
-    }
-
-    async setAggregatorConfig(secrets) {
-        // This function used to set the payment gateways configs
-        this.secretsDict = secrets;
-        this.apiToken = secrets.api_token;
     }
 
     static async getOrderFromCallback(callbackPayload){
@@ -60,7 +55,7 @@ class Aggregator {
             "ContentType": "application/json"
         };
 
-        const response = await axios.axios({
+        const response = await axios.post({
             method: 'POST',
             url: url,
             data: body,
@@ -95,7 +90,7 @@ class Aggregator {
         // Generate refund URL
         const url = config.pgBaseUrl + '/v2/payments/captures/' + forwardPaymentId + '/refund';
 
-        const response = await axios.axios({
+        const response = await axios.post({
             method: "POST",
             url: url,
             data: payload,
@@ -215,7 +210,7 @@ class Aggregator {
             "ContentType": "application/json"
         };
 
-        const response = await axios.axios({
+        const response = await axios.get({
             method: 'GET',
             url: url,
             headers: headers

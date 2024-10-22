@@ -10,7 +10,7 @@ let fdkExtension = setupFdk({
     base_url: config.base_url,
     callbacks: {
         auth: async (req) => {
-            // Writee you code here to return initial launch url after suth process complete
+            // Write you code here to return initial launch url after suth process complete
             return `${req.extension.base_url}/company/${req.query['company_id']}/application/${req.query['application_id']}`;
         },
         uninstall: async (req) => {
