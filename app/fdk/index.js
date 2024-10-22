@@ -1,8 +1,8 @@
 const config =  require("../config");
 const { setupFdk } = require("fdk-extension-javascript/express");
 const { RedisStorage } = require("fdk-extension-javascript/express/storage");
-// TODO: give redis connection
-// const { redisClient } = require("./../common/redis.init");
+// TODO: remove redis connection
+const { redisClient } = require("./../common/redis.init");
 
 let fdkExtension = setupFdk({
     api_key: config.api_key,
@@ -19,7 +19,7 @@ let fdkExtension = setupFdk({
         }
     },
     debug: false,
-    storage: new RedisStorage(null, config.extension_slug),
+    storage: new RedisStorage(redisClient, config.extension_slug),
     access_mode: "offline",
     cluster: config.fp_api_server
 });
