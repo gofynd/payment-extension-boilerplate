@@ -2,7 +2,6 @@ const asyncHandler = require("express-async-handler");
 
 const config = require("../config");
 const EncryptHelper = require("../utils/encryptUtils");
-const { fdkExtension } = require("../fdk/index");
 
 const encryption_key = config.encryption_key;
 
