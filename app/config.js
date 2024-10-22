@@ -9,12 +9,12 @@ let config = convict({
   },
   api_key: {
     doc: "extension api key",
-    default: "64e596c9eb9c8c8a3a1ed389",
+    default: "",
     env: "EXTENSION_API_KEY",
   },
   api_secret: {
     doc: "extension api secret",
-    default: "oX6Pgf9BykBH1zy",
+    default: "",
     env: "EXTENSION_API_SECRET",
   },
   base_url: {
@@ -47,7 +47,7 @@ let config = convict({
   },
   encryption_key: {
     doc: "encryption key for saving credentials",
-    default: "",
+    default: "07385a56ad050fec6f145cd30cf32b345cf2d7e4006d8c5fb1dd7463a0834c47",
     env: "ENCRYPTION_KEY",
   }
 });

@@ -291,7 +291,7 @@ class Aggregator {
         };
     }
 
-    async getRefundDetails(data, gid, fynd_platform_id, aggregatorOrderId = null) {
+    async getRefundDetails(gid) {
 
         let amount;
         const currency = "INR";

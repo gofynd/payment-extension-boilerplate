@@ -26,7 +26,7 @@ exports.createRefundHandler = asyncHandler(async (req, res) => {
 //@route GET /api/v1/payment_session/:gid
 //@access public
 exports.getPaymentDetailsHandler = asyncHandler(async (req, res) => {
-    let params = req.params;
+    let params = { ...req.params, ...req.query};
     const processor = new AggregatorProcessor();
     const response = await processor.getPaymentDetails(params);
     return res.status(200).json(response);
@@ -37,7 +37,7 @@ exports.getPaymentDetailsHandler = asyncHandler(async (req, res) => {
 //@route GET /api/v1/payment_session/:gid/refund
 //@access public
 exports.getRefundDetailsHandler = asyncHandler(async (req, res) => {
-    let params = req.params;
+    let params = { ...req.params, ...req.query};
     const processor = new AggregatorProcessor();
     const response = await processor.getRefundDetails(params);
     return res.status(httpStatus.OK).json(response);

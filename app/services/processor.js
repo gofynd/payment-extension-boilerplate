@@ -270,7 +270,7 @@ class AggregatorProcessor {
                 {
                   amount,
                   currency,
-                  request_id: payment_id,
+                  request_id: data.refund_id,
                   status,
                 }
               ],
