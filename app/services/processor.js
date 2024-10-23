@@ -1,5 +1,4 @@
 const Aggregator = require("./aggregators/aggregator");
-const { NotFoundError } = require("../utils/errorUtils");
 const { fdkExtension } = require("../fdk")
 const config = require("../config");
 const { getHmacChecksum } = require("../utils/signatureUtils");

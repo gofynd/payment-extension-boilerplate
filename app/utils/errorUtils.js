@@ -7,15 +7,6 @@ class BadRequestError extends Error {
     }
 }
 
-class NotFoundError extends Error {
-    constructor(message) {
-        super(message);
-        this.name = "NotFoundError";
-        this.code = 404;
-        Error.captureStackTrace(this, NotFoundError);
-    }
-}
-
 class AuthorizationError extends Error {
     constructor(message) {
         super(message);
@@ -25,4 +16,4 @@ class AuthorizationError extends Error {
     }
 }
 
-module.exports = { BadRequestError, NotFoundError, AuthorizationError };
+module.exports = { BadRequestError, AuthorizationError };

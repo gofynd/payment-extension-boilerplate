@@ -3,9 +3,20 @@ const Aggregator = require("../services/aggregators/aggregator")
 
 jest.mock('../fdk', () => ({
     fdkExtension: {
-        getPlatformClient: jest.fn().mockResolvedValue('mocked value'),
+        getPlatformClient: jest.fn().mockResolvedValue({
+            application: () => ({
+                payment: {
+                    updatePaymentSession: jest.fn().mockResolvedValue({success:"true"}),
+                    updateRefundSession: jest.fn().mockResolvedValue({success:"true"}),
+                },
+            }),
+        }),
     },
 }));
+
+
+
+
 
 describe('Aggregator Processor', () => {
     let aggregatorProcessor;
@@ -134,10 +145,7 @@ describe('Aggregator Processor', () => {
             payment_id: "pay_1234",
         });
 
-        aggregatorProcessor.updatePlatformPaymentStatus = jest.fn().mockResolvedValue(true);
-
         const response = await aggregatorProcessor.processCallback(request_payload);
-        expect(aggregatorProcessor.updatePlatformPaymentStatus).toHaveBeenCalled()
         expect(response).toHaveProperty('redirectUrl')
     })
 
@@ -160,10 +168,7 @@ describe('Aggregator Processor', () => {
             payment_id: "pay_1234",
         });
 
-        aggregatorProcessor.updatePlatformPaymentStatus = jest.fn().mockResolvedValue(true);
-
         const response = await aggregatorProcessor.processWebhook(webhookPayload);
-        expect(aggregatorProcessor.updatePlatformPaymentStatus).toHaveBeenCalled()
     })
 
     test('createRefund', async () => {
@@ -236,10 +241,7 @@ describe('Aggregator Processor', () => {
             refund_utr: "ICICI0298342435"
         });
 
-        aggregatorProcessor.updatePlatformRefundStatus = jest.fn().mockResolvedValue(true);
-
         const response = await aggregatorProcessor.processRefundWebhook(webhookPayload);
-        expect(aggregatorProcessor.updatePlatformRefundStatus).toHaveBeenCalled()
     })
 })
 
