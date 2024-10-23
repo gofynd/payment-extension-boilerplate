@@ -2,6 +2,7 @@ const Aggregator = require("./aggregators/aggregator");
 const { fdkExtension } = require("../fdk")
 const config = require("../config");
 const { getHmacChecksum } = require("../utils/signatureUtils");
+const { Order } = require("../models/model");
 
 
 class AggregatorProcessor {
@@ -101,6 +102,14 @@ class AggregatorProcessor {
         const aggregator = new Aggregator(request_payload.app_id, request_payload.company_id);
         const redirectUrl = await aggregator.createOrder(request_payload);
 
+        await Order.create({
+            app_id: request_payload.app_id,
+            company_id: request_payload.company_id,
+            gid,
+            success_url: request_payload.success_url,
+            cancel_url: request_payload.cancel_url,
+        })
+
         const responseData = {
             success: true,
             redirect_url: redirectUrl,
@@ -122,8 +131,12 @@ class AggregatorProcessor {
         const payload = this.createPaymentUpdatePayload(gid, amount, currency, status, payment_id, request_payload);
         await this.updatePlatformPaymentStatus(request_payload.app_id, request_payload.company_id, gid, payload);
 
-        // TODO: get redirect URL from custom meta field
-        const redirectUrl = status == "complete" ? "https://www.google.com/search?q=success+url" : "cancel_url";
+        const order = await Order.findOne({
+            app_id: request_payload.app_id,
+            company_id: request_payload.company_id,
+            gid,
+        })
+        const redirectUrl = status == "complete" ? order.success_url : order.cancel_url;
 
         const responseData = {
             action: "redirect",

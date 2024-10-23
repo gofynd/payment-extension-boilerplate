@@ -14,7 +14,15 @@ jest.mock('../fdk', () => ({
     },
 }));
 
-
+jest.mock("../models/model", () => ({
+    Order: {
+        create: jest.fn().mockResolvedValue(() => true),
+        findOne: jest.fn().mockResolvedValue({
+            success_url: "success_url",
+            cancel_url: "cancel_url",
+        })
+    }
+}))
 
 
 

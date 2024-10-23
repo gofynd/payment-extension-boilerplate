@@ -47,8 +47,6 @@ exports.getSecretsHandler = asyncHandler(async (req, res) => {
     const app_id = req.params.app_id;
     const company_id = req.params.company_id;
 
-    // TODO: get secrets from custom meta
-    // const encryptedSecret = "5f97e6a662f3198b8f6adf772b87020d:f6a18adea657f1b57ccfc0f1627be46c8333f167884a5320c6f636dfbe38a5e1";
     const encryptedSecret = await Secret.findOne({
         app_id,
         company_id,
