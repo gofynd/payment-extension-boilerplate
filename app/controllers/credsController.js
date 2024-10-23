@@ -25,7 +25,6 @@ exports.createSecretsHandler = asyncHandler(async (req, res) => {
     // Use any encryption method
     const encryptedSecret = EncryptHelper.encrypt(encryption_key, JSON.stringify(data));
 
-    // TODO: save to custom meta in platform
     await Secret.create({
         app_id,
         company_id,

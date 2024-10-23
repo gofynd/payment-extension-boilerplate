@@ -5,6 +5,15 @@ const mockResponse = {
     json: jest.fn().mockReturnThis()
 }
 
+jest.mock("../models/model", () => ({
+    Secret: {
+        create: jest.fn().mockResolvedValue(() => true),
+        findOne: jest.fn().mockResolvedValue({
+            secrets: "5f97e6a662f3198b8f6adf772b87020d:f6a18adea657f1b57ccfc0f1627be46c8333f167884a5320c6f636dfbe38a5e1"
+        })
+    }
+}))
+
 describe('credential apis test', () => {
     test('get creds success', async () => {
         const mockRequest = {

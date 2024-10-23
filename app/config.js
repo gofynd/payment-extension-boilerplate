@@ -72,7 +72,7 @@ let config = convict({
       uri: {
         doc: "host mongodb",
         format: "mongo-uri",
-        default: process.env.MONGO_URI,
+        default: "mongodb://localhost:27017/dummy_test",
         env: process.env.MONGO_URI,
         arg: "",
       },
