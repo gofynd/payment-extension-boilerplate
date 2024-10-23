@@ -183,9 +183,12 @@ class Aggregator {
         else if(webhookPayload.data.status === "PAYMENT_PENDING"){
             status = paymentStatus.PENDING;
         }
-        else {
+        else if(webhookPayload.data.status === "PAYMENT_COMPLETE"){
             status = paymentStatus.COMPLETE;
-            payment_id = webhookPayload.data.payment_id;
+            payment_id = webhookPayload.data.transaction_id;
+        }
+        else {
+            status = paymentStatus.FAILED;
         }
 
         console.log("Webhook return value", {amount, currency, status})
@@ -275,10 +278,13 @@ class Aggregator {
         else if(webhookPayload.data.status === "REFUND_PENDING"){
             status = refundStatus.PENDING;
         }
-        else {
+        else if(webhookPayload.data.status === "REFUND_COMPLETE"){
             status = refundStatus.COMPLETE;
-            payment_id = webhookPayload.data.payment_id;
+            payment_id = webhookPayload.data.transaction_id;
             refund_utr = webhookPayload.data.refund_utr;
+        }
+        else {
+            status = refundStatus.FAILED;
         }
 
         console.log("Webhook return value", {amount, currency, status})

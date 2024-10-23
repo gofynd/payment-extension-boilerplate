@@ -1,6 +1,12 @@
 const AggregatorProcessor = require("../services/processor")
 const Aggregator = require("../services/aggregators/aggregator")
 
+jest.mock('../fdk', () => ({
+    fdkExtension: {
+        getPlatformClient: jest.fn().mockResolvedValue('mocked value'),
+    },
+}));
+
 describe('Aggregator Processor', () => {
     let aggregatorProcessor;
 
@@ -109,6 +115,57 @@ describe('Aggregator Processor', () => {
         expect(response).toHaveProperty('payment_details');
     })
 
+    test('processCallback', async () => {
+        const request_payload = {
+            headers: {
+                checksum: "X0324893URITEH029843"
+            },
+            data: {
+                "amount": 33.0,
+                "transactionReferenceId": "TR6715E8860ED31137D4",
+                "transaction_id": "pay_20894ruflor20",
+                "status": "PAYMENT_COMPLETE"
+            }
+        }
+        Aggregator.prototype.processCallback = jest.fn().mockResolvedValue({
+            amount: 100,
+            currency: "INR",
+            status: "pending",
+            payment_id: "pay_1234",
+        });
+
+        aggregatorProcessor.updatePlatformPaymentStatus = jest.fn().mockResolvedValue(true);
+
+        const response = await aggregatorProcessor.processCallback(request_payload);
+        expect(aggregatorProcessor.updatePlatformPaymentStatus).toHaveBeenCalled()
+        expect(response).toHaveProperty('redirectUrl')
+    })
+
+    test('processWebhook', async () => {
+        const webhookPayload = {
+            headers: {
+                checksum: "X0324893URITEH029843"
+            },
+            data: {
+                "amount": 33.0,
+                "transactionReferenceId": "TR6715E8860ED31137D4",
+                "transaction_id": "pay_20894ruflor20",
+                "status": "PAYMENT_COMPLETE"
+            }
+        }
+        Aggregator.prototype.processWebhook = jest.fn().mockResolvedValue({
+            amount: 100,
+            currency: "INR",
+            status: "pending",
+            payment_id: "pay_1234",
+        });
+
+        aggregatorProcessor.updatePlatformPaymentStatus = jest.fn().mockResolvedValue(true);
+
+        const response = await aggregatorProcessor.processWebhook(webhookPayload);
+        expect(aggregatorProcessor.updatePlatformPaymentStatus).toHaveBeenCalled()
+    })
+
     test('createRefund', async () => {
         const requestPayload = {
             "gid": "TR67160B990EA2149E59",
@@ -156,6 +213,33 @@ describe('Aggregator Processor', () => {
         console.log(response)
         expect(response).toHaveProperty('gid');
         expect(response).toHaveProperty('aggregator_payment_refund_details');
+    })
+
+    test('processRefundWebhook', async () => {
+        const webhookPayload = {
+            headers: {
+                checksum: "X0324893URITEH029843"
+            },
+            data: {
+                "amount": 33.0,
+                "transactionReferenceId": "TR67160B990EA2149E59-17294985400131760447",
+                "transaction_id": "pay_20894ruflor20",
+                "status": "REFUND_COMPLETE",
+                "refund_utr": "ICICI0298342435"
+            }
+        }
+        Aggregator.prototype.processRefundWebhook = jest.fn().mockResolvedValue({
+            amount: 100,
+            currency: "INR",
+            status: "pending",
+            payment_id: "pay_1234",
+            refund_utr: "ICICI0298342435"
+        });
+
+        aggregatorProcessor.updatePlatformRefundStatus = jest.fn().mockResolvedValue(true);
+
+        const response = await aggregatorProcessor.processRefundWebhook(webhookPayload);
+        expect(aggregatorProcessor.updatePlatformRefundStatus).toHaveBeenCalled()
     })
 })
 

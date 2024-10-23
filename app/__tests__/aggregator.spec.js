@@ -94,6 +94,60 @@ describe('Aggregator Instance', () => {
         expect(response).toEqual(pg_response.data.payment_url);
     })
 
+    test('processCallback', async () => {
+        const callbackPayload = {
+            "amount": 33.0,
+            "transactionReferenceId": "TR6715E8860ED31137D4",
+            "transaction_id": "pay_20894ruflor20",
+            "status": "PAYMENT_COMPLETE"
+        }
+
+        const response = await aggregator.processCallback(callbackPayload);
+
+        expect(response).toHaveProperty('amount', 33.0);
+        expect(response).toHaveProperty('currency', "INR");
+        expect(response).toHaveProperty('status', 'complete');
+        expect(response).toHaveProperty('payment_id', callbackPayload.transaction_id);
+    })
+
+    test('processWebhook', async () => {
+        const webhookPayload = {
+            data: {
+                "amount": 33.0,
+                "transactionReferenceId": "TR6715E8860ED31137D4",
+                "transaction_id": "pay_20894ruflor20",
+                "status": "PAYMENT_COMPLETE"
+            }
+        }
+
+        const response = await aggregator.processWebhook(webhookPayload);
+
+        expect(response).toHaveProperty('amount', 33.0);
+        expect(response).toHaveProperty('currency', "INR");
+        expect(response).toHaveProperty('status', 'complete');
+        expect(response).toHaveProperty('payment_id', webhookPayload.data.transaction_id);
+    })
+
+    test('processRefundWebhook', async () => {
+        const refundWebhookPayload = {
+            data: {
+                "amount": 33.0,
+                "transactionReferenceId": "TR67160B990EA2149E59-17294985400131760447",
+                "transaction_id": "pay_20894ruflor20",
+                "status": "REFUND_COMPLETE",
+                "refund_utr": "ICICI0298342435"
+            }            
+        }
+
+        const response = await aggregator.processRefundWebhook(refundWebhookPayload);
+
+        expect(response).toHaveProperty('amount', 33.0);
+        expect(response).toHaveProperty('currency', "INR");
+        expect(response).toHaveProperty('status', 'refund_done');
+        expect(response).toHaveProperty('payment_id', refundWebhookPayload.data.transaction_id);
+        expect(response).toHaveProperty('refund_utr', refundWebhookPayload.data.refund_utr);
+    })
+
     test('createRefund', async () => {
         const requestPayload = {
             "gid": "TR67160B990EA2149E59",
