@@ -32,43 +32,40 @@ class Aggregator {
         Returns: redirect_url for payment page
         */
 
-    // const customerData = {
-    //   customer_name: payload.customer_name,
-    //   customer_contact: payload.customer_contact,
-    //   customer_email: payload.customer_email,
-    // };
-    // const callbackUrl = `${config.base_url}api/v1/callback/${this.companyId}/${this.appId}`;
-
-    // const body = {
-    //   // Create payment gateway specific body here
-    //   amount: payload.amount,
-    //   currency: payload.currency,
-    //   transactionReferenceId: payload.gid,
-    //   customer: customerData,
-    //   callbackUrl,
-    //   address: payload.billing_address,
-    // };
-
-    // const url = config.pgBaseUrl + aggregatorConfig.createOrder;
-
-    // const headers = {
-    //   ContentType: 'application/json',
-    // };
-
-    // const response = await axios.post({
-    //   method: 'POST',
-    //   url,
-    //   data: body,
-    //   headers,
-    // });
-    // Demo response from payment gateway
-    const response = {
-      status: 200,
-      data: {
-        ...payload,
-        payment_url: 'https://pg-url.com/payments/payment_id_001',
-      },
+    const customerData = {
+      customer_name: payload.customer_name,
+      customer_contact: payload.customer_contact,
+      customer_email: payload.customer_email,
     };
+    const callbackUrl = `${config.base_url}api/v1/callback/${this.companyId}/${this.appId}`;
+
+    const body = {
+      // Create payment gateway specific body here
+      amount: payload.amount,
+      currency: payload.currency,
+      transactionReferenceId: payload.gid,
+      customer: customerData,
+      callbackUrl,
+      address: payload.billing_address,
+    };
+
+    const url = config.pgBaseUrl + aggregatorConfig.createOrder;
+
+    const headers = {
+      ContentType: 'application/json',
+    };
+
+    const response = await axios.post({
+      method: 'POST',
+      url,
+      data: body,
+      headers,
+    });
+    // Demo response from payment gateway
+    // const response = {
+    //     status: 200,
+    //     payment_url: "https://api.razorpay.com/accept-payment/pay_id_1234567890/"
+    // }
 
     if (response.status === 200) {
       return response.data.payment_url;
