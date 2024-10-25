@@ -83,18 +83,18 @@ describe('Aggregator Instance', () => {
       cod_eligibility: true,
       meta: {},
     };
-    const pg_response = {
+    const pgResponse = {
       status: 200,
       data: {
         payment_url: 'https://pg-url.com/payments/payment_id_001',
       },
     };
 
-    axios.post.mockResolvedValue(pg_response);
+    axios.post.mockResolvedValue(pgResponse);
 
     const response = await aggregator.createOrder(requestPayload);
 
-    expect(response).toEqual(pg_response.data.payment_url);
+    expect(response).toEqual(pgResponse.data.payment_url);
   });
 
   test('createOrder fail', async () => {
@@ -169,21 +169,18 @@ describe('Aggregator Instance', () => {
       cod_eligibility: true,
       meta: {},
     };
-    const pg_response = {
+    const pgResponse = {
       status: 400,
       data: {
         payment_url: 'https://pg-url.com/payments/payment_id_001',
       },
     };
 
-    axios.post.mockResolvedValue(pg_response);
+    axios.post.mockResolvedValue(pgResponse);
 
-    try {
-      const response = await aggregator.createOrder(requestPayload);
-      console.error('Expected error was not thrown');
-    } catch (error) {
-      expect(error).toBeInstanceOf(BadRequestError);
-    }
+    await expect(async () => {
+      await aggregator.createOrder(requestPayload);
+    }).rejects.toThrow(BadRequestError);
   });
 
   test('processCallback', async () => {
@@ -200,7 +197,7 @@ describe('Aggregator Instance', () => {
     expect(response).toHaveProperty('currency', 'INR');
     expect(response).toHaveProperty('status', 'complete');
     expect(response).toHaveProperty(
-      'payment_id',
+      'paymentId',
       callbackPayload.transaction_id
     );
   });
@@ -221,7 +218,7 @@ describe('Aggregator Instance', () => {
     expect(response).toHaveProperty('currency', 'INR');
     expect(response).toHaveProperty('status', 'complete');
     expect(response).toHaveProperty(
-      'payment_id',
+      'paymentId',
       webhookPayload.data.transaction_id
     );
   });
@@ -244,11 +241,11 @@ describe('Aggregator Instance', () => {
     expect(response).toHaveProperty('currency', 'INR');
     expect(response).toHaveProperty('status', 'refund_done');
     expect(response).toHaveProperty(
-      'payment_id',
+      'paymentId',
       refundWebhookPayload.data.transaction_id
     );
     expect(response).toHaveProperty(
-      'refund_utr',
+      'refundUtr',
       refundWebhookPayload.data.refund_utr
     );
   });
@@ -271,7 +268,7 @@ describe('Aggregator Instance', () => {
       aggregator_order_id: '23409284357024800293403584934',
       aggregator_payment_id: '23409284357024800293403584934',
     };
-    const pg_response = {
+    const pgResponse = {
       status: 200,
       data: {
         success: true,
@@ -280,18 +277,18 @@ describe('Aggregator Instance', () => {
       },
     };
 
-    axios.post.mockResolvedValue(pg_response);
+    axios.post.mockResolvedValue(pgResponse);
 
     const response = await aggregator.createRefund(requestPayload);
 
     expect(response).toHaveProperty('status', 'refund_initiated');
-    expect(response).toHaveProperty('refund_utr', pg_response.data.refund_utr);
-    expect(response).toHaveProperty('payment_id', pg_response.data.refund_id);
+    expect(response).toHaveProperty('refundUtr', pgResponse.data.refund_utr);
+    expect(response).toHaveProperty('paymentId', pgResponse.data.refund_id);
   });
 
   test('getOrderDetails', async () => {
     const gid = 'TR890343598520198';
-    const pg_response = {
+    const pgResponse = {
       status: 200,
       data: {
         payment_status: 'PAYMENT_COMPLETE',
@@ -301,7 +298,7 @@ describe('Aggregator Instance', () => {
       },
     };
 
-    axios.get.mockResolvedValue(pg_response);
+    axios.get.mockResolvedValue(pgResponse);
 
     const response = await aggregator.getOrderDetails(gid);
 
@@ -310,14 +307,14 @@ describe('Aggregator Instance', () => {
     expect(response).toHaveProperty('currency');
     expect(response).toHaveProperty('status', 'complete');
     expect(response).toHaveProperty(
-      'payment_id',
-      pg_response.data.transaction_id
+      'paymentId',
+      pgResponse.data.transaction_id
     );
   });
 
   test('getRefundDetails', async () => {
     const gid = 'TR8903435985201982';
-    const pg_response = {
+    const pgResponse = {
       status: 200,
       data: {
         refund_status: 'REFUND_COMPLETE',
@@ -328,7 +325,7 @@ describe('Aggregator Instance', () => {
       },
     };
 
-    axios.get.mockResolvedValue(pg_response);
+    axios.get.mockResolvedValue(pgResponse);
 
     const response = await aggregator.getRefundDetails(gid);
 
@@ -337,9 +334,9 @@ describe('Aggregator Instance', () => {
     expect(response).toHaveProperty('currency');
     expect(response).toHaveProperty('status', 'refund_done');
     expect(response).toHaveProperty(
-      'payment_id',
-      pg_response.data.transaction_id
+      'paymentId',
+      pgResponse.data.transaction_id
     );
-    expect(response).toHaveProperty('refund_utr', pg_response.data.refund_utr);
+    expect(response).toHaveProperty('refundUtr', pgResponse.data.refund_utr);
   });
 });

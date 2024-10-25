@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
-const _ = require('lodash');
-const Schema = mongoose.Schema;
+
+const { Schema } = mongoose;
 const { mongoConnection } = require('../common/mongo.init');
 
 const secretCollection = 'secret';

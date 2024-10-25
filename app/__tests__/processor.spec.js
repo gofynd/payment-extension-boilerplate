@@ -143,7 +143,7 @@ describe('Aggregator Processor', () => {
   });
 
   test('processCallback', async () => {
-    const request_payload = {
+    const requestPayload = {
       headers: {
         checksum: 'X0324893URITEH029843',
       },
@@ -158,10 +158,10 @@ describe('Aggregator Processor', () => {
       amount: 100,
       currency: 'INR',
       status: 'pending',
-      payment_id: 'pay_1234',
+      paymentId: 'pay_1234',
     });
 
-    const response = await aggregatorProcessor.processCallback(request_payload);
+    const response = await aggregatorProcessor.processCallback(requestPayload);
     expect(response).toHaveProperty('redirectUrl');
   });
 
@@ -181,10 +181,10 @@ describe('Aggregator Processor', () => {
       amount: 100,
       currency: 'INR',
       status: 'pending',
-      payment_id: 'pay_1234',
+      paymentId: 'pay_1234',
     });
 
-    const response = await aggregatorProcessor.processWebhook(webhookPayload);
+    await aggregatorProcessor.processWebhook(webhookPayload);
   });
 
   test('createRefund', async () => {
@@ -207,8 +207,8 @@ describe('Aggregator Processor', () => {
     };
     const refundResponse = {
       status: 'refund_initiated',
-      refund_utr: 'refund_id_28430289843',
-      payment_id: 'payment_id_742365728345',
+      refundUtr: 'refund_id_28430289843',
+      paymentId: 'payment_id_742365728345',
     };
 
     Aggregator.prototype.createRefund = jest
@@ -226,8 +226,8 @@ describe('Aggregator Processor', () => {
       amount: 100,
       currency: 'INR',
       status: 'pending',
-      payment_id: 'pay_1234',
-      refund_utr: 'refund_293284',
+      paymentId: 'pay_1234',
+      refundUtr: 'refund_293284',
     });
 
     const response = await aggregatorProcessor.getRefundDetails({
@@ -255,11 +255,10 @@ describe('Aggregator Processor', () => {
       amount: 100,
       currency: 'INR',
       status: 'pending',
-      payment_id: 'pay_1234',
-      refund_utr: 'ICICI0298342435',
+      paymentId: 'pay_1234',
+      refundUtr: 'ICICI0298342435',
     });
 
-    const response =
-      await aggregatorProcessor.processRefundWebhook(webhookPayload);
+    await aggregatorProcessor.processRefundWebhook(webhookPayload);
   });
 });

@@ -10,7 +10,7 @@ class EncryptHelper {
     );
     let encrypted = cipher.update(msg);
     encrypted = Buffer.concat([encrypted, cipher.final()]);
-    return iv.toString('hex') + ':' + encrypted.toString('hex');
+    return `${iv.toString('hex')}:${encrypted.toString('hex')}`;
   }
 
   static decrypt(secretKey, encryptedMessage) {

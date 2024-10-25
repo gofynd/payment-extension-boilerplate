@@ -3,20 +3,21 @@ const mongodbUri = require('mongodb-uri');
 
 convict.addFormat({
   name: 'mongo-uri',
-  validate: function (val) {
-    let parsed = mongodbUri.parse(val);
+  validate(val) {
+    const parsed = mongodbUri.parse(val);
     mongodbUri.format(parsed);
   },
-  coerce: function (urlString) {
+  coerce(urlString) {
+    let returnUrlString = urlString;
     if (urlString) {
-      let parsed = mongodbUri.parse(urlString);
-      urlString = mongodbUri.format(parsed);
+      const parsed = mongodbUri.parse(urlString);
+      returnUrlString = mongodbUri.format(parsed);
     }
-    return urlString;
+    return returnUrlString;
   },
 });
 
-let config = convict({
+const config = convict({
   env: {
     doc: 'The application environment.',
     format: ['production', 'development', 'test'],

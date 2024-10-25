@@ -1,25 +1,14 @@
 module.exports = {
-  root: true, // Indicate this is the root ESLint configuration for the frontend
-  env: {
-    node: true,
-    jest: true, // Ensure ESLint knows to expect Jest globals
-  },
-  extends: [
-    'airbnb-base', // Or your preferred JavaScript style guide
-    'plugin:vue/vue3-recommended', // Use vue3-recommended for stricter rules in Vue 3
-    '@vue/prettier', // Ensure compatibility with Prettier
-  ],
+  extends: ['airbnb-base', 'prettier'],
+  plugins: ['prettier'],
+  // parser: '@babel/eslint-parser',
   parserOptions: {
-    parser: '@babel/eslint-parser', // Use the latest Babel ESLint Parser
-    requireConfigFile: false, // Not requiring a Babel config file
-    ecmaVersion: 2021, // Update to a more recent ECMAScript version if needed
-    sourceType: 'module', // Support ES Module syntax
+    ecmaVersion: 2020,
+    sourceType: 'module',
   },
   rules: {
-    // Customize or override rules here
-    'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
-    'no-debugger': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
-    'vue/multi-word-component-names': 'off',
+    'prettier/prettier': 'error',
+    'no-underscore-dangle': ['error', { allow: ['_id'] }],
   },
   overrides: [
     {
@@ -38,12 +27,14 @@ module.exports = {
       extends: ['plugin:jest/recommended'],
     },
   ],
-  settings: {
-    'import/resolver': {
-      alias: {
-        map: [['@', './src']],
-        extensions: ['.js', '.jsx', '.vue'],
-      },
-    },
+  env: {
+    node: true,
+    es6: true,
+    jest: true,
+  },
+  globals: {
+    window: 'readonly',
+    FPI: 'readonly',
+    gtag: 'readonly',
   },
 };

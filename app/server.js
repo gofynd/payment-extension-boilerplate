@@ -24,7 +24,7 @@ app.use('/', fdkExtension.fdkHandler);
 app.use('/api/v1', orderRouter);
 app.use('/api/v1', credsRouter);
 
-const apiRoutes = fdkExtension.apiRoutes;
+const { apiRoutes } = fdkExtension;
 apiRoutes.use('/v1', apiRouter);
 app.use('/protected', apiRoutes);
 
@@ -41,6 +41,7 @@ app.get('*', (req, res) => {
 });
 
 app.engine('html', require('ejs').renderFile);
+
 app.set('view engine', 'html');
 app.set('views', path.join(__dirname, 'views'));
 

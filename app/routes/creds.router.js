@@ -29,6 +29,6 @@ apiRouter.post(
 );
 
 module.exports = {
-  credsRouter: credsRouter,
-  apiRouter: apiRouter,
+  credsRouter,
+  apiRouter,
 };

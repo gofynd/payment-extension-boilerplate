@@ -1,5 +1,5 @@
 const { BaseStorage } = require('fdk-extension-javascript/express/storage');
-const { Session } = require('./../models/model');
+const { Session } = require('../models/model');
 
 class MongoStorage extends BaseStorage {
   getEpochTime(ttl = 0) {
@@ -23,7 +23,7 @@ class MongoStorage extends BaseStorage {
   async set(key, value) {
     await Session.findOneAndUpdate(
       { session_id: key },
-      { value: value },
+      { value },
       { upsert: true }
     );
     return true;
@@ -33,7 +33,7 @@ class MongoStorage extends BaseStorage {
     const expires = this.getEpochTime(ttl);
     await Session.findOneAndUpdate(
       { session_id: key },
-      { value: value, expires: expires },
+      { value, expires },
       { upsert: true }
     );
     return true;
@@ -53,7 +53,7 @@ class MongoStorage extends BaseStorage {
   }
 
   async hset(key, hashKey, value) {
-    var hash = await Session.findOne({ session_id: key });
+    let hash = await Session.findOne({ session_id: key });
     if (!hash || !hash.value) {
       hash = {
         value: {},

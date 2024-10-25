@@ -4,9 +4,9 @@ const { BadRequestError } = require('../../utils/errorUtils');
 const { aggregatorConfig, paymentStatus, refundStatus } = require('./config');
 
 class Aggregator {
-  constructor(app_id, company_id) {
-    this.app_id = app_id;
-    this.company_id = company_id;
+  constructor(appId, companyId) {
+    this.appId = appId;
+    this.companyId = companyId;
   }
 
   static async getOrderFromCallback(callbackPayload) {
@@ -23,8 +23,8 @@ class Aggregator {
     // Splitting both here from transaction id
     const orderIdCombined = webhookPayload.transactionReferenceId;
     const gid = orderIdCombined.split('-')[0];
-    const request_id = orderIdCombined.split('-')[1];
-    return { gid, request_id };
+    const requestId = orderIdCombined.split('-')[1];
+    return { gid, requestId };
   }
 
   async createOrder(payload) {
@@ -37,8 +37,7 @@ class Aggregator {
       customer_contact: payload.customer_contact,
       customer_email: payload.customer_email,
     };
-    const callback_url =
-      config.base_url + `api/v1/callback/${this.company_id}/${this.app_id}`;
+    const callbackUrl = `${config.base_url}api/v1/callback/${this.companyId}/${this.appId}`;
 
     const body = {
       // Create payment gateway specific body here
@@ -46,7 +45,7 @@ class Aggregator {
       currency: payload.currency,
       transactionReferenceId: payload.gid,
       customer: customerData,
-      callback_url,
+      callbackUrl,
       address: payload.billing_address,
     };
 
@@ -58,9 +57,9 @@ class Aggregator {
 
     const response = await axios.post({
       method: 'POST',
-      url: url,
+      url,
       data: body,
-      headers: headers,
+      headers,
     });
     // Demo response from payment gateway
     // const response = {
@@ -74,16 +73,16 @@ class Aggregator {
     throw new BadRequestError('Bad request');
   }
 
-  async createRefund(request_payload) {
+  async createRefund(requestPayload) {
     const {
       aggregator_payment_id: forwardPaymentId,
       gid,
-      request_id,
+      requestId,
       amount,
       currency,
-    } = request_payload;
+    } = requestPayload;
 
-    const orderIdCombined = `${gid}-${request_id}`;
+    const orderIdCombined = `${gid}-${requestId}`;
     // Prepare payload for refund
     const payload = {
       amount: {
@@ -94,15 +93,13 @@ class Aggregator {
     };
 
     // Generate refund URL
-    const url =
-      config.pgBaseUrl +
-      '/v2/payments/captures/' +
-      forwardPaymentId +
-      '/refund';
+    const url = `${config.pgBaseUrl}/v2/payments/captures/${
+      forwardPaymentId
+    }/refund`;
 
     const response = await axios.post({
       method: 'POST',
-      url: url,
+      url,
       data: payload,
     });
     // Demo refund initiate response
@@ -115,8 +112,8 @@ class Aggregator {
     if (response.status === 200) {
       return {
         status: refundStatus.INITIATED,
-        refund_utr: response.data.refund_utr,
-        payment_id: response.data.refund_id,
+        refundUtr: response.data.refund_utr,
+        paymentId: response.data.refund_id,
       };
     }
 
@@ -130,10 +127,10 @@ class Aggregator {
         Customize function as per callback payload
         */
 
-    const amount = callbackPayload.amount;
+    const { amount } = callbackPayload;
     const currency = 'INR';
     let status = null;
-    let payment_id = null;
+    let paymentId = null;
 
     // Verify Callback
     const checksum = await this.verifyChecksum(callbackPayload);
@@ -147,9 +144,10 @@ class Aggregator {
         currency,
         status,
       };
-    } else if (callbackPayload.status === 'PAYMENT_COMPLETE') {
+    }
+    if (callbackPayload.status === 'PAYMENT_COMPLETE') {
       status = paymentStatus.COMPLETE;
-      payment_id = callbackPayload.transaction_id;
+      paymentId = callbackPayload.transaction_id;
     }
 
     console.log('Callback return value', { amount, currency, status });
@@ -157,7 +155,7 @@ class Aggregator {
       amount,
       currency,
       status,
-      payment_id,
+      paymentId,
     };
   }
 
@@ -171,10 +169,10 @@ class Aggregator {
         Customize function as per webhook payload
         */
 
-    const amount = webhookPayload.data.amount;
+    const { amount } = webhookPayload.data;
     const currency = 'INR';
     let status = null;
-    let payment_id = null;
+    let paymentId = null;
 
     // Verify webhook
     const checksum = await this.verifyChecksum(webhookPayload);
@@ -188,11 +186,12 @@ class Aggregator {
         currency,
         status,
       };
-    } else if (webhookPayload.data.status === 'PAYMENT_PENDING') {
+    }
+    if (webhookPayload.data.status === 'PAYMENT_PENDING') {
       status = paymentStatus.PENDING;
     } else if (webhookPayload.data.status === 'PAYMENT_COMPLETE') {
       status = paymentStatus.COMPLETE;
-      payment_id = webhookPayload.data.transaction_id;
+      paymentId = webhookPayload.data.transaction_id;
     } else {
       status = paymentStatus.FAILED;
     }
@@ -202,17 +201,17 @@ class Aggregator {
       amount,
       currency,
       status,
-      payment_id,
+      paymentId,
     };
   }
 
   async getOrderDetails(gid) {
     let amount;
-    let currency = 'INR';
+    const currency = 'INR';
     let status = null;
-    let payment_id = null;
+    let paymentId = null;
 
-    const url = config.pgBaseUrl + aggregatorConfig.orderStatus + '/' + gid;
+    const url = `${config.pgBaseUrl + aggregatorConfig.orderStatus}/${gid}`;
 
     const headers = {
       ContentType: 'application/json',
@@ -220,8 +219,8 @@ class Aggregator {
 
     const response = await axios.get({
       method: 'GET',
-      url: url,
-      headers: headers,
+      url,
+      headers,
     });
     // Demo response from payment gateway
     // const response = {
@@ -235,11 +234,11 @@ class Aggregator {
     if (response.status === 200) {
       if (response.data.payment_status === 'PAYMENT_COMPLETE') {
         status = paymentStatus.COMPLETE;
-        payment_id = response.data.transaction_id;
+        paymentId = response.data.transaction_id;
         amount = response.data.amount;
       } else if (response.data.payment_status === 'PAYMENT_PENDING') {
         status = paymentStatus.PENDING;
-        payment_id = response.data.transaction_id;
+        paymentId = response.data.transaction_id;
         amount = response.data.amount;
       } else {
         status = paymentStatus.FAILED;
@@ -251,7 +250,7 @@ class Aggregator {
       amount,
       currency,
       status,
-      payment_id,
+      paymentId,
     };
   }
 
@@ -260,11 +259,11 @@ class Aggregator {
         Customize function as per webhook payload
         */
 
-    const amount = webhookPayload.data.amount;
+    const { amount } = webhookPayload.data;
     const currency = 'INR';
     let status = null;
-    let payment_id = null;
-    let refund_utr = null;
+    let paymentId = null;
+    let refundUtr = null;
 
     // Verify webhook
     const checksum = await this.verifyChecksum(webhookPayload);
@@ -278,12 +277,13 @@ class Aggregator {
         currency,
         status,
       };
-    } else if (webhookPayload.data.status === 'REFUND_PENDING') {
+    }
+    if (webhookPayload.data.status === 'REFUND_PENDING') {
       status = refundStatus.PENDING;
     } else if (webhookPayload.data.status === 'REFUND_COMPLETE') {
       status = refundStatus.COMPLETE;
-      payment_id = webhookPayload.data.transaction_id;
-      refund_utr = webhookPayload.data.refund_utr;
+      paymentId = webhookPayload.data.transaction_id;
+      refundUtr = webhookPayload.data.refund_utr;
     } else {
       status = refundStatus.FAILED;
     }
@@ -293,8 +293,8 @@ class Aggregator {
       amount,
       currency,
       status,
-      payment_id,
-      refund_utr,
+      paymentId,
+      refundUtr,
     };
   }
 
@@ -302,10 +302,10 @@ class Aggregator {
     let amount;
     const currency = 'INR';
     let status = null;
-    let payment_id = null;
-    let refund_utr = null;
+    let paymentId = null;
+    let refundUtr = null;
 
-    const url = config.pgBaseUrl + aggregatorConfig.refundStatus + '/' + gid;
+    const url = `${config.pgBaseUrl + aggregatorConfig.refundStatus}/${gid}`;
 
     const headers = {
       ContentType: 'application/json',
@@ -313,8 +313,8 @@ class Aggregator {
 
     const response = await axios.get({
       method: 'GET',
-      url: url,
-      headers: headers,
+      url,
+      headers,
     });
     // Demo response from payment gateway
     // const response = {
@@ -329,12 +329,12 @@ class Aggregator {
     if (response.status === 200) {
       if (response.data.refund_status === 'REFUND_COMPLETE') {
         status = refundStatus.COMPLETE;
-        payment_id = response.data.transaction_id;
+        paymentId = response.data.transaction_id;
         amount = response.data.amount;
-        refund_utr = response.data.refund_utr;
+        refundUtr = response.data.refund_utr;
       } else if (response.data.refund_status === 'REFUND_PENDING') {
         status = refundStatus.PENDING;
-        payment_id = response.data.transaction_id;
+        paymentId = response.data.transaction_id;
         amount = response.data.amount;
       } else {
         status = refundStatus.FAILED;
@@ -346,8 +346,8 @@ class Aggregator {
       amount,
       currency,
       status,
-      payment_id,
-      refund_utr,
+      paymentId,
+      refundUtr,
     };
   }
 }

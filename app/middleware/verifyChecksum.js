@@ -3,10 +3,10 @@ const config = require('../config');
 const { getHmacChecksum } = require('../utils/signatureUtils');
 
 const verifyPlatformChecksum = (req, res, next) => {
-  const request_payload = req.body;
+  const requestPayload = req.body;
 
   const checksum = getHmacChecksum(
-    JSON.stringify(request_payload),
+    JSON.stringify(requestPayload),
     config.api_secret
   );
 
@@ -16,7 +16,7 @@ const verifyPlatformChecksum = (req, res, next) => {
 };
 
 const verifyExtensionAuth = (req, res, next) => {
-  const basicAuthHeader = 'Basic ' + btoa(config.api_secret);
+  const basicAuthHeader = `Basic ${btoa(config.api_secret)}`;
 
   if (basicAuthHeader !== req.headers.authorization)
     throw new AuthorizationError('Authorization failed');
@@ -39,7 +39,7 @@ const verifyApplicationId = (req, res, next) => {
 };
 
 const verifyStatusChecksum = (req, res, next) => {
-  const gid = req.params.gid;
+  const { gid } = req.params;
 
   const checksum = getHmacChecksum(gid, config.api_secret);
 

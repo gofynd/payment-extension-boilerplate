@@ -1,5 +1,13 @@
 {
   "typeAcquisition": {
     "include": ["jest"]
+  },
+  "compilerOptions": {
+    "target": "es6",
+    "module": "commonjs",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["web/src/*"]
+    }
   }
 }

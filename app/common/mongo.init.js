@@ -1,6 +1,6 @@
-const config = require('../config');
 const Bluebird = require('bluebird');
 const mongoose = require('mongoose');
+const config = require('../config');
 
 mongoose.Promise = Bluebird;
 
@@ -9,21 +9,21 @@ function setupMongoose(project) {
 
   const conn = mongoose.createConnection(uri, options);
 
-  conn.on('connected', function () {
+  conn.on('connected', () => {
     console.log('MongoConnection Details: ', uri);
     console.log('Mongodb connected.');
   });
-  conn.on('disconnected', function () {
+  conn.on('disconnected', () => {
     console.log('Mongodb disconnected.');
   });
 
-  conn.on('error', function (err) {
+  conn.on('error', err => {
     console.log(err);
   });
   return conn;
 }
 
-let mongoConnection = setupMongoose(config.mongodb.host);
+const mongoConnection = setupMongoose(config.mongodb.host);
 
 module.exports = {
   mongoConnection,

@@ -84,7 +84,7 @@ describe('status checksum verification', () => {
   });
 });
 
-describe('status checksum verification', () => {
+describe('application id verification', () => {
   let req;
   beforeEach(() => {
     req = {
