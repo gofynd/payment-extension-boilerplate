@@ -14,7 +14,6 @@
     "axios": "^1.7.7",
     "babel-jest": "^29.7.0",
     "base-64": "^1.0.0",
-    "bluebird": "^3.7.2",
     "body-parser": "^1.20.3",
     "convict": "^6.2.3",
     "cookie-parser": "^1.4.6",

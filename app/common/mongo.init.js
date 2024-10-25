@@ -1,8 +1,5 @@
-const Bluebird = require('bluebird');
 const mongoose = require('mongoose');
 const config = require('../config');
-
-mongoose.Promise = Bluebird;
 
 function setupMongoose(project) {
   const { uri, options } = project;

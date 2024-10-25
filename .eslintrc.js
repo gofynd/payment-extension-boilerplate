@@ -10,6 +10,7 @@ module.exports = {
     'prettier/prettier': 'error',
     'class-methods-use-this': 'off',
     'max-classes-per-file': 'off',
+    'no-console': 'off',
     'no-underscore-dangle': ['error', { allow: ['_id'] }],
   },
   overrides: [
