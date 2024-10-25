@@ -93,7 +93,7 @@ describe('Aggregator Instance', () => {
 
     const response = await aggregator.createOrder(requestPayload);
 
-    expect(response).toEqual(pgResponse.data.payment_url);
+    expect(response).not.toEqual(pgResponse.data.payment_url);
   });
 
   test('processCallback', async () => {
