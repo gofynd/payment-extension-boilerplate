@@ -30,7 +30,8 @@ const config = {
     '!app/routes/index.js',
     '!app/connections/**/*.js',
     '!app/health_check/**/*.js',
-    '!app/utils/fpi_script.js',
+    '!app/controllers/orderController.js',
+    '!app/routes/**/*',
     '!__tests__/**/*.js',
   ],
 

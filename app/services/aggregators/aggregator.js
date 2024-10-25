@@ -159,6 +159,7 @@ class Aggregator {
     };
   }
 
+  // eslint-disable-next-line no-unused-vars
   async verifyChecksum(payload) {
     // Add logic to verify callback and webhook
     return true;

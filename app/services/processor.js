@@ -153,7 +153,7 @@ class AggregatorProcessor {
       gid,
     });
     const redirectUrl =
-      status == 'complete' ? order.success_url : order.cancel_url;
+      status === 'complete' ? order.success_url : order.cancel_url;
 
     const responseData = {
       action: 'redirect',
@@ -174,13 +174,13 @@ class AggregatorProcessor {
     });
     const webhookResponse = await aggregator.processWebhook(webhookPayload);
 
-    const { amount, currency, status, payment_id } = webhookResponse;
+    const { amount, currency, status, paymentId } = webhookResponse;
     const payload = this.createPaymentUpdatePayload(
       gid,
       amount,
       currency,
       status,
-      payment_id,
+      paymentId,
       webhookPayload.data
     );
     await this.updatePlatformPaymentStatus(
@@ -220,12 +220,12 @@ class AggregatorProcessor {
     paymentId,
     aggregatorResponse
   ) {
-    amount *= 100; // Convert to paise/cents before sending to platform
+    const amountInPaise = amount * 100; // Convert to paise/cents before sending to platform
     return {
       gid,
       order_details: {
         gid,
-        amount,
+        amount: amountInPaise,
         status,
         currency,
         aggregator_order_details: aggregatorResponse,
@@ -233,17 +233,17 @@ class AggregatorProcessor {
       },
       status,
       currency,
-      total_amount: amount,
+      total_amount: amountInPaise,
       payment_details: [
         {
           gid,
-          amount,
+          amount: amountInPaise,
           currency,
-          paymentId,
+          payment_id: paymentId,
           mode: config.env,
           success_url: '',
           cancel_url: '',
-          amount_captured: amount,
+          amount_captured: amountInPaise,
           payment_methods: [{}],
           g_user_id: '<User id if exists>',
           aggregator_order_id: paymentId,
@@ -259,13 +259,16 @@ class AggregatorProcessor {
       JSON.stringify(payload),
       config.api_secret
     );
-    payload.checksum = checksum;
+    const payloadWithChecksum = {
+      ...payload,
+      checksum,
+    };
 
     const platformClient = await fdkExtension.getPlatformClient(companyId);
     const applicationClient = platformClient.application(appId);
     const sdkResponse = await applicationClient.payment.updatePaymentSession({
       gid,
-      body: payload,
+      body: payloadWithChecksum,
     });
     return sdkResponse;
   }
@@ -386,19 +389,19 @@ class AggregatorProcessor {
     refundUtr,
     aggregatorPayload
   ) {
-    amount *= 100;
+    const amountInPaise = amount * 100;
     return {
       gid,
       status,
       currency,
-      total_amount: amount,
+      total_amount: amountInPaise,
       refund_details: [
         {
           status,
           request_id: requestId,
           payment_id: paymentId,
           refund_utr: refundUtr,
-          amount,
+          amount: amountInPaise,
           currency,
           created: String(Date.now()),
         },
@@ -409,14 +412,14 @@ class AggregatorProcessor {
         aggregator_order_id: paymentId,
         payment_id: paymentId,
         mode: config.env,
-        amount,
+        amount: amountInPaise,
         success_url: '',
         cancel_url: '',
-        amount_captured: amount,
+        amount_captured: amountInPaise,
         payment_methods: [{}],
         g_user_id: '<User id if exists>',
         currency,
-        amount_refunded: amount,
+        amount_refunded: amountInPaise,
         created: String(Date.now()),
       },
       meta: aggregatorPayload,
@@ -428,14 +431,17 @@ class AggregatorProcessor {
       JSON.stringify(payload),
       config.api_secret
     );
-    payload.checksum = checksum;
+    const payloadWithChecksum = {
+      ...payload,
+      checksum,
+    };
 
     const platformClient = await fdkExtension.getPlatformClient(companyId);
     const applicationClient = platformClient.application(appId);
     const sdkResponse = await applicationClient.payment.updateRefundSession({
       gid,
       requestId,
-      body: payload,
+      body: payloadWithChecksum,
     });
     return sdkResponse;
   }
