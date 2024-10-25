@@ -1,14 +1,12 @@
-const Aggregator = require("./aggregators/aggregator");
-const { fdkExtension } = require("../fdk")
-const config = require("../config");
-const { getHmacChecksum } = require("../utils/signatureUtils");
-const { Order } = require("../models/model");
-
+const Aggregator = require('./aggregators/aggregator');
+const { fdkExtension } = require('../fdk');
+const config = require('../config');
+const { getHmacChecksum } = require('../utils/signatureUtils');
+const { Order } = require('../models/model');
 
 class AggregatorProcessor {
-
-    async createOrder(request_payload) {
-        /*
+  async createOrder(request_payload) {
+    /*
         Refer this page for more info
         https://partners.fynd.com/help/docs/partners/extension/payments/building-payment-extension/payment-flow/initiatePaymentSession
 
@@ -96,133 +94,184 @@ class AggregatorProcessor {
         }
         */
 
-        console.log("Payload received from platform", request_payload);
-        const gid = request_payload.gid;
+    console.log('Payload received from platform', request_payload);
+    const gid = request_payload.gid;
 
-        const aggregator = new Aggregator(request_payload.app_id, request_payload.company_id);
-        const redirectUrl = await aggregator.createOrder(request_payload);
+    const aggregator = new Aggregator(
+      request_payload.app_id,
+      request_payload.company_id
+    );
+    const redirectUrl = await aggregator.createOrder(request_payload);
 
-        await Order.create({
-            app_id: request_payload.app_id,
-            company_id: request_payload.company_id,
-            gid,
-            success_url: request_payload.success_url,
-            cancel_url: request_payload.cancel_url,
-        })
+    await Order.create({
+      app_id: request_payload.app_id,
+      company_id: request_payload.company_id,
+      gid,
+      success_url: request_payload.success_url,
+      cancel_url: request_payload.cancel_url,
+    });
 
-        const responseData = {
-            success: true,
-            redirect_url: redirectUrl,
-            gid: gid,
-        }
-        console.log("Response for create payment", responseData);
-        return responseData;
-    }
-
-    async processCallback(request_payload) {
-        console.log('Payload for process callback', request_payload);
-
-        const gid = await Aggregator.getOrderFromCallback(request_payload);
-
-        const aggregator = new Aggregator(request_payload.app_id, request_payload.company_id);
-        const callbackResponse = await aggregator.processCallback(request_payload);
-
-        const { amount, currency, status, payment_id } = callbackResponse;
-        const payload = this.createPaymentUpdatePayload(gid, amount, currency, status, payment_id, request_payload);
-        await this.updatePlatformPaymentStatus(request_payload.app_id, request_payload.company_id, gid, payload);
-
-        const order = await Order.findOne({
-            app_id: request_payload.app_id,
-            company_id: request_payload.company_id,
-            gid,
-        })
-        const redirectUrl = status == "complete" ? order.success_url : order.cancel_url;
-
-        const responseData = {
-            action: "redirect",
-            redirectUrl: encodeURIComponent(redirectUrl)
-        };
-        console.log('Callback response', responseData);
-        return responseData;
+    const responseData = {
+      success: true,
+      redirect_url: redirectUrl,
+      gid: gid,
     };
+    console.log('Response for create payment', responseData);
+    return responseData;
+  }
 
-    async processWebhook(webhookPayload) {
-        console.log('Webhook request body', webhookPayload);
-        let data = webhookPayload.data;
-        const gid = await Aggregator.getOrderFromWebhook(data);
+  async processCallback(request_payload) {
+    console.log('Payload for process callback', request_payload);
 
-        const aggregator = new Aggregator({ app_id: data.app_id, company_id: data.company_id });
-        const webhookResponse = await aggregator.processWebhook(webhookPayload);
+    const gid = await Aggregator.getOrderFromCallback(request_payload);
 
-        const { amount, currency, status, payment_id } = webhookResponse;
-        const payload = this.createPaymentUpdatePayload(gid, amount, currency, status, payment_id, webhookPayload.data);
-        await this.updatePlatformPaymentStatus(data.app_id, data.company_id, gid, payload);
+    const aggregator = new Aggregator(
+      request_payload.app_id,
+      request_payload.company_id
+    );
+    const callbackResponse = await aggregator.processCallback(request_payload);
 
-        console.log("Webhook complete");
-    }
+    const { amount, currency, status, payment_id } = callbackResponse;
+    const payload = this.createPaymentUpdatePayload(
+      gid,
+      amount,
+      currency,
+      status,
+      payment_id,
+      request_payload
+    );
+    await this.updatePlatformPaymentStatus(
+      request_payload.app_id,
+      request_payload.company_id,
+      gid,
+      payload
+    );
 
-    async getPaymentDetails(data) {
-        console.log('Request for get payment details', data);
+    const order = await Order.findOne({
+      app_id: request_payload.app_id,
+      company_id: request_payload.company_id,
+      gid,
+    });
+    const redirectUrl =
+      status == 'complete' ? order.success_url : order.cancel_url;
 
-        const aggregator = new Aggregator();
-        const aggResponse = await aggregator.getOrderDetails(data.gid);
-        const { amount, currency, status, payment_id } = aggResponse;
-
-        const responseData = this.createPaymentUpdatePayload(data.gid, amount, currency, status, payment_id, aggResponse)
-        console.log('Response for get Payment Details', responseData);
-        return responseData;
+    const responseData = {
+      action: 'redirect',
+      redirectUrl: encodeURIComponent(redirectUrl),
     };
+    console.log('Callback response', responseData);
+    return responseData;
+  }
 
-    createPaymentUpdatePayload(gid, amount, currency, status, payment_id, aggregatorResponse){
-        amount = amount * 100; // Convert to paise/cents before sending to platform
-        return {
-            "gid": gid,
-            "order_details": {
-                "gid": gid,
-                "amount": amount,
-                "status": status,
-                "currency": currency,
-                "aggregator_order_details": aggregatorResponse,
-                "aggregator": "Dummy"
-            },
-            "status": status,
-            "currency": currency,
-            "total_amount": amount,
-            "payment_details": [{
-                gid,
-                amount,
-                currency,
-                payment_id: payment_id,
-                mode: config.env,
-                success_url: "",
-                cancel_url: "",
-                amount_captured: amount,
-                payment_methods: [{}],
-                g_user_id: "<User id if exists>",
-                aggregator_order_id: payment_id,
-                status: status,
-                created: String(Date.now()),
-            }],
-        }
-    }
+  async processWebhook(webhookPayload) {
+    console.log('Webhook request body', webhookPayload);
+    let data = webhookPayload.data;
+    const gid = await Aggregator.getOrderFromWebhook(data);
 
-    async updatePlatformPaymentStatus(
-        app_id,
-        company_id,
-        gid,
-        payload
-    ) {
-        const checksum = getHmacChecksum(JSON.stringify(payload), config.api_secret);
-        payload["checksum"] = checksum
+    const aggregator = new Aggregator({
+      app_id: data.app_id,
+      company_id: data.company_id,
+    });
+    const webhookResponse = await aggregator.processWebhook(webhookPayload);
 
-        let platformClient = await fdkExtension.getPlatformClient(company_id);
-        const applicationClient = platformClient.application(app_id);
-        const sdkResponse = await applicationClient.payment.updatePaymentSession({ gid: gid, body: payload });
-        return sdkResponse;
-    }
+    const { amount, currency, status, payment_id } = webhookResponse;
+    const payload = this.createPaymentUpdatePayload(
+      gid,
+      amount,
+      currency,
+      status,
+      payment_id,
+      webhookPayload.data
+    );
+    await this.updatePlatformPaymentStatus(
+      data.app_id,
+      data.company_id,
+      gid,
+      payload
+    );
 
-    async createRefund(request_payload) {
-        /*
+    console.log('Webhook complete');
+  }
+
+  async getPaymentDetails(data) {
+    console.log('Request for get payment details', data);
+
+    const aggregator = new Aggregator();
+    const aggResponse = await aggregator.getOrderDetails(data.gid);
+    const { amount, currency, status, payment_id } = aggResponse;
+
+    const responseData = this.createPaymentUpdatePayload(
+      data.gid,
+      amount,
+      currency,
+      status,
+      payment_id,
+      aggResponse
+    );
+    console.log('Response for get Payment Details', responseData);
+    return responseData;
+  }
+
+  createPaymentUpdatePayload(
+    gid,
+    amount,
+    currency,
+    status,
+    payment_id,
+    aggregatorResponse
+  ) {
+    amount = amount * 100; // Convert to paise/cents before sending to platform
+    return {
+      gid: gid,
+      order_details: {
+        gid: gid,
+        amount: amount,
+        status: status,
+        currency: currency,
+        aggregator_order_details: aggregatorResponse,
+        aggregator: 'Dummy',
+      },
+      status: status,
+      currency: currency,
+      total_amount: amount,
+      payment_details: [
+        {
+          gid,
+          amount,
+          currency,
+          payment_id: payment_id,
+          mode: config.env,
+          success_url: '',
+          cancel_url: '',
+          amount_captured: amount,
+          payment_methods: [{}],
+          g_user_id: '<User id if exists>',
+          aggregator_order_id: payment_id,
+          status: status,
+          created: String(Date.now()),
+        },
+      ],
+    };
+  }
+
+  async updatePlatformPaymentStatus(app_id, company_id, gid, payload) {
+    const checksum = getHmacChecksum(
+      JSON.stringify(payload),
+      config.api_secret
+    );
+    payload['checksum'] = checksum;
+
+    let platformClient = await fdkExtension.getPlatformClient(company_id);
+    const applicationClient = platformClient.application(app_id);
+    const sdkResponse = await applicationClient.payment.updatePaymentSession({
+      gid: gid,
+      body: payload,
+    });
+    return sdkResponse;
+  }
+
+  async createRefund(request_payload) {
+    /*
         Refer this page for more info
         https://partners.fynd.com/help/docs/partners/extension/payments/building-payment-extension/refund-flow/initiateRefundSession
 
@@ -248,112 +297,156 @@ class AggregatorProcessor {
         }
         */
 
-        console.log('Request body for create refund', request_payload);
+    console.log('Request body for create refund', request_payload);
 
-        const aggregator = new Aggregator();
-        const refundResponse = await aggregator.createRefund(request_payload);
+    const aggregator = new Aggregator();
+    const refundResponse = await aggregator.createRefund(request_payload);
 
-        const { amount, currency, request_id, gid } = request_payload;
-        const { status, refund_utr, payment_id } = refundResponse;
-        const responseData = {
-            gid,
-            aggregator_payment_refund_details: {
-                status,
-                amount,
-                currency,
-                request_id,
-                refund_utr,
-                payment_id,
-            },
-        };
-        console.log('Response for create refund', responseData);
-        return responseData;
+    const { amount, currency, request_id, gid } = request_payload;
+    const { status, refund_utr, payment_id } = refundResponse;
+    const responseData = {
+      gid,
+      aggregator_payment_refund_details: {
+        status,
+        amount,
+        currency,
+        request_id,
+        refund_utr,
+        payment_id,
+      },
     };
+    console.log('Response for create refund', responseData);
+    return responseData;
+  }
 
-    async getRefundDetails(data) {
-        console.log('Request for get refund details', data);
+  async getRefundDetails(data) {
+    console.log('Request for get refund details', data);
 
-        const aggregator = new Aggregator();
-        const aggResponse = await aggregator.getRefundDetails(data.gid);
-        const { amount, currency, status, refund_utr, payment_id } = aggResponse;
+    const aggregator = new Aggregator();
+    const aggResponse = await aggregator.getRefundDetails(data.gid);
+    const { amount, currency, status, refund_utr, payment_id } = aggResponse;
 
-        const responseData = {
-            aggregator_payment_refund_details: [
-                {
-                  amount,
-                  currency,
-                  request_id: data.refund_id,
-                  status,
-                }
-              ],
-              gid: data.gid,
-        }
-        console.log('Response for get refund Details', responseData);
-        return responseData;
+    const responseData = {
+      aggregator_payment_refund_details: [
+        {
+          amount,
+          currency,
+          request_id: data.refund_id,
+          status,
+        },
+      ],
+      gid: data.gid,
     };
+    console.log('Response for get refund Details', responseData);
+    return responseData;
+  }
 
+  async processRefundWebhook(webhookPayload) {
+    console.log('Request body for Refund Webhook', webhookPayload);
 
-    async processRefundWebhook(webhookPayload) {
-        console.log('Request body for Refund Webhook', webhookPayload);
+    let data = webhookPayload.data;
+    const { gid, request_id } =
+      await Aggregator.getOrderFromRefundWebhook(data);
 
-        let data = webhookPayload.data;
-        const {gid, request_id} = await Aggregator.getOrderFromRefundWebhook(data);
+    const aggregator = new Aggregator({
+      app_id: data.app_id,
+      company_id: data.company_id,
+    });
+    const webhookResponse =
+      await aggregator.processRefundWebhook(webhookPayload);
 
-        const aggregator = new Aggregator({ app_id: data.app_id, company_id: data.company_id });
-        const webhookResponse = await aggregator.processRefundWebhook(webhookPayload);
+    const { amount, currency, status, payment_id, refund_utr } =
+      webhookResponse;
+    const payload = this.createRefundUpdatePayload(
+      gid,
+      request_id,
+      amount,
+      currency,
+      status,
+      payment_id,
+      refund_utr,
+      webhookPayload.data
+    );
+    await this.updatePlatformRefundStatus(
+      data.app_id,
+      data.company_id,
+      gid,
+      request_id,
+      payload
+    );
 
-        const { amount, currency, status, payment_id, refund_utr } = webhookResponse;
-        const payload = this.createRefundUpdatePayload(gid, request_id, amount, currency, status, payment_id, refund_utr, webhookPayload.data);
-        await this.updatePlatformRefundStatus(data.app_id, data.company_id, gid, request_id, payload);
+    console.log('Webhook processed');
+  }
 
-        console.log('Webhook processed');
-    }
+  createRefundUpdatePayload(
+    gid,
+    request_id,
+    amount,
+    currency,
+    status,
+    payment_id,
+    refund_utr,
+    aggregator_payload
+  ) {
+    amount = amount * 100;
+    return {
+      gid: gid,
+      status: status,
+      currency: currency,
+      total_amount: amount,
+      refund_details: [
+        {
+          status: status,
+          request_id: request_id,
+          payment_id: payment_id,
+          refund_utr: refund_utr,
+          amount: amount,
+          currency: currency,
+          created: String(Date.now()),
+        },
+      ],
+      payment_details: {
+        gid: gid,
+        status: status,
+        aggregator_order_id: payment_id,
+        payment_id: payment_id,
+        mode: config.env,
+        amount: amount,
+        success_url: '',
+        cancel_url: '',
+        amount_captured: amount,
+        payment_methods: [{}],
+        g_user_id: '<User id if exists>',
+        currency: currency,
+        amount_refunded: amount,
+        created: String(Date.now()),
+      },
+      meta: aggregator_payload,
+    };
+  }
 
-    createRefundUpdatePayload(gid, request_id, amount, currency, status, payment_id, refund_utr, aggregator_payload) {
-        amount = amount * 100;
-        return {
-            gid: gid,
-            status: status,
-            currency: currency,
-            total_amount: amount,
-            refund_details: [{
-                status: status,
-                request_id: request_id,
-                payment_id: payment_id,
-                refund_utr: refund_utr,
-                amount: amount,
-                currency: currency,
-                created: String(Date.now())
-            }],
-            payment_details: {
-                gid: gid,
-                status: status,
-                aggregator_order_id: payment_id,
-                payment_id: payment_id,
-                mode: config.env,
-                amount: amount,
-                success_url: "",
-                cancel_url: "",
-                amount_captured: amount,
-                payment_methods: [{}],
-                g_user_id: "<User id if exists>",
-                currency: currency,
-                amount_refunded: amount,
-                created: String(Date.now())
-            },
-            meta: aggregator_payload,
-        }
-    }
+  async updatePlatformRefundStatus(
+    app_id,
+    company_id,
+    gid,
+    request_id,
+    payload
+  ) {
+    const checksum = getHmacChecksum(
+      JSON.stringify(payload),
+      config.api_secret
+    );
+    payload['checksum'] = checksum;
 
-    async updatePlatformRefundStatus(app_id, company_id, gid, request_id, payload) {
-        const checksum = getHmacChecksum(JSON.stringify(payload), config.api_secret);
-        payload["checksum"] = checksum;
-
-        let platformClient = await fdkExtension.getPlatformClient(company_id);
-        const applicationClient = platformClient.application(app_id);
-        const sdkResponse = await applicationClient.payment.updateRefundSession({ gid: gid, requestId: request_id, body: payload });
-        return sdkResponse;
-    }
+    let platformClient = await fdkExtension.getPlatformClient(company_id);
+    const applicationClient = platformClient.application(app_id);
+    const sdkResponse = await applicationClient.payment.updateRefundSession({
+      gid: gid,
+      requestId: request_id,
+      body: payload,
+    });
+    return sdkResponse;
+  }
 }
 
-module.exports = AggregatorProcessor
+module.exports = AggregatorProcessor;

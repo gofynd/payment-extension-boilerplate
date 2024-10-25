@@ -1,4 +1,4 @@
-import { setCompany, setApplication } from "../helper/utils";
+import { setCompany, setApplication } from '../helper/utils';
 
 export const routeGuard = ({ params }) => {
   if (params.company_id) {

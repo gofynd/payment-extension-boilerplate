@@ -1,6 +1,6 @@
-import React from "react";
-import loaderGif from "../assets/loader.gif";
-import "./loader.css";
+import React from 'react';
+import loaderGif from '../assets/loader.gif';
+import './loader.css';
 
 export default function loader({ helperText }) {
   return (

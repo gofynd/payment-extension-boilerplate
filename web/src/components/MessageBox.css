@@ -1,60 +1,62 @@
 /* styles.css */
 
 .message-box {
-    position: fixed;
-    top: 50px;
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: #1CBB33;
-    /* Green background color */
-    color: #ffffff;
-    /* White text color */
-    padding: 15px;
-    border-radius: 5px;
-    animation: slideUp 0.5s ease-out, bounce 0.5s 0.5s ease-in, slideOut 0.5s 1s ease-in forwards;
-    cursor: pointer;
-    font-size: medium;
+  position: fixed;
+  top: 50px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #1cbb33;
+  /* Green background color */
+  color: #ffffff;
+  /* White text color */
+  padding: 15px;
+  border-radius: 5px;
+  animation:
+    slideUp 0.5s ease-out,
+    bounce 0.5s 0.5s ease-in,
+    slideOut 0.5s 1s ease-in forwards;
+  cursor: pointer;
+  font-size: medium;
 }
 
 @keyframes slideUp {
-    0% {
-        transform: translateY(100px);
-        opacity: 0;
-    }
+  0% {
+    transform: translateY(100px);
+    opacity: 0;
+  }
 
-    100% {
-        transform: translateY(0);
-        opacity: 100%;
-    }
+  100% {
+    transform: translateY(0);
+    opacity: 100%;
+  }
 }
 
 @keyframes bounce {
+  0% {
+    transform: translateY(0);
+  }
 
-    0% {
-        transform: translateY(0);
-    }
+  100% {
+    transform: translateY(0);
+  }
 
-    100% {
-        transform: translateY(0);
-    }
+  30% {
+    transform: translateY(-10px);
+  }
 
-    30% {
-        transform: translateY(-10px);
-    }
-
-    60% {
-        transform: translateY(-10px);
-    }
+  60% {
+    transform: translateY(-10px);
+  }
 }
 
 @keyframes slideOut {
-    0% {
-        transform: translateY(0);
-        opacity: 100%;
-    }
+  0% {
+    transform: translateY(0);
+    opacity: 100%;
+  }
 
-    100% {
-        transform: translateY(-100px);
-        opacity: 0;
-    }
+  100% {
+    transform: translateY(-100px);
+    opacity: 0;
+  }
 }

@@ -1,6 +1,6 @@
-require("dotenv").config();
-const config = require("./app/config");
-const app = require("./app/server");
+require('dotenv').config();
+const config = require('./app/config');
+const app = require('./app/server');
 
 const port = config.port || 3000;
 
