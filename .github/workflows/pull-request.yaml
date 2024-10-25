@@ -4,6 +4,7 @@ on:
   pull_request:
     branches:
       - master
+      - extension_boilerplate_v1
   workflow_dispatch:
 
 jobs:
