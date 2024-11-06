@@ -38,6 +38,7 @@
     "luxon": "^3.4.0",
     "mongodb-uri": "^0.9.7",
     "mongoose": "^8.7.2",
+    "newrelic": "^10.4.0",
     "prettier": "^3.2.5",
     "redis": "^4.6.14"
   },

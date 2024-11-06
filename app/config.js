@@ -78,6 +78,22 @@ const config = convict({
       },
     },
   },
+  newrelic: {
+    app_name: {
+      doc: 'new relic app name',
+      format: String,
+      default: '',
+      env: 'NEW_RELIC_APP_NAME',
+      arg: 'new_relic_app_name',
+    },
+    license_key: {
+      doc: 'new relic license key',
+      format: String,
+      default: '',
+      env: 'NEW_RELIC_LICENSE_KEY',
+      args: 'new_relic_license_key',
+    },
+  },
 });
 
 config.validate({ allowed: 'strict' });
