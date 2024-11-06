@@ -94,6 +94,22 @@ const config = convict({
       args: 'new_relic_license_key',
     },
   },
+  sentry: {
+    dsn: {
+      doc: 'sentry url',
+      format: String,
+      default: '',
+      env: 'SENTRY_DSN',
+      arg: 'sentry_dsn',
+    },
+    environment: {
+      doc: 'sentry environment',
+      format: String,
+      default: 'development',
+      env: 'SENTRY_ENVIRONMENT',
+      arg: 'sentry_environment',
+    },
+  },
 });
 
 config.validate({ allowed: 'strict' });

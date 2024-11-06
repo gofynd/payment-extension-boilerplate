@@ -28,7 +28,7 @@ const config = {
     '!app/fdk/**/*.js',
     '!app/models/**/*.js',
     '!app/routes/index.js',
-    '!app/connections/**/*.js',
+    '!app/common/**/*.js',
     '!app/health_check/**/*.js',
     '!app/controllers/orderController.js',
     '!app/routes/**/*',
@@ -47,12 +47,7 @@ const config = {
   coverageProvider: 'v8',
 
   // A list of reporter names that Jest uses when writing coverage reports
-  // coverageReporters: [
-  //   "json",
-  //   "text",
-  //   "lcov",
-  //   "clover"
-  // ],
+  coverageReporters: ['json', 'text', 'lcov', 'clover', 'html'],
 
   // An object that configures minimum threshold enforcement for coverage results
   coverageThreshold: {
