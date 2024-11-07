@@ -15,16 +15,16 @@ This boilerplate provides a starting point for integrating payment gateways with
 Relation of Extensions with Fynd Platform.
 
 - Forward payment
-  ![Forward payment](https://cdn.pixelbin.io/v2/doc/original/moonlight/Extensions/payment_extension/payment_forward)
+  ![Forward payment](https://cdn.pixelbin.io/v2/doc/original/payment_extension/forward_flow.png)
 
 - Get payment status
-  ![Get payment status](https://cdn.pixelbin.io/v2/doc/original/moonlight/Extensions/payment_extension/get_payment_status.svg)
+  ![Get payment status](https://cdn.pixelbin.io/v2/doc/original/payment_extension/get_payment_status.png)
 
 - Refund payment
-  ![Get payment status](https://cdn.pixelbin.io/v2/doc/original/moonlight/Extensions/payment_extension/payment_refund.png)
+  ![Refund payment](https://cdn.pixelbin.io/v2/doc/original/payment_extension/refund_flow.png)
 
 - Get refund status
-  ![Get payment status](https://cdn.pixelbin.io/v2/doc/original/moonlight/Extensions/payment_extension/get_refund_status.svg)
+  ![Get refund status](https://cdn.pixelbin.io/v2/doc/original/payment_extension/get_refund_status.png)
 
 ## 🔗 Quick Links
 
