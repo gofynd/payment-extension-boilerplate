@@ -181,7 +181,7 @@ You have successfully set up your payment extension on the Fynd platform.
    This table includes the top-level keys and their subkeys, along with their properties, descriptions, formats, default values, environment variables.
 
 | Field                            | Documentation         | Format    | Default Value                  | Environment Variable        |
-| -------------------------------- | --------------------- | --------- | ------------------------------ | --------------------------- | --- |
+| -------------------------------- | --------------------- | --------- | ------------------------------ | --------------------------- |
 | **enable_cors**                  | cors toggle           | Boolean   | true                           | ENABLE_CORS                 |
 | **env**                          | node env              | String    | development                    | NODE_ENV                    |
 | **environment**                  | env                   | String    | fynd                           | ENV                         |
@@ -196,7 +196,7 @@ You have successfully set up your payment extension on the Fynd platform.
 | **log_level**                    | log level for logger  | String    | info                           | LOG_LEVEL                   |
 | **mode**                         | app mode              | String    | server                         | MODE                        |
 | **API_KEY**                      | Partners API Key      | String    | <api_key>                      | API_KEY                     |
-| **API_SECRET**                   | Partners API Secret   | String    | <api_secret>                   | API_SECRET                  |     |
+| **API_SECRET**                   | Partners API Secret   | String    | <api_secret>                   | API_SECRET                  |
 | **BROWSER_CONFIG.HOST_MAIN_URL** | Host Main URL         | String    | <ngrok_url>                    | MOCK_MAIN_DOMAIN            |
 | **cluster_url**                  | Fynd Platform Domain  | String    | https://api.fynd.com           | EXTENSION_CLUSTER_URL       |
 
@@ -277,7 +277,7 @@ After you have completed the local setup, you can run the test cases to ensure e
 
 ### 🔍 Newrelic Integration (Optional)
 
-The Google Analytics Extension (GA4) comes pre-configured for integration with New Relic, allowing you to monitor your application's performance in real-time. This feature provides insights to help you improve and optimize your extension efficiently.
+The payment extension boilerplate comes pre-configured for integration with New Relic, allowing you to monitor your application's performance in real-time. This feature provides insights to help you improve and optimize your extension efficiently.
 
 To leverage New Relic for performance monitoring, update the default values for the following environment variables in the app/fdk/config.js file in your project directory. This step ensures the New Relic integration is securely configured with your specific credentials.
 
@@ -310,7 +310,7 @@ By updating these variables, you can activate New Relic's data collection, offer
 
 ### 🚨 Sentry Integration (Optional)
 
-Similar to New Relic, the Google Analytics Extension (GA4) comes pre-configured for optional integration with Sentry. Sentry provides real-time error tracking and monitoring, offering insights to quickly identify, diagnose, and fix issues, thereby enhancing your extension's reliability and user experience.
+Similar to New Relic, the payment extension boilerplate comes pre-configured for optional integration with Sentry. Sentry provides real-time error tracking and monitoring, offering insights to quickly identify, diagnose, and fix issues, thereby enhancing your extension's reliability and user experience.
 
 To enable Sentry for error monitoring, update the environment variables in the `app/fdk/config.js` file with your Sentry credentials:
 
