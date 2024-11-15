@@ -86,8 +86,8 @@ For those using Node and React, a pre-implemented template is available, which i
 
 ### Step 3: Install Your Payment Extension
 
-- Go to **Sales Channel > Settings > Cart & Payments > Payments > General Settings > Payment Options**.
-- Find your new extension under **Payment Options**, select it, and install it.
+- Go to **Sales Channel > Settings > Cart & Payments > Payments > General Settings > Payment Options > Add Payment Gateway**.
+- Find your new extension under **Add Payment Gateway**, select it, and install it.
 
 ### Step 4: Configure the Extension
 
@@ -102,6 +102,12 @@ For those using Node and React, a pre-implemented template is available, which i
 ### Step 6: Complete the Setup
 
 - Fill in the required credentials.
+
+### Step 7: Activate payment mode
+
+- After the extension is set up successfully, the payment settings page will display it as inactive.
+- Click on your extension.
+- Activate the payment mode for your preferred device.
 - 🎊 Your payment extension is now fully configured and ready for use! 🎊
 
 ---
