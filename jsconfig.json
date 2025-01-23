@@ -7,7 +7,7 @@
     "module": "commonjs",
     "baseUrl": ".",
     "paths": {
-      "@/*": ["web/src/*"]
+      "@/*": ["frontend/src/*"]
     }
   }
 }

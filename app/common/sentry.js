@@ -4,13 +4,11 @@ const _ = require('lodash');
 const packageJson = require('../../package.json');
 const config = require('../config');
 
-const sentryConfig = config.get('sentry');
-
 Sentry.init({
-  dsn: sentryConfig.dsn,
+  dsn: config.sentry.dsn,
   release: packageJson.version,
-  environment: sentryConfig.environment,
-  enabled: !_.isEmpty(sentryConfig.dsn),
+  environment: process.env.ENV,
+  enabled: !_.isEmpty(config.sentry.dsn),
 });
 
 module.exports = Sentry;

@@ -1,9 +1,14 @@
 const asyncHandler = require('express-async-handler');
 const AggregatorProcessor = require('../services/processor');
 
-// @desc create order
-// @route POST /api/v1/payment_session/:gid
-// @access public
+/**
+ * @desc Create a new payment order
+ * @route POST /api/v1/payment_session/:gid
+ * @access Public
+ * @param {Object} req - Express request object
+ * @param {Object} req.body - Payload containing order details
+ * @param {Object} res - Express response object
+ */
 exports.createOrderHandler = asyncHandler(async (req, res) => {
   const requestPayload = req.body;
   const processor = new AggregatorProcessor();
@@ -11,9 +16,14 @@ exports.createOrderHandler = asyncHandler(async (req, res) => {
   res.status(200).json(response);
 });
 
-// @desc create refund
-// @route POST /api/v1/payment_session/:gid/refund
-// @access public
+/**
+ * @desc Create a refund for a payment session
+ * @route POST /api/v1/payment_session/:gid/refund
+ * @access Public
+ * @param {Object} req - Express request object
+ * @param {Object} req.body - Payload containing refund details
+ * @param {Object} res - Express response object
+ */
 exports.createRefundHandler = asyncHandler(async (req, res) => {
   const requestPayload = req.body;
   const processor = new AggregatorProcessor();
@@ -21,9 +31,15 @@ exports.createRefundHandler = asyncHandler(async (req, res) => {
   return res.status(200).json(response);
 });
 
-// @desc get payment details
-// @route GET /api/v1/payment_session/:gid
-// @access public
+/**
+ * @desc Get details of a payment session
+ * @route GET /api/v1/payment_session/:gid
+ * @access Public
+ * @param {Object} req - Express request object
+ * @param {Object} req.params - Parameters from the URL
+ * @param {Object} req.query - Query parameters
+ * @param {Object} res - Express response object
+ */
 exports.getPaymentDetailsHandler = asyncHandler(async (req, res) => {
   const params = { ...req.params, ...req.query };
   const processor = new AggregatorProcessor();
@@ -31,9 +47,15 @@ exports.getPaymentDetailsHandler = asyncHandler(async (req, res) => {
   return res.status(200).json(response);
 });
 
-// @desc get refund details
-// @route GET /api/v1/payment_session/:gid/refund
-// @access public
+/**
+ * @desc Get details of a refund for a payment session
+ * @route GET /api/v1/payment_session/:gid/refund
+ * @access Public
+ * @param {Object} req - Express request object
+ * @param {Object} req.params - Parameters from the URL
+ * @param {Object} req.query - Query parameters
+ * @param {Object} res - Express response object
+ */
 exports.getRefundDetailsHandler = asyncHandler(async (req, res) => {
   const params = { ...req.params, ...req.query };
   const processor = new AggregatorProcessor();
@@ -41,9 +63,15 @@ exports.getRefundDetailsHandler = asyncHandler(async (req, res) => {
   return res.status(200).json(response);
 });
 
-// @desc payment completion callback
-// @route GET /api/v1/payment_callback/:gid
-// @access public
+/**
+ * @desc Handle payment completion callback
+ * @route POST /api/v1/payment_callback/:company_id/:app_id
+ * @access Public
+ * @param {Object} req - Express request object
+ * @param {Object} req.params - Parameters from the URL
+ * @param {Object} req.body - Payload containing callback details
+ * @param {Object} res - Express response object
+ */
 exports.paymentCallbackHandler = asyncHandler(async (req, res) => {
   const requestPayload = {
     ...req.params,
@@ -55,9 +83,15 @@ exports.paymentCallbackHandler = asyncHandler(async (req, res) => {
   return res.status(308).render('redirector', response);
 });
 
-// @desc payment status update webhook
-// @route POST /api/v1/webhook/payment
-// @access public
+/**
+ * @desc Process payment status update webhook
+ * @route POST /api/v1/webhook/payment
+ * @access Public
+ * @param {Object} req - Express request object
+ * @param {Object} req.body - Webhook payload
+ * @param {Object} req.headers - HTTP headers
+ * @param {Object} res - Express response object
+ */
 exports.processWebhook = asyncHandler(async (req, res) => {
   const webhookPayload = {
     data: {
@@ -74,9 +108,15 @@ exports.processWebhook = asyncHandler(async (req, res) => {
   });
 });
 
-// @desc refund status webhook
-// @route POST /api/v1/webhook/refund
-// @access public
+/**
+ * @desc Process refund status update webhook
+ * @route POST /api/v1/webhook/refund
+ * @access Public
+ * @param {Object} req - Express request object
+ * @param {Object} req.body - Webhook payload
+ * @param {Object} req.headers - HTTP headers
+ * @param {Object} res - Express response object
+ */
 exports.processRefundWebhook = asyncHandler(async (req, res) => {
   const webhookPayload = {
     data: {

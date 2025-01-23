@@ -15,7 +15,7 @@ This boilerplate provides a starting point for integrating payment gateways with
 Relation of Extensions with Fynd Platform.
 
 - Forward payment
-  ![Forward payment](https://cdn.pixelbin.io/v2/doc/original/payment_extension/forward_flow.png)
+  ![Forward payment](https://cdn.pixelbin.io/v2/odd-glade-8daf8e/original/pbp.drawio.png)
 
 - Get payment status
   ![Get payment status](https://cdn.pixelbin.io/v2/doc/original/payment_extension/get_payment_status.png)
