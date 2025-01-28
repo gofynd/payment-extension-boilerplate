@@ -55,17 +55,26 @@ class Aggregator {
       ContentType: 'application/json',
     };
 
-    const response = await axios.post({
-      method: 'POST',
-      url,
-      data: body,
-      headers,
-    });
+    console.log('LOG: for create order payload to PG AGG: -', body);
+
+    /**
+     * Use make request to hit API call for PG
+     */
+    // const response = await axios.post({
+    //   method: 'POST',
+    //   url,
+    //   data: body,
+    //   headers,
+    // });
+
     // Demo response from payment gateway
-    // const response = {
-    //     status: 200,
-    //     payment_url: "https://api.razorpay.com/accept-payment/pay_id_1234567890/"
-    // }
+    const response = {
+      status: 200,
+      data: {
+        payment_url:
+          'https://api.razorpay.com/accept-payment/pay_id_1234567890/',
+      },
+    };
 
     if (response.status === 200) {
       return response.data.payment_url;

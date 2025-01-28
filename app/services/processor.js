@@ -94,7 +94,7 @@ class AggregatorProcessor {
         }
         */
 
-    console.log('Payload received from platform', requestPayload);
+    console.log('LOG: Payload received from platform', requestPayload);
     const { gid } = requestPayload;
 
     const aggregator = new Aggregator(
@@ -103,25 +103,28 @@ class AggregatorProcessor {
     );
     const redirectUrl = await aggregator.createOrder(requestPayload);
 
-    await Order.create({
+    const orderPayload = {
       app_id: requestPayload.app_id,
       company_id: requestPayload.company_id,
       gid,
       success_url: requestPayload.success_url,
       cancel_url: requestPayload.cancel_url,
-    });
+    };
+
+    console.log('LOG: creating order on ext DB with Paylaod - ', orderPayload);
+    await Order.create(orderPayload);
 
     const responseData = {
       success: true,
       redirect_url: redirectUrl,
       gid,
     };
-    console.log('Response for create payment', responseData);
+    console.log('LOG: Response for create payment', responseData);
     return responseData;
   }
 
   async processCallback(requestPayload) {
-    console.log('Payload for process callback', requestPayload);
+    console.log('LOG: Payload for process callback', requestPayload);
 
     const gid = await Aggregator.getOrderFromCallback(requestPayload);
 
@@ -131,6 +134,11 @@ class AggregatorProcessor {
     );
     const callbackResponse = await aggregator.processCallback(requestPayload);
 
+    console.log(
+      'LOG: callbackResponse from process callback - ',
+      callbackResponse
+    );
+
     const { amount, currency, status, paymentId } = callbackResponse;
     const payload = this.createPaymentUpdatePayload(
       gid,
@@ -139,6 +147,10 @@ class AggregatorProcessor {
       status,
       paymentId,
       requestPayload
+    );
+    console.log(
+      'Log: payload sending to FDK updatePlatformPaymentStatus - ',
+      payload
     );
     await this.updatePlatformPaymentStatus(
       requestPayload.app_id,
@@ -159,12 +171,12 @@ class AggregatorProcessor {
       action: 'redirect',
       redirectUrl: encodeURIComponent(redirectUrl),
     };
-    console.log('Callback response', responseData);
+    console.log('LOG:Callback response', responseData);
     return responseData;
   }
 
   async processWebhook(webhookPayload) {
-    console.log('Webhook request body', webhookPayload);
+    console.log('LOG: Webhook request body', webhookPayload);
     const { data } = webhookPayload;
     const gid = await Aggregator.getOrderFromWebhook(data);
 
@@ -190,11 +202,11 @@ class AggregatorProcessor {
       payload
     );
 
-    console.log('Webhook complete');
+    console.log('LOG: Webhook complete');
   }
 
   async getPaymentDetails(data) {
-    console.log('Request for get payment details', data);
+    console.log('LOG: Request for get payment details', data);
 
     const aggregator = new Aggregator();
     const aggResponse = await aggregator.getOrderDetails(data.gid);
@@ -300,7 +312,7 @@ class AggregatorProcessor {
         }
         */
 
-    console.log('Request body for create refund', requestPayload);
+    console.log('LOG: Request body for create refund', requestPayload);
 
     const aggregator = new Aggregator();
     const refundResponse = await aggregator.createRefund(requestPayload);
@@ -318,12 +330,12 @@ class AggregatorProcessor {
         paymentId,
       },
     };
-    console.log('Response for create refund', responseData);
+    console.log('LOG: Response for create refund', responseData);
     return responseData;
   }
 
   async getRefundDetails(data) {
-    console.log('Request for get refund details', data);
+    console.log('LOG: Request for get refund details', data);
 
     const aggregator = new Aggregator();
     const aggResponse = await aggregator.getRefundDetails(data.gid);
@@ -340,12 +352,12 @@ class AggregatorProcessor {
       ],
       gid: data.gid,
     };
-    console.log('Response for get refund Details', responseData);
+    console.log('LOG: Response for get refund Details', responseData);
     return responseData;
   }
 
   async processRefundWebhook(webhookPayload) {
-    console.log('Request body for Refund Webhook', webhookPayload);
+    console.log('LOG: Request body for Refund Webhook', webhookPayload);
 
     const { data } = webhookPayload;
     const { gid, requestId } = await Aggregator.getOrderFromRefundWebhook(data);
@@ -376,7 +388,7 @@ class AggregatorProcessor {
       payload
     );
 
-    console.log('Webhook processed');
+    console.log('LOG: Webhook processed');
   }
 
   createRefundUpdatePayload(

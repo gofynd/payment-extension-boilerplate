@@ -78,8 +78,8 @@ OrderSchema.index({
 });
 
 SessionSchema.index({
-  session_id: 1,
-  expires: 1,
+  app_id: 1,
+  company_id: 1,
 });
 
 SecretSchema.index({
