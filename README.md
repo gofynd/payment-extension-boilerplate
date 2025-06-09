@@ -1,101 +1,116 @@
 # Payment Extension Boilerplate
 
 ## Features
-- Modular Structure: Organized project structure for easy maintenance and scalability.
-- Built-in Examples: Included example payment gateway implementations for reference.
-- Configurability: Easily configure payment settings and parameters.
-- Logging: Integrated logging to help with debugging and monitoring.
-- Testing: A suite of unit tests to ensure the reliability of your payment extension.
+- Modular Structure: Organized project structure for easy maintenance and scalability
+- Built-in Examples: Included example payment gateway implementations for reference
+- Configurability: Easily configure payment settings and parameters
+- Logging: Integrated logging to help with debugging and monitoring
+- Testing: A suite of unit tests to ensure the reliability of your payment extension
 
-## Getting started
-
-##### Directory structure
+## Project Structure
 ```
 .
-├── app
-│   ├── __tests__
-│   │   └── unit
-│   │       ├── global
-│   │       │   └── test-teardown-globals.js
-│   │       ├── routes
-│   │       │   └── healthz.router.spec.js
-│   │       └── utils
-│   │           └── server.js
-│   ├── common
+├── app/                      # Main application directory
+│   ├── __tests__/           # Test files
+│   ├── common/              # Common utilities and initializations
 │   │   ├── customError.js
 │   │   ├── logger.js
 │   │   ├── mongo.init.js
 │   │   ├── newrelic.init.js
 │   │   ├── redis.init.js
 │   │   └── sentry.init.js
-│   ├── config.js
-│   ├── controllers
-│   │   ├── credsController.js => Credentials and StatusMapper API controllers
-│   │   └── orderController.js => order and payments related API controllers
-│   ├── fdk
-│   │   └── index.js
-│   ├── jest.config.js
-│   ├── jest.init.js
-│   ├── middleware
-│   │   ├── errorHandler.js => error handler middleware that take care to print error.
-│   │   └── verifyChecksum.js => checksum middle logic you can implement in this
-│   ├── models
-│   │   └── models.js => manage Database schema definations
-│   ├── routes
-│   │   ├── creds.router.js => URL manager for credentials and statusMapper APIs
-│   │   ├── health.router.js => URL manager for health check API
-│   │   ├── order.router.js => URL manager for Order/payment APIs
-│   │   └── v1.router.js => router for FDK connection.
-│   ├── server.js
-│   ├── services
-│   │   ├── aggregators
-│   │   │   ├── aggregator.js => Main PG logic file here all the PG related logic should me implemented.
-│   │   │   └── base.js => base file that have abstract methods that are required to impleted
-│   │   └── processor.js => this file have all the implementation of database operations. Order API's request and responses pass through this file.
-│   ├── utils
-│   │   ├── aggregatorUtils.js => Aggregator helper functions are written.
-│   │   ├── commonUtils.js
-│   │   ├── dateUtils.js => date related helper functions are written
-│   │   ├── encryptUtils.js => encryption, decryption or any hashing functions are written. You can write based on your PG requirements
-│   │   └── signatureUtils.js
-│   └── views
-│       ├── htmlString.html => HTML file that render HTML Strings. You can use this file for redirection purpose.
-│       ├── pollingLink.html => Continues polling page if required to poll. This check the payment status if success and redirect to success_url other poll continous.
-│       └── redirector.html => This file help to simple use to redirect the URL to provided URL.
+│   ├── config.js            # Application configuration
+│   ├── controllers/         # API controllers
+│   │   ├── credsController.js    # Credentials and StatusMapper APIs
+│   │   └── orderController.js    # Order and payments related APIs
+│   ├── fdk/                 # FDK integration
+│   ├── middleware/          # Express middleware
+│   │   ├── errorHandler.js       # Error handling middleware
+│   │   └── verifyChecksum.js     # Checksum verification middleware
+│   ├── models/              # Database models
+│   ├── routes/              # API routes
+│   │   ├── creds.router.js       # Credentials and StatusMapper routes
+│   │   ├── health.router.js      # Health check routes
+│   │   ├── order.router.js       # Order/payment routes
+│   │   └── v1.router.js          # FDK connection routes
+│   ├── services/            # Business logic
+│   │   ├── aggregators/          # Payment gateway implementations
+│   │   │   ├── aggregator.js     # Main payment gateway logic
+│   │   │   └── base.js          # Base abstract class
+│   │   └── processor.js          # Database operations
+│   ├── utils/               # Utility functions
+│   │   ├── aggregatorUtils.js    # Aggregator helper functions
+│   │   ├── commonUtils.js        # Common utility functions
+│   │   ├── dateUtils.js          # Date-related utilities
+│   │   ├── encryptUtils.js       # Encryption and hashing utilities
+│   │   └── signatureUtils.js     # Signature verification utilities
+│   └── views/               # HTML templates
+│       ├── htmlString.html       # HTML string renderer
+│       ├── pollingLink.html      # Polling page template
+│       └── redirector.html       # URL redirector template
+├── frontend/                # Frontend application
+├── docker-compose.yml      # Docker compose configuration
+├── Dockerfile             # Docker configuration
+├── package.json           # Project dependencies
+└── README.md             # Project documentation
 ```
-##### Prerequisites
+
+## Prerequisites
 Before you begin, ensure you have met the following requirements:
-
-- Node.js: Make sure Node.js is installed on your development machine.
-- Package Manager: We recommend using npm as your package manager.
-
+- Node.js (v14 or higher)
+- npm (v6 or higher)
+- Docker and Docker Compose (for containerized deployment)
 
 ## Installation
 1. Clone this repository:
-    ```
+    ```bash
     git clone https://github.com/gofynd/fdk-payment-extension-javascript
     ```
 2. Navigate to the project directory:
-    ```
+    ```bash
     cd fdk-payment-extension-javascript
     ```
 3. Install dependencies:
-    ```
+    ```bash
     npm install
     ```
 
 ## Configuration
-1. Configure your payment settings by editing the `.env` file.
-2. Provide necessary API keys, endpoints, or credentials.
+1. Configure your payment settings by editing the `.env` file
+2. Provide necessary API keys, endpoints, and credentials
+3. Configure database connections in `app/config.js`
 
 ## Usage
-1. Implement your payment logic within the `app/services/aggregators/aggregator.js`
-2. Customize and extend the boilerplate according to your specific payment service requirements.
-    Note: All functions in `aggregator.js` must return same response as mentioned in each function docstring.
-3. Run your extension:
-    ```
+1. Implement your payment logic within `app/services/aggregators/aggregator.js`
+2. Customize the boilerplate according to your payment service requirements
+   - Note: All functions in `aggregator.js` must return responses as specified in the function documentation
+3. Start the application:
+    ```bash
     npm start
+    ```
+4. For development with hot-reload:
+    ```bash
+    npm run dev
+    ```
+
+## Testing
+Run the test suite:
+```bash
+npm test
+```
+
+## Docker Deployment
+1. Build the Docker image:
+    ```bash
+    docker-compose build
+    ```
+2. Start the containers:
+    ```bash
+    docker-compose up
     ```
 
 ## Documentation
-For detailed documentation on how to use and customize this boilerplate, please refer to the our official document.
+For detailed documentation on how to use and customize this boilerplate, please refer to our official documentation.
+
+## License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
