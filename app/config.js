@@ -45,21 +45,6 @@ let config = convict({
       default: "",
       env: "EXTENSION_API_SECRET",
     },
-    encrypt_secret: {
-      doc: "encryption secret for credentials",
-      default: "",
-      env: "ENCRYPT_SECRET",
-    },
-    encrypt_iv: {
-      doc: "encryption initialization vector",
-      default: "",
-      env: "ENCRYPT_IV",
-    },
-    platform_api_salt: {
-      doc: "Fynd platform salt for checksum verification",
-      default: "",
-      env: "PLATFORM_API_SALT",
-    },
     base_url: {
       doc: "extension base_url",
       default: "",
@@ -98,7 +83,7 @@ let config = convict({
   extension_slug: {
     doc: "Extension slug",
     format: String,
-    default: "<paymentgateway>",
+    default: "paymentgateway",
     env: "EXTENSION_SLUG"
   },
   global_ttl: {
@@ -120,6 +105,5 @@ exports.aggregatorConfig = {
     'resendPayment': '/rposasp/resend/paymentlink',
     'refundStatus': '/v2/refund-status',
 };
-
 
 module.exports = config;

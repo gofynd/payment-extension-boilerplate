@@ -1,8 +1,6 @@
 const fs = require("fs");
 const path = require("path");
 
-const LoggerService = require("./app/common/logger");
-
 const rootPath = "coverage/";
 let output = {
   coverage_pct: 80.51,
@@ -14,4 +12,3 @@ let output = {
 };
 output = JSON.stringify(output, null, 2);
 fs.writeFileSync(path.join(rootPath, "coverage_output.json"), output, "utf8");
-LoggerService.info("DUMPED coverage_output.json");

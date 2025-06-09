@@ -8,7 +8,6 @@ const { Settings, httpStatus, ActionType } = require("../../constants");
 const { fdkExtension } = require("../fdk/index")
 const { getHmacChecksum, compareHashDigest } = require("../utils/signatureUtils");
 const config = require("../config");
-const removeTrailingSlash = require("../utils/commonUtils");
 
 
 class AggregatorFactory {
@@ -138,7 +137,7 @@ class AggregatorProcessor {
         return {
             success: true,
             _id: _id,
-            redirect_url: removeTrailingSlash(config.extension.base_url) + "/api/v1/pgloader/" + _id
+            redirect_url: config.extension.base_url.replace(/\/+$/, '') + "/api/v1/pgloader/" + _id
         }
     }
 
@@ -413,7 +412,7 @@ class AggregatorProcessor {
             }
         };
 
-        const checksum = getHmacChecksum(JSON.stringify(payload), config.extension.Platform_api_salt);
+        const checksum = getHmacChecksum(JSON.stringify(payload), config.extension.api_secret);
         payload["checksum"] = checksum
 
         logger.info("Updating Payment status on Platform: %O", JSON.stringify(payload));
@@ -512,7 +511,7 @@ class AggregatorProcessor {
             },
         }
 
-        const checksum = getHmacChecksum(JSON.stringify(payload), config.extension.Platform_api_salt);
+        const checksum = getHmacChecksum(JSON.stringify(payload), config.extension.api_secret);
         payload["checksum"] = checksum
 
         logger.info("Updating Refund status on Platform: %O", JSON.stringify(payload));

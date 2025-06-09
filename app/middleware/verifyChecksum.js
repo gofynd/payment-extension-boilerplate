@@ -6,7 +6,7 @@ const { getHashChecksum, getHmacChecksum } = require("../utils/signatureUtils");
 
 const verifyPlatformChecksum = (req, res, next) => {
     const request_payload = req.body;
-    const checksum = getHmacChecksum(JSON.stringify(request_payload), config.extension.platform_api_salt);
+    const checksum = getHmacChecksum(JSON.stringify(request_payload), config.extension.api_secret);
     if (checksum !== req.headers.checksum)
         throw new AuthorizationError("Invalid Checksum");
     next();
@@ -15,7 +15,7 @@ const verifyPlatformChecksum = (req, res, next) => {
 const verifyPGChecksum = (req, res, next) => {
     const request_payload = req.body;
     const checksum = getHmacChecksum(JSON.stringify(request_payload),
-    config.extension.platform_api_salt);
+    config.extension.api_secret);
     if (checksum !== req.headers.checksum)
         throw new AuthorizationError("Invalid Checksum");
     next();
@@ -23,7 +23,7 @@ const verifyPGChecksum = (req, res, next) => {
 
 const verifyFrontendChecksum = (req, res, next) => {
     const checksum = getHashChecksum(
-        config.extension.api_secret + "|" + req.params._id, config.extension.platform_api_salt
+        config.extension.api_secret + "|" + req.params._id, config.extension.api_secret
     );
     if (checksum !== req.headers.checksum)
         throw new AuthorizationError("Invalid Checksum");
@@ -31,7 +31,7 @@ const verifyFrontendChecksum = (req, res, next) => {
 }
 
 const verifyExtensionAuth = (req, res, next) => {
-    const basic_auth = config.extension.platform_api_salt;
+    const basic_auth = config.extension.api_secret;
     const basicAuthHeader = "Basic " + btoa(basic_auth);
     if (basicAuthHeader !== req.headers.authorization)
         throw new AuthorizationError("Authorization failed");

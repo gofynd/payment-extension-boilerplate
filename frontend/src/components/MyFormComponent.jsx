@@ -7,11 +7,10 @@ import MessageBox from './MessageBox';
 import { FaRegEye, FaRegEyeSlash } from "react-icons/fa";
 
 const MyFormComponent = ({ params }) => {
-  const initialFormData = params.reduce((acc, param) => {
+  const initialFormData = params?.reduce((acc, param) => {
     acc[param.slug] = param.value || '';
     return acc;
-  }, {});
-
+  }, {}) || {};
 
   const [formData, setFormData] = useState(initialFormData);
   const [showSuccessBanner, setShowSuccessBanner] = useState(false);
@@ -73,7 +72,7 @@ const MyFormComponent = ({ params }) => {
     <div id="root">
       <h1>Credentials</h1>
       <form method="post" onSubmit={handleSubmit}>
-        {params.map((param, index) => (
+        {params?.map((param, index) => (
           <>
           {param.display != false && <div key={index}>
               <label htmlFor={param.name}>{param.name}{param.required && <>*</>}</label>

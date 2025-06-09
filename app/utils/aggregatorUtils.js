@@ -1,5 +1,4 @@
 const axios = require('axios');
-const https = require('https');
 const logger = require('../common/logger');
 const { redisClient } = require('../common/redis.init');
 const config = require('../config');
@@ -73,7 +72,7 @@ async function getMerchantAggregatorConfig(kwargs) {
     secrets = secret['secrets'];
     await setRedisData(MERCHANT_AGGREGATOR_CONFIG, JSON.stringify(secrets))
 
-    return EncryptHelper.decrypt(config.extension.encrypt_secret, secrets);
+    return EncryptHelper.decrypt(config.extension.api_secret, secrets);
 }
 
 

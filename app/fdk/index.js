@@ -1,5 +1,5 @@
-const { setupFdk } = require("fdk-extension-javascript/express");
-const { RedisStorage } = require("fdk-extension-javascript/express/storage");
+const { setupFdk } = require("@gofynd/fdk-extension-javascript/express");
+const { RedisStorage } = require("@gofynd/fdk-extension-javascript/express/storage");
 const config =  require("../config");
 const { redisClient } = require("./../common/redis.init");
 const { deleteCredentialsHandler } = require('./../controllers/credsController');

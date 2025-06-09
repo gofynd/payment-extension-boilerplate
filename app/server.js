@@ -10,6 +10,7 @@ const config = require("./config");
 const errorHandler = require('./middleware/errorHandler');
 const { httpStatus } = require("../constants");
 const { credsRouter, apiRouter } = require('./routes/creds.router');
+const fs = require('fs');
 
 app.use(cookieParser("ext.session"));
 app.use(bodyParser.json({
@@ -30,7 +31,15 @@ app.get('/env.js', (req, res) => {
   );
 });
 app.use("/", healthRouter);
-app.use(express.static(path.resolve(__dirname, "../build/")));
+
+// Check if the frontend build directory exists
+const buildPath = path.resolve(__dirname, "../frontend/build/");
+if (!fs.existsSync(buildPath)) {
+  console.error('Frontend build directory not found. Please run `npm run build` in the frontend directory.');
+  process.exit(1);
+}
+
+app.use(express.static(buildPath));
 app.use("/", fdkExtension.fdkHandler);
 
 app.use('/api/v1', orderRouter);
@@ -44,14 +53,14 @@ app.use('/protected', apiRoutes); // comment
 app.use(errorHandler);
 
 
-app.get('/company/:company_id', (req, res) => {
+app.get('/company/:company_id/application/:application_id', (req, res) => {
   res.contentType('text/html');
-    res.sendFile(path.resolve(__dirname, '../build/index.html'))
+  res.sendFile(path.resolve(__dirname, '../frontend/build/index.html'))
 })
 
 app.get('*', (req, res) => {
     res.contentType('text/html');
-    res.sendFile(path.resolve(__dirname, '../build/index.html'))
+    res.sendFile(path.resolve(__dirname, '../frontend/build/index.html'))
 });
 
 app.engine('html', require('ejs').renderFile);

@@ -28,7 +28,7 @@ exports.createSecretsHandler = asyncHandler(async (req, res, next) => {
     }
     console.log(`creating secrets for app_id: ${app_id}`);
 
-    let secrets = EncryptHelper.encrypt(config.extension.encrypt_secret, JSON.stringify(data));
+    let secrets = EncryptHelper.encrypt(config.extension.api_secret, JSON.stringify(data));
 
     await Secret.findOneAndUpdate(
         { app_id: app_id },
@@ -58,7 +58,7 @@ exports.getSecretsHandler = asyncHandler(async (req, res, next) => {
         });
         return res;
     }
-    let data = EncryptHelper.decrypt(config.extension.encrypt_secret, secret.secrets);
+    let data = EncryptHelper.decrypt(config.extension.api_secret, secret.secrets);
     let creds = []
     for (var i=0; i<CREDENTIAL_FIELDS.length; i++) {
         creds.push({
@@ -92,7 +92,7 @@ exports.getCredentials = asyncHandler(async (req, res) => {
     let secret = await Secret.findOne({ app_id: req.params.app_id })
     let data = {};
     if (secret) {
-        data = EncryptHelper.decrypt(config.extension.encrypt_secret, secret.secrets);
+        data = EncryptHelper.decrypt(config.extension.api_secret, secret.secrets);
     }
     let creds = []
     for (var i=0; i<CREDENTIAL_FIELDS.length; i++) {
@@ -112,7 +112,7 @@ exports.setCredentials = asyncHandler(async (req, res) => {
     let app_id = req.params.app_id;
     let data = req.body;
     const companyId = req.headers['x-company-id'];
-    let secrets = EncryptHelper.encrypt(config.extension.encrypt_secret, JSON.stringify(data));
+    let secrets = EncryptHelper.encrypt(config.extension.api_secret, JSON.stringify(data));
 
     await Secret.findOneAndUpdate(
         { app_id: app_id },

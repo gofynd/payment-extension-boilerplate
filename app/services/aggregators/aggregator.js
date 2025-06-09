@@ -3,10 +3,6 @@ const { getAggregatorStatusMapper, makeRequest, getRedisData, setRedisData, tryO
 const { getHmacChecksum } = require("../../utils/signatureUtils");
 const { getISTDateTime, calculateTimeDelta } = require("../../utils/dateUtils");
 const logger = require("../../common/logger");
-const {aggregatorConfig, config} = require("../../config");
-const { ActionType, httpStatus } = require("../../../constants");
-const EncryptHelper = require("../../utils/encryptUtils");
-const removeTrailingSlash = require("../../utils/commonUtils");
 
 class Aggregator extends Base {
     constructor(appId) {

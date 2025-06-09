@@ -1,5 +1,4 @@
 const express = require('express');
-const axios = require('axios');
 const logger = require("../common/logger");
 const router = express.Router();
 
