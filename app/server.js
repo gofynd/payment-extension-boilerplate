@@ -8,7 +8,6 @@ const { fdkExtension } = require("./fdk");
 const app = express();
 const config = require("./config");
 const errorHandler = require('./middleware/errorHandler');
-const { httpStatus } = require("../constants");
 const { credsRouter, apiRouter } = require('./routes/creds.router');
 const fs = require('fs');
 

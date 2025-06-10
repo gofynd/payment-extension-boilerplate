@@ -1,30 +1,25 @@
-const { httpStatus } = require("../../constants");
-
 class BadRequestError extends Error {
-    constructor(message, code=httpStatus.BAD_REQUEST) {
+    constructor(message, code=400) {
         super(message);
-        this.name = "BadRequestError";
+        this.name = 'BadRequestError';
         this.code = code;
-        Error.captureStackTrace(this, BadRequestError);
     }
 }
 
 class NotFoundError extends Error {
-    constructor(message, code=httpStatus.NOT_FOUND) {
+    constructor(message, code=404) {
         super(message);
-        this.name = "NotFoundError";
+        this.name = 'NotFoundError';
         this.code = code;
-        Error.captureStackTrace(this, NotFoundError);
     }
 }
 
-class AuthorizationError extends Error {
-    constructor(message, code=httpStatus.UNAUTHORIZED) {
+class UnauthorizedError extends Error {
+    constructor(message, code=401) {
         super(message);
-        this.name = "AuthorizationError";
+        this.name = 'UnauthorizedError';
         this.code = code;
-        Error.captureStackTrace(this, AuthorizationError);
     }
 }
 
-module.exports = { BadRequestError, NotFoundError, AuthorizationError };
+module.exports = { BadRequestError, NotFoundError, UnauthorizedError };

@@ -1,7 +1,6 @@
 const Base = require("./base");
 const { getAggregatorStatusMapper, makeRequest, getRedisData, setRedisData, tryOr } = require("../../utils/aggregatorUtils");
 const { getHmacChecksum } = require("../../utils/signatureUtils");
-const { getISTDateTime, calculateTimeDelta } = require("../../utils/dateUtils");
 const logger = require("../../common/logger");
 
 class Aggregator extends Base {

@@ -1,4 +1,3 @@
-const { httpStatus } = require("../../constants");
 const { AuthorizationError } = require("../common/customError");
 const config = require("../config");
 const { fdkExtension } = require("../fdk/index")

@@ -1,16 +1,21 @@
-const { httpStatus, httpErrorTitle } = require("../../constants");
+const logger = require('../common/logger');
 
 const errorHandler = (err, req, res, next) => {
-    if (err){
-        console.log(err);
-        const statusCode = err.code ? err.code : (res.statusCode ? res.statusCode : httpStatus.SERVER_ERROR);
-        res.status(statusCode).json({
+    logger.error('Error:', err);
+    
+    // Handle specific error types
+    if (err.name === 'ValidationError') {
+        return res.status(400).json({
             success: false,
-            title: httpErrorTitle[statusCode] || "Internal Server Error",
-            message: err.message,
-            // stackTrace: err.stack
+            error: err.message
         });
     }
+
+    // Default error
+    res.status(500).json({
+        success: false,
+        error: 'Internal Server Error'
+    });
 };
 
 module.exports = errorHandler;

@@ -1,7 +1,5 @@
 'use strict';
 
-const asyncHandler = require("express-async-handler");
-const { httpStatus } = require("../../constants");
 const { NotFoundError, BadRequestError } = require("../common/customError");
 const config = require("../config");
 const logger = require("../common/logger");
@@ -19,201 +17,222 @@ const CREDENTIAL_FIELDS = [
 //@desc create merchant credentials
 //@route POST /api/v1/secrets
 //@access private TODO: add auth
-exports.createSecretsHandler = asyncHandler(async (req, res, next) => {
-    let app_id = req.headers['x-application-id'];
-    let creds = req.body.data;
-    let data = {};
-    for (var i=0;i<creds.length;i++){
-        data[creds[i].slug] = creds[i].value;
+exports.createSecretsHandler = async (req, res, next) => {
+    try {
+        let app_id = req.headers['x-application-id'];
+        let creds = req.body.data;
+        let data = {};
+        for (var i=0;i<creds.length;i++){
+            data[creds[i].slug] = creds[i].value;
+        }
+        console.log(`creating secrets for app_id: ${app_id}`);
+
+        let secrets = EncryptHelper.encrypt(config.extension.api_secret, JSON.stringify(data));
+
+        await Secret.findOneAndUpdate(
+            { app_id: app_id },
+            {
+                secrets: secrets
+            },
+            { upsert: true, new: false }
+        );
+
+        const REDIS_KEY = `${config.extension_slug}:MerchantAggregatorConfig:appId:${app_id}`;
+        secrets = await deleteKeyFromRedis(REDIS_KEY);
+
+        res.status(201).json(data);
+    } catch (error) {
+        next(error);
     }
-    console.log(`creating secrets for app_id: ${app_id}`);
-
-    let secrets = EncryptHelper.encrypt(config.extension.api_secret, JSON.stringify(data));
-
-    await Secret.findOneAndUpdate(
-        { app_id: app_id },
-        {
-            secrets: secrets
-        },
-        { upsert: true, new: false }
-    );
-
-    const REDIS_KEY = `${config.extension_slug}:MerchantAggregatorConfig:appId:${app_id}`;
-    secrets = await deleteKeyFromRedis(REDIS_KEY);
-
-    res.status(httpStatus.CREATED).json(data);
-});
+};
 
 //@desc get merchant credentials
 //@route GET /api/v1/secrets
 //@access private TODO: add auth
-exports.getSecretsHandler = asyncHandler(async (req, res, next) => {
-    let secret = await Secret.findOne({ app_id: req.params.app_id })
-    if (!secret) {
-        res.status(httpStatus.OK).json({
+exports.getSecretsHandler = async (req, res, next) => {
+    try {
+        let secret = await Secret.findOne({ app_id: req.params.app_id })
+        if (!secret) {
+            res.status(200).json({
+                success: true,
+                app_id: req.params.app_id,
+                is_active: false,
+                data:CREDENTIAL_FIELDS
+            });
+            return res;
+        }
+        let data = EncryptHelper.decrypt(config.extension.api_secret, secret.secrets);
+        let creds = []
+        for (var i=0; i<CREDENTIAL_FIELDS.length; i++) {
+            creds.push({
+                "slug": CREDENTIAL_FIELDS[i].slug,
+                "name": CREDENTIAL_FIELDS[i].name,
+                "required": CREDENTIAL_FIELDS[i].required,
+                "display": CREDENTIAL_FIELDS[i].display,
+                "value": data[CREDENTIAL_FIELDS[i].slug]
+            })
+        }
+
+        res.status(200).json({
             success: true,
             app_id: req.params.app_id,
-            is_active: false,
-            data:CREDENTIAL_FIELDS
+            is_active: true,
+            data: creds
         });
-        return res;
+    } catch (error) {
+        next(error);
     }
-    let data = EncryptHelper.decrypt(config.extension.api_secret, secret.secrets);
-    let creds = []
-    for (var i=0; i<CREDENTIAL_FIELDS.length; i++) {
-        creds.push({
-            "slug": CREDENTIAL_FIELDS[i].slug,
-            "name": CREDENTIAL_FIELDS[i].name,
-            "required": CREDENTIAL_FIELDS[i].required,
-            "display": CREDENTIAL_FIELDS[i].display,
-            "value": data[CREDENTIAL_FIELDS[i].slug]
-        })
+};
+
+exports.deleteCredentialsHandler = async (req, res, next) => {
+    try {
+        const { company_id } = req.body;
+        console.log(`Uninstalling extension for company: ${company_id}`);
+        await Secret.deleteMany({ company_id: company_id });
+        res.status(200).json({ success: true });
+    } catch (error) {
+        next(error);
     }
+};
 
-    res.status(httpStatus.OK).json({
-        success: true,
-        app_id: req.params.app_id,
-        is_active: true,
-        data: creds
-    });
-});
-
-
-exports.deleteCredentialsHandler = asyncHandler(async (req) => {
-    const { company_id } = req.body;
-    console.log(`Uninstalling extension for company: ${company_id}`);
-    await Secret.deleteMany({ company_id: company_id });
-});
-
-
-exports.getCredentials = asyncHandler(async (req, res) => {
-    
-    logger.info("secrets for app_id %s", req.params.app_id);
-    let secret = await Secret.findOne({ app_id: req.params.app_id })
-    let data = {};
-    if (secret) {
-        data = EncryptHelper.decrypt(config.extension.api_secret, secret.secrets);
+exports.getCredentials = async (req, res, next) => {
+    try {
+        logger.info("secrets for app_id %s", req.params.app_id);
+        let secret = await Secret.findOne({ app_id: req.params.app_id })
+        let data = {};
+        if (secret) {
+            data = EncryptHelper.decrypt(config.extension.api_secret, secret.secrets);
+        }
+        let creds = []
+        for (var i=0; i<CREDENTIAL_FIELDS.length; i++) {
+            creds.push({
+                "slug": CREDENTIAL_FIELDS[i].slug,
+                "name": CREDENTIAL_FIELDS[i].name,
+                "required": CREDENTIAL_FIELDS[i].required,
+                "display": CREDENTIAL_FIELDS[i].display,
+                "value": data[CREDENTIAL_FIELDS[i].slug]
+            })
+        }
+        res.render('../../public/credentials.ejs', { params: creds });
+    } catch (error) {
+        next(error);
     }
-    let creds = []
-    for (var i=0; i<CREDENTIAL_FIELDS.length; i++) {
-        creds.push({
-            "slug": CREDENTIAL_FIELDS[i].slug,
-            "name": CREDENTIAL_FIELDS[i].name,
-            "required": CREDENTIAL_FIELDS[i].required,
-            "display": CREDENTIAL_FIELDS[i].display,
-            "value": data[CREDENTIAL_FIELDS[i].slug]
-        })
+};
+
+exports.setCredentials = async (req, res, next) => {
+    try {
+        let app_id = req.params.app_id;
+        let data = req.body;
+        const companyId = req.headers['x-company-id'];
+        let secrets = EncryptHelper.encrypt(config.extension.api_secret, JSON.stringify(data));
+
+        await Secret.findOneAndUpdate(
+            { app_id: app_id },
+            {
+                secrets: secrets,
+                company_id: companyId
+            },
+            { upsert: true, new: false }
+        );
+
+        res.status(201).json({});
+    } catch (error) {
+        next(error);
     }
-    res.render('../../public/credentials.ejs', { params: creds });
-});
+};
 
-
-exports.setCredentials = asyncHandler(async (req, res) => {
-    let app_id = req.params.app_id;
-    let data = req.body;
-    const companyId = req.headers['x-company-id'];
-    let secrets = EncryptHelper.encrypt(config.extension.api_secret, JSON.stringify(data));
-
-    await Secret.findOneAndUpdate(
-        { app_id: app_id },
-        {
-            secrets: secrets,
-            company_id: companyId
-        },
-        { upsert: true, new: false }
-    );
-
-    res.status(httpStatus.CREATED).json({});
-});
-
-
-exports.createStatusMapperHandler = asyncHandler(async (req, res, next) => {
-    if (!req.body.journey_type) {
-        res.status(httpStatus.BAD_REQUEST).json({
-            "success": false,
-            "error": "Required paramter is missing: journey_type"
-        });
-    } else {
+exports.createStatusMapperHandler = async (req, res, next) => {
+    try {
+        if (!req.body.journey_type) {
+            res.status(400).json({
+                "success": false,
+                "error": "Required paramter is missing: journey_type"
+            });
+            return;
+        }
         if (!["forward", "refund"].includes(req.body.journey_type)) {
-            res.status(httpStatus.BAD_REQUEST).json({
+            res.status(400).json({
                 "success": false,
                 "error": "Unknown value in journey_type"
             });
+            return;
         }
-    }
-    if (!req.body.aggregator_status) {
-        res.status(httpStatus.BAD_REQUEST).json({
-            "success": false,
-            "error": "Required paramter is missing: aggregator_status"
-        });
-    }
-    if (!req.body.status) {
-        res.status(httpStatus.BAD_REQUEST).json({
-            "success": false,
-            "error": "Required paramter is missing: status"
-        });
-    }
-    try {
+        if (!req.body.aggregator_status) {
+            res.status(400).json({
+                "success": false,
+                "error": "Required paramter is missing: aggregator_status"
+            });
+            return;
+        }
+        if (!req.body.status) {
+            res.status(400).json({
+                "success": false,
+                "error": "Required paramter is missing: status"
+            });
+            return;
+        }
+
         const statusMapper = await AggregatorStatusMapper.create({ 
             journey_type: req.body.journey_type,
             aggregator_status: req.body.aggregator_status,
             status: req.body.status
         });
-        res.status(httpStatus.CREATED).json({
+        res.status(201).json({
             "success": true,
             "data": statusMapper
         });
     } catch (error) {
-        logger.error(error)
-        res.status(httpStatus.BAD_REQUEST).json({
-            "success": false,
-            "error": error
-        });
+        next(error);
     }
-});
+};
 
-exports.getStatusMapperHandler = asyncHandler(async (req, res, next) => {
-    if (req.query.journey_type) {
-        if (!["forward", "refund"].includes(req.query.journey_type)) {
-            res.status(httpStatus.BAD_REQUEST).json({
-                "success": false,
-                "error": "Unknown value in journey_type"
-            });
-        }
-    }
-    const statusMapper = await AggregatorStatusMapper.find(req.query);
-    res.status(httpStatus.OK).json({
-        "success": true,
-        "data": statusMapper
-    });
-});
-
-exports.updateStatusMapperHandler = asyncHandler(async (req, res, next) => {
-    let message = ""
-    let success = true
-    if (!req.body.journey_type) {
-        success = false;
-        message = "Required paramter is missing: journey_type";
-    } else {
-        if (!["forward", "refund"].includes(req.body.journey_type)) {
-            success = false;
-            message = "Unknown value in journey_type";
-        }
-    }
-    if (!req.body.aggregator_status) {
-        success = false;
-        message = "Required paramter is missing: aggregator_status";
-    }
-    if (!req.body.status) {
-        success = false;
-        message = "Required paramter is missing: status";
-    }
-
-    if (!success) {
-        throw new BadRequestError(message);
-    }
-
+exports.getStatusMapperHandler = async (req, res, next) => {
     try {
+        if (req.query.journey_type) {
+            if (!["forward", "refund"].includes(req.query.journey_type)) {
+                res.status(400).json({
+                    "success": false,
+                    "error": "Unknown value in journey_type"
+                });
+                return;
+            }
+        }
+        const statusMapper = await AggregatorStatusMapper.find(req.query);
+        res.status(200).json({
+            "success": true,
+            "data": statusMapper
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.updateStatusMapperHandler = async (req, res, next) => {
+    try {
+        let message = ""
+        let success = true
+        if (!req.body.journey_type) {
+            success = false;
+            message = "Required paramter is missing: journey_type";
+        } else {
+            if (!["forward", "refund"].includes(req.body.journey_type)) {
+                success = false;
+                message = "Unknown value in journey_type";
+            }
+        }
+        if (!req.body.aggregator_status) {
+            success = false;
+            message = "Required paramter is missing: aggregator_status";
+        }
+        if (!req.body.status) {
+            success = false;
+            message = "Required paramter is missing: status";
+        }
+
+        if (!success) {
+            throw new BadRequestError(message);
+        }
+
         const statusMapper = await AggregatorStatusMapper.updateOne(
             {
                 journey_type: req.body.journey_type,
@@ -223,40 +242,42 @@ exports.updateStatusMapperHandler = asyncHandler(async (req, res, next) => {
                 $set: { status: req.body.status }
             }
         );
-        res.status(httpStatus.CREATED).json({
+        res.status(201).json({
             "success": true,
             "data": statusMapper
         });
     } catch (error) {
-        res.status(httpStatus.SERVER_ERROR).json({
-            "success": false,
-            "error": error
-        });
+        next(error);
     }
-});
+};
 
-
-exports.deleteStatusMapperHandler = asyncHandler(async (req, res, next) => {
-    if (req.query.journey_type) {
-        if (!["forward", "refund"].includes(req.query.journey_type)) {
-            res.status(httpStatus.BAD_REQUEST).json({
-                "success": false,
-                "error": "Unknown value in journey_type"
-            });
+exports.deleteStatusMapperHandler = async (req, res, next) => {
+    try {
+        if (req.query.journey_type) {
+            if (!["forward", "refund"].includes(req.query.journey_type)) {
+                res.status(400).json({
+                    "success": false,
+                    "error": "Unknown value in journey_type"
+                });
+                return;
+            }
         }
-    }
-    if (!req.query.aggregator_status) {
-        res.status(httpStatus.BAD_REQUEST).json({
-            "success": false,
-            "error": "Required paramter is missing: aggregator_status"
+        if (!req.query.aggregator_status) {
+            res.status(400).json({
+                "success": false,
+                "error": "Required paramter is missing: aggregator_status"
+            });
+            return;
+        }
+        const statusMapper = await AggregatorStatusMapper.deleteOne({
+            aggregator_status: req.query.aggregator_status,
+            journey_type: req.query.journey_type
         });
+        res.status(200).json({
+            "success": true,
+            "data": statusMapper
+        });
+    } catch (error) {
+        next(error);
     }
-    const statusMapper = await AggregatorStatusMapper.deleteOne({
-        aggregator_status: req.query.aggregator_status,
-        journey_type: req.query.journey_type
-    });
-    res.status(httpStatus.OK).json({
-        "success": true,
-        "data": statusMapper
-    });
-});
+};
