@@ -2,6 +2,13 @@ const express = require('express');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const path = require('path');
+const serveStatic = require("serve-static");
+const { readFileSync } = require('fs');
+
+
+const STATIC_PATH = process.env.NODE_ENV === 'production'
+  ? path.join(process.cwd(), 'frontend', 'public', 'dist')
+  : path.join(process.cwd(), 'frontend');
 
 const { fdkExtension } = require('./fdk');
 const errorHandler = require('./middleware/errorHandler');
@@ -32,7 +39,8 @@ app.use(
 );
 
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(express.static(path.resolve(__dirname, '../frontend/build/')));
+// Serve static files from the React dist directory
+app.use(serveStatic(STATIC_PATH, { index: false }));
 
 app.use('/', fdkExtension.fdkHandler);
 
@@ -66,14 +74,16 @@ app.use('/protected', apiRoutes);
 
 app.use(errorHandler);
 
-app.get('/company/:company_id/application/:app_id', (req, res) => {
-  res.contentType('text/html');
-  res.sendFile(path.resolve(__dirname, '../frontend/build/index.html'));
-});
+// app.get('/company/:company_id/application/:app_id', (req, res) => {
+//   res.contentType('text/html');
+//   res.sendFile(path.join(STATIC_PATH, 'index.html'));
+// });
 
 app.get('*', (req, res) => {
-  res.contentType('text/html');
-  res.sendFile(path.resolve(__dirname, '../frontend/build/index.html'));
+  return res
+  .status(200)
+  .set("Content-Type", "text/html")
+  .send(readFileSync(path.join(STATIC_PATH, "index.html")));
 });
 
 app.engine('html', require('ejs').renderFile);

@@ -8,7 +8,7 @@ const config = {
   base_url: process.env.EXTENSION_BASE_URL || DEFAULT_CONFIG.BASE_URL,
   fp_api_server: process.env.EXTENSION_CLUSTER_URL || DEFAULT_CONFIG.FP_API_SERVER,
   pgBaseUrl: process.env.PG_BASE_URL || DEFAULT_CONFIG.PG_BASE_URL,
-  port: parseInt(process.env.PORT || DEFAULT_CONFIG.PORT, 10),
+  port: parseInt(process.env.BACKEND_PORT),
   extension_slug: process.env.EXTENSION_SLUG || DEFAULT_CONFIG.EXTENSION_SLUG,
   encryption_key: process.env.EXTENSION_API_SECRET || '',
   mongodb: {

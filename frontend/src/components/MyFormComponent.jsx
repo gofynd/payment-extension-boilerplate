@@ -74,9 +74,9 @@ const MyFormComponent = ({ params = [] }) => {
       <h1>Credentials</h1>
       <form method="post" onSubmit={handleSubmit}>
         {params.map((param, index) => (
-          <>
+          <React.Fragment key={param.slug || index}>
             {param.display != false && (
-              <div key={index}>
+              <div>
                 <label htmlFor={param.name}>
                   {param.name}
                   {param.required && <>*</>}
@@ -110,7 +110,7 @@ const MyFormComponent = ({ params = [] }) => {
                 <br />
               </div>
             )}
-          </>
+          </React.Fragment>
         ))}
         <input type="submit" value="Submit" />
       </form>

@@ -1,5 +1,4 @@
 const DEFAULT_CONFIG = {
-  ENV: 'development',
   PORT: 8081,
   BASE_URL: 'http://localhost:3000/',
   FP_API_SERVER: 'https://api.fynd.com',
