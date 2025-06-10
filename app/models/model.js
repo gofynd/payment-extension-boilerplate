@@ -12,7 +12,6 @@ const OrderSchema = new Schema(
     app_id: {
       type: String,
       required: true,
-      unique: true,
     },
     gid: {
       type: Object,
@@ -35,6 +34,9 @@ const OrderSchema = new Schema(
     timestamps: true,
   }
 );
+
+// Create a compound unique index on app_id and gid
+OrderSchema.index({ app_id: 1, gid: 1 }, { unique: true });
 
 const SecretSchema = new Schema(
   {

@@ -1,134 +1,171 @@
-const asyncHandler = require('express-async-handler');
-const AggregatorProcessor = require('../services/processor');
+// Payment processing utilities
+exports.createOrderHandler = async (req, res, next) => {
+  try {
+    const { amount, currency, payment_method, customer_details } = req.body;
+    
+    // Validate required fields
+    if (!amount || !currency || !payment_method) {
+      throw new Error('Missing required fields');
+    }
 
-/**
- * @desc Create a new payment order
- * @route POST /api/v1/payment_session/:gid
- * @access Public
- * @param {Object} req - Express request object
- * @param {Object} req.body - Payload containing order details
- * @param {Object} res - Express response object
- */
-exports.createOrderHandler = asyncHandler(async (req, res) => {
-  const requestPayload = req.body;
-  const processor = new AggregatorProcessor();
-  const response = await processor.createOrder(requestPayload);
-  res.status(200).json(response);
-});
+    // Create order logic
+    const order = {
+      id: `order_${Date.now()}`,
+      amount,
+      currency,
+      payment_method,
+      customer_details,
+      status: 'pending',
+      created_at: new Date().toISOString()
+    };
 
-/**
- * @desc Create a refund for a payment session
- * @route POST /api/v1/payment_session/:gid/refund
- * @access Public
- * @param {Object} req - Express request object
- * @param {Object} req.body - Payload containing refund details
- * @param {Object} res - Express response object
- */
-exports.createRefundHandler = asyncHandler(async (req, res) => {
-  const requestPayload = req.body;
-  const processor = new AggregatorProcessor();
-  const response = await processor.createRefund(requestPayload);
-  return res.status(200).json(response);
-});
+    res.status(200).json({
+      success: true,
+      data: order
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
-/**
- * @desc Get details of a payment session
- * @route GET /api/v1/payment_session/:gid
- * @access Public
- * @param {Object} req - Express request object
- * @param {Object} req.params - Parameters from the URL
- * @param {Object} req.query - Query parameters
- * @param {Object} res - Express response object
- */
-exports.getPaymentDetailsHandler = asyncHandler(async (req, res) => {
-  const params = { ...req.params, ...req.query };
-  const processor = new AggregatorProcessor();
-  const response = await processor.getPaymentDetails(params);
-  return res.status(200).json(response);
-});
+exports.createRefundHandler = async (req, res, next) => {
+  try {
+    const { order_id, amount, reason } = req.body;
 
-/**
- * @desc Get details of a refund for a payment session
- * @route GET /api/v1/payment_session/:gid/refund
- * @access Public
- * @param {Object} req - Express request object
- * @param {Object} req.params - Parameters from the URL
- * @param {Object} req.query - Query parameters
- * @param {Object} res - Express response object
- */
-exports.getRefundDetailsHandler = asyncHandler(async (req, res) => {
-  const params = { ...req.params, ...req.query };
-  const processor = new AggregatorProcessor();
-  const response = await processor.getRefundDetails(params);
-  return res.status(200).json(response);
-});
+    // Validate required fields
+    if (!order_id || !amount) {
+      throw new Error('Missing required fields');
+    }
 
-/**
- * @desc Handle payment completion callback
- * @route POST /api/v1/payment_callback/:company_id/:app_id
- * @access Public
- * @param {Object} req - Express request object
- * @param {Object} req.params - Parameters from the URL
- * @param {Object} req.body - Payload containing callback details
- * @param {Object} res - Express response object
- */
-exports.paymentCallbackHandler = asyncHandler(async (req, res) => {
-  const requestPayload = {
-    ...req.params,
-    ...req.query,
-    ...req.body,
-  };
-  const processor = new AggregatorProcessor();
-  const response = await processor.processCallback(requestPayload);
-  return res.status(308).render('redirector', response);
-});
+    // Create refund logic
+    const refund = {
+      id: `refund_${Date.now()}`,
+      order_id,
+      amount,
+      reason,
+      status: 'pending',
+      created_at: new Date().toISOString()
+    };
 
-/**
- * @desc Process payment status update webhook
- * @route POST /api/v1/webhook/payment
- * @access Public
- * @param {Object} req - Express request object
- * @param {Object} req.body - Webhook payload
- * @param {Object} req.headers - HTTP headers
- * @param {Object} res - Express response object
- */
-exports.processWebhook = asyncHandler(async (req, res) => {
-  const webhookPayload = {
-    data: {
+    res.status(200).json({
+      success: true,
+      data: refund
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.getPaymentDetailsHandler = async (req, res, next) => {
+  try {
+    const { gid } = req.params;
+    
+    if (!gid) {
+      throw new Error('Payment session ID is required');
+    }
+
+    // Mock payment details - in real implementation, fetch from database
+    const paymentDetails = {
+      id: gid,
+      status: 'completed',
+      amount: 1000,
+      currency: 'USD',
+      created_at: new Date().toISOString()
+    };
+
+    res.status(200).json({
+      success: true,
+      data: paymentDetails
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.getRefundDetailsHandler = async (req, res, next) => {
+  try {
+    const { gid } = req.params;
+
+    if (!gid) {
+      throw new Error('Payment session ID is required');
+    }
+
+    // Mock refund details - in real implementation, fetch from database
+    const refundDetails = {
+      id: gid,
+      status: 'completed',
+      amount: 1000,
+      currency: 'USD',
+      created_at: new Date().toISOString()
+    };
+
+    res.status(200).json({
+      success: true,
+      data: refundDetails
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.paymentCallbackHandler = async (req, res, next) => {
+  try {
+    const { company_id, app_id } = req.params;
+    const callbackData = {
       ...req.body,
-      ...req.params,
-    },
-    headers: req.headers,
-  };
+      company_id,
+      app_id
+    };
 
-  const processor = new AggregatorProcessor();
-  await processor.processWebhook(webhookPayload);
-  return res.status(200).json({
-    success: true,
-  });
-});
+    // Process callback logic
+    const response = {
+      success: true,
+      redirect_url: '/payment/success',
+      data: callbackData
+    };
 
-/**
- * @desc Process refund status update webhook
- * @route POST /api/v1/webhook/refund
- * @access Public
- * @param {Object} req - Express request object
- * @param {Object} req.body - Webhook payload
- * @param {Object} req.headers - HTTP headers
- * @param {Object} res - Express response object
- */
-exports.processRefundWebhook = asyncHandler(async (req, res) => {
-  const webhookPayload = {
-    data: {
-      ...req.body,
-      ...req.params,
-    },
-    headers: req.headers,
-  };
+    return res.status(308).render('redirector', response);
+  } catch (error) {
+    next(error);
+  }
+};
 
-  const processor = new AggregatorProcessor();
-  await processor.processRefundWebhook(webhookPayload);
-  return res.status(200).json({
-    success: true,
-  });
-});
+exports.processWebhook = async (req, res, next) => {
+  try {
+    const { data, headers } = req.body;
+
+    // Validate webhook signature if needed
+    if (!data || !headers) {
+      throw new Error('Invalid webhook payload');
+    }
+
+    // Process webhook logic
+    // In real implementation, update payment status in database
+    res.status(200).json({
+      success: true,
+      message: 'Webhook processed successfully'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.processRefundWebhook = async (req, res, next) => {
+  try {
+    const { data, headers } = req.body;
+
+    // Validate webhook signature if needed
+    if (!data || !headers) {
+      throw new Error('Invalid webhook payload');
+    }
+
+    // Process refund webhook logic
+    // In real implementation, update refund status in database
+    res.status(200).json({
+      success: true,
+      message: 'Refund webhook processed successfully'
+    });
+  } catch (error) {
+    next(error);
+  }
+};

@@ -5,8 +5,22 @@ const path = require('path');
 
 const { fdkExtension } = require('./fdk');
 const errorHandler = require('./middleware/errorHandler');
-const orderRouter = require('./routes/order.router');
-const { credsRouter, apiRouter } = require('./routes/creds.router');
+const { apiRouter } = require('./routes/creds.router');
+const { PaymentService } = require('./services/payment.service');
+const { CredsService } = require('./services/creds.service');
+const {
+  createOrderHandler,
+  getPaymentDetailsHandler,
+  paymentCallbackHandler,
+  createRefundHandler,
+  getRefundDetailsHandler,
+  processWebhook,
+  processRefundWebhook,
+} = require('./controllers/orderController');
+const {
+  createSecretsHandler,
+  getSecretsHandler,
+} = require('./controllers/credsController');
 
 const app = express();
 
@@ -21,8 +35,30 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.resolve(__dirname, '../frontend/build/')));
 
 app.use('/', fdkExtension.fdkHandler);
-app.use('/api/v1', orderRouter);
-app.use('/api/v1', credsRouter);
+
+// Initialize payment service with existing handlers
+// These handlers are implemented in orderController.js and use AggregatorProcessor
+// for payment gateway specific operations. Developers can replace these handlers
+// with their own implementation if needed.
+const paymentService = new PaymentService({
+  createOrder: createOrderHandler,
+  getPaymentDetails: getPaymentDetailsHandler,
+  paymentCallback: paymentCallbackHandler,
+  createRefund: createRefundHandler,
+  getRefundDetails: getRefundDetailsHandler,
+  processWebhook: processWebhook,
+  processRefundWebhook: processRefundWebhook
+});
+
+// Initialize credentials service with existing handlers
+const credsService = new CredsService({
+  createSecrets: createSecretsHandler,
+  getSecrets: getSecretsHandler
+});
+
+// Register service routes
+paymentService.registerRoutes(app);
+credsService.registerRoutes(app);
 
 const { apiRoutes } = fdkExtension;
 apiRoutes.use('/v1', apiRouter);

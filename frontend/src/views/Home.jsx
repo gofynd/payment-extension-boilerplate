@@ -19,13 +19,19 @@ export default function Home() {
     try {
       const appId = getApplication();
       const companyId = getCompany();
-      const respnse = await MainService.getAllCredentialFields(
+      const response = await MainService.getAllCredentialFields(
         appId,
         companyId
       );
-      setParams(respnse.data.data);
+      if (response && response.data) {
+        setParams(response.data);
+      } else {
+        setParams([]);
+      }
       setPageLoading(false);
     } catch (e) {
+      console.error('Error fetching credentials:', e);
+      setParams([]);
       setPageLoading(false);
     }
   };

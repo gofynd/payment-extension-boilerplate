@@ -1,26 +1,45 @@
 import URLS from './endpoint.service';
-import axios from 'axios';
 import { getCompany, getApplication } from '../helper/utils';
 
-axios.interceptors.request.use(config => {
-  config.headers['x-company-id'] = getCompany();
-  config.headers['x-application-id'] = getApplication();
-  return config;
-});
+// Custom fetch wrapper to handle headers
+const customFetch = async (url, options = {}) => {
+  const headers = {
+    'x-company-id': getCompany(),
+    'x-application-id': getApplication(),
+    ...options.headers,
+  };
+
+  const response = await fetch(url, {
+    ...options,
+    headers,
+  });
+
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+
+  return response.json();
+};
 
 const MainService = {
   async getAllApplications(params = {}) {
-    const res = await axios.get(await URLS.GET_ALL_APPLICATIONS());
+    const res = await customFetch(await URLS.GET_ALL_APPLICATIONS());
     return res;
   },
   async getAllCredentialFields(app_id, company_id, params = {}) {
-    const res = await axios.get(await URLS.GET_CREDENTIALS(app_id, company_id));
+    const res = await customFetch(await URLS.GET_CREDENTIALS(app_id, company_id));
     return res;
   },
   async submitCredentials(app_id, company_id, body, params = {}) {
-    const res = await axios.post(
+    const res = await customFetch(
       await URLS.POST_CREDENTIALS(app_id, company_id),
-      body
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      }
     );
     return res;
   },

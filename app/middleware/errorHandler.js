@@ -1,16 +1,11 @@
-const Sentry = require('../common/sentry');
+const _ = require('lodash');
 
 const errorHandler = (err, req, res, next) => {
-  if (err) {
-    console.error(`[ERR] Stack trace: ${err.stack}`);
-    Sentry.captureException(err);
-    res.status(500).json({
-      success: false,
-      title: 'Internal Server Error',
-      message: err.message,
-    });
-    next(err);
-  }
+  console.error(err);
+  res.status(err.status || 500).json({
+    message: err.message || 'Internal Server Error',
+    success: false
+  });
 };
 
 module.exports = errorHandler;

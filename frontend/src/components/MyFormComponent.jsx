@@ -6,11 +6,11 @@ import './MyFormComponent.css';
 import MessageBox from './MessageBox';
 import { FaRegEye, FaRegEyeSlash } from 'react-icons/fa';
 
-const MyFormComponent = ({ params }) => {
-  const initialFormData = params.reduce((acc, param) => {
+const MyFormComponent = ({ params = [] }) => {
+  const initialFormData = Array.isArray(params) ? params.reduce((acc, param) => {
     acc[param.slug] = param.value || '';
     return acc;
-  }, {});
+  }, {}) : {};
 
   const [formData, setFormData] = useState(initialFormData);
   const [showSuccessBanner, setShowSuccessBanner] = useState(false);

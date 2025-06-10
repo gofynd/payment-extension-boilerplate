@@ -1,4 +1,4 @@
-const { BaseStorage } = require('fdk-extension-javascript/express/storage');
+const { BaseStorage } = require('@gofynd/fdk-extension-javascript/express/storage');
 const { Session } = require('../models/model');
 
 class MongoStorage extends BaseStorage {

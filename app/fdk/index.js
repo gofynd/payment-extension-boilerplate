@@ -1,4 +1,4 @@
-const { setupFdk } = require('fdk-extension-javascript/express');
+const { setupFdk } = require('@gofynd/fdk-extension-javascript/express');
 const config = require('../config');
 const MongoStorage = require('./mongoStorage');
 

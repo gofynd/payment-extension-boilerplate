@@ -36,7 +36,6 @@ Before setting up the extension, make sure you have the following installed:
 
 - [Node.js](https://nodejs.org/en/download/package-manager) : >= v16.x.x
 - [MongoDB](https://www.mongodb.com/try/download/community) : >= v4.4.x
-- [Redis](https://redis.io/downloads/) : >= 7.0.11
 
 ---
 
@@ -81,7 +80,7 @@ For those using Node and React, a pre-implemented template is available, which i
 
 ### Step 2: Create a New Payment Extension
 
-- Once you’re part of an organization, navigate to **Extension > Create Extension**.
+- Once you're part of an organization, navigate to **Extension > Create Extension**.
 - Choose **Start from scratch**, select **Extension Type** as **Payments**, fill in the required details, and click **Create Extension**.
 
 ### Step 3: Install Your Payment Extension
@@ -143,23 +142,13 @@ You have successfully set up your payment extension on the Fynd platform.
   </a>
 </p>
 
-2. **🔄 Start Redis Server.**
-
-   Ensure Redis is installed on your machine. Start the Redis server.
-
-<p align="center">
-  <a target="_blank" href="https://redis.io/downloads/">
-    <img src="https://cdn.pixelbin.io/v2/broken-limit-7ed062/original/redis.png" width="496" height="160"  alt="Redis" />
-  </a>
-</p>
-
-3. **📁 Use Git to clone the repository to your local machine and navigate into the project directory.**
+2. **📁 Use Git to clone the repository to your local machine and navigate into the project directory.**
 
    ```bash
    git clone https://github.com/gofynd/payment-extension-boilerplate.git
    ```
 
-4. **📦 Install Backend Dependencies.**
+3. **📦 Install Backend Dependencies.**
 
    Ensure you have Node.js (v16.x.x or above) installed.
 
@@ -167,20 +156,20 @@ You have successfully set up your payment extension on the Fynd platform.
    npm install
    ```
 
-5. **📦 Install Frontend Dependencies.**
+4. **📦 Install Frontend Dependencies.**
 
    ```bash
    cd web
    npm install
    ```
 
-6. **🔧 Create build of frontend React project.**
+5. **🔧 Create build of frontend React project.**
 
    ```bash
    npm run build
    ```
 
-7. **🛠️ Configure Environment Variables.**
+6. **🛠️ Configure Environment Variables.**
 
    Open the `app/config.js` file in your project directory. Update the `EXTENSION_API_KEY` and `EXTENSION_API_SECRET` environment variables in `api_key` and `api_secret` with the values obtained from the Partners Panel. These should be set as the default values for the `config` variables.
 
@@ -193,7 +182,6 @@ You have successfully set up your payment extension on the Fynd platform.
 | **environment**                  | env                   | String    | fynd                           | ENV                         |
 | **mongo.host.uri**               | host mongo            | mongo-uri | mongodb://localhost:27017/mock | MONGO_MOCK_READ_WRITE       |
 | **mongo.host.options.appname**   | mongo app name        | String    | mock                           | K8S_POD_NAME                |
-| **redis.host**                   | Redis URL of host.    | String    | redis://localhost:6379/0       | REDIS_EXTENSIONS_READ_WRITE |
 | **sentry.dsn**                   | sentry url            | String    | <sentry_url>                   | SENTRY_DSN                  |
 | **sentry.environment**           | sentry environment    | String    | development                    | SENTRY_ENVIRONMENT          |
 | **newrelic.app_name**            | new relic app name    | String    | mock                           | NEW_RELIC_APP_NAME          |
@@ -203,8 +191,6 @@ You have successfully set up your payment extension on the Fynd platform.
 | **mode**                         | app mode              | String    | server                         | MODE                        |
 | **API_KEY**                      | Partners API Key      | String    | <api_key>                      | API_KEY                     |
 | **API_SECRET**                   | Partners API Secret   | String    | <api_secret>                   | API_SECRET                  |
-| **BROWSER_CONFIG.HOST_MAIN_URL** | Host Main URL         | String    | <ngrok_url>                    | MOCK_MAIN_DOMAIN            |
-| **cluster_url**                  | Fynd Platform Domain  | String    | https://api.fynd.com           | EXTENSION_CLUSTER_URL       |
 
 ```javascript
 api_key: {
@@ -219,9 +205,9 @@ api_secret: {
 },
 ```
 
-8. 🖥️ Also update MongoDB and Redis Environment Variables according to your machine.
+7. 🖥️ Also update MongoDB Environment Variables according to your machine.
 
-9. **🔒 Secure Tunnel Setup.**
+8. **🔒 Secure Tunnel Setup.**
 
    Install ngrok or a similar cross-platform application to create secure tunnels, enabling your locally hosted web server to be accessible over the internet.
 
@@ -231,7 +217,7 @@ api_secret: {
   </a>
 </p>
 
-10. 🚀 Launch ngrok to forward the port used by your local server.
+9. 🚀 Launch ngrok to forward the port used by your local server.
 
     ```bash
     ngrok http 3000
@@ -239,7 +225,7 @@ api_secret: {
 
     Replace `3000` with the actual port number your server is using. This will generate a public URL that securely tunnels to your local server.
 
-11. 🌐 Update default env value for `EXTENSION_BASE_URL` with this URL.
+10. 🌐 Update default env value for `EXTENSION_BASE_URL` with this URL.
 
 ```javascript
 base_url: {
@@ -251,15 +237,15 @@ base_url: {
 },
 ```
 
-12. 🛠️ Navigate to your extension in the Partner Panel and update the Extension URL field with the generated ngrok URL.
+11. 🛠️ Navigate to your extension in the Partner Panel and update the Extension URL field with the generated ngrok URL.
 
-13. **💻 Run local server.**
+12. **💻 Run local server.**
 
     ```bash
     npm start
     ```
 
-14. 🎉 You are ready to go.
+13. 🎉 You are ready to go.
 
 ### 🧪 Running Test Cases
 
@@ -368,7 +354,7 @@ Configuring these variables enables Sentry's error tracking for your application
 
 ### 💎 Code Quality Checks
 
-This project enforces code quality and consistency using ESLint and Prettier. Before committing, Husky pre-commit hooks run to ensure all code complies with our standards and all tests pass. Please ensure you've addressed any linting errors and test failures before pushing your commits.
+This project enforces code quality and consistency using ESLint and Prettier. Please ensure you've addressed any linting errors and test failures before pushing your commits.
 
 ---
 
