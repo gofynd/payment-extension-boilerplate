@@ -16,20 +16,7 @@ app.use(bodyParser.json({
   limit: '2mb'
 }));
 app.use(bodyParser.urlencoded({ extended: false }));
-app.get('/env.js', (req, res) => {
-  const commonEnvs = {
-    base_url: config.extension.base_url
-  }
-  res.type('application/javascript');
-  res.send(
-    `window.env = ${JSON.stringify(
-      commonEnvs,
-      null,
-      4
-    )}`
-  );
-});
-app.use("/", healthRouter);
+app.use("/_healthz", healthRouter);
 
 // Check if the frontend build directory exists
 const buildPath = path.resolve(__dirname, "../frontend/build/");
@@ -45,9 +32,9 @@ app.use('/api/v1', orderRouter);
 app.use('/api/v1', credsRouter);
 // app.use('/protected/v1', apiRouter); // uncomment these lines for local and comment below 3 lines
 
-const apiRoutes = fdkExtension.apiRoutes; // comment
-apiRoutes.use('/v1', apiRouter); // comment
-app.use('/protected', apiRoutes); // comment
+const platformApiRoutes = fdkExtension.platformApiRoutes; // comment
+platformApiRoutes.use('/v1', apiRouter); // comment
+app.use('/protected', platformApiRoutes); // comment
 
 app.use(errorHandler);
 

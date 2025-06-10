@@ -1,7 +1,6 @@
 const express = require('express');
-const config = require("../config");
 const orderRouter = express.Router();
-const { verifyPlatformChecksum, verifyFrontendChecksum } = require('../middleware/verifyChecksum');
+const { verifyPlatformChecksum } = require('../middleware/verifyChecksum');
 const {
     createOrderHandler,
     processWebhook,
