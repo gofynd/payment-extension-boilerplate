@@ -33,3 +33,5 @@ __snapshots__/
 
 .vscode/*
 .idea/
+
+extension.context.json
