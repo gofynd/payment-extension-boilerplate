@@ -2,8 +2,8 @@ require('dotenv').config();
 const { DEFAULT_CONFIG, AGGREGATOR_CONFIG } = require('./constants');
 
 const config = {
-    env: process.env.NODE_ENV,
-    log_level: process.env.LOG_LEVEL,
+    env: process.env.NODE_ENV || DEFAULT_CONFIG.NODE_ENV,
+    log_level: process.env.LOG_LEVEL || DEFAULT_CONFIG.LOG_LEVEL,
     extension: {
         aggregator_slug: process.env.AGGREGATOR_SLUG,
         api_key: process.env.EXTENSION_API_KEY,

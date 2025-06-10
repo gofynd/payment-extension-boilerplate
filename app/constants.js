@@ -8,6 +8,8 @@ const AGGREGATOR_CONFIG = {
 
 const DEFAULT_CONFIG = {
     // Only keeping non-environment variables here
+    NODE_ENV: 'development',
+    LOG_LEVEL: 'info',
     FP_API_SERVER: 'https://api.fynd.com',
     GLOBAL_TTL: 60 * 60 * 24 * 180, // 180 days
 };
