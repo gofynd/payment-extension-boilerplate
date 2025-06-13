@@ -1,34 +1,79 @@
 import React, { useState, useEffect } from 'react';
 import { FaRegEye, FaRegEyeSlash, FaInfoCircle } from 'react-icons/fa';
+import { useParams, useSearchParams } from 'react-router-dom';
 import './App.css';
 
-// Utility functions
-const getCompany = () => new URLSearchParams(window.location.search).get('company_id');
-const getApplication = () => new URLSearchParams(window.location.search).get('application_id');
-
 // API endpoints
-const getCredentialsUrl = (companyId, appId) => 
-  `${window.location.protocol}//${window.location.hostname}:${window.location.port}/protected/v1/credentials/${companyId}/${appId}`;
+const getCredentialsUrl = (appId, companyId) => 
+  `${window.location.origin}/protected/v1/company/${companyId}/credentials/${appId}`;
 
 // Main App Component
 function App() {
+  const [searchParams] = useSearchParams();
+  const { company_id: companyId } = useParams();
   const [formData, setFormData] = useState({});
   const [showSuccessBanner, setShowSuccessBanner] = useState(false);
   const [isPasswordVisible, setIsPasswordVisible] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [params, setParams] = useState([]);
+  const [error, setError] = useState(null);
+
+  const getApplication = () => {
+    const appId = searchParams.get('application_id');
+    if (!appId) {
+      console.error('Application ID is missing from URL');
+      return null;
+    }
+    return appId;
+  };
+
+  const getCompanyId = () => {
+    if (!companyId) {
+      console.error('Company ID is missing from URL');
+      return null;
+    }
+    return companyId;
+  };
+
+  const getCommonHeaders = () => {
+    const appId = getApplication();
+    const companyId = getCompanyId();
+    
+    const headers = {
+      'x-application-id': appId,
+      'x-company-id': companyId,
+      'content-type': 'application/json'
+    };
+    
+    return headers;
+  };
 
   useEffect(() => {
     const fetchCredentials = async () => {
       try {
-        const response = await fetch(getCredentialsUrl(getCompany(), getApplication()), {
-          headers: {
-            'x-company-id': getCompany(),
-            'x-application-id': getApplication(),
-          },
+        const appId = getApplication();
+        const companyId = getCompanyId();
+        
+        if (!appId || !companyId) {
+          setError('Application ID or Company ID is missing from URL');
+          setIsLoading(false);
+          return;
+        }
+
+        const url = getCredentialsUrl(appId, companyId);
+        console.log('Fetching credentials from:', url); // Debug log
+
+        const response = await fetch(url, {
+          headers: getCommonHeaders(),
         });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const data = await response.json();
+        console.log('Received data:', data);
         setParams(data?.data || []);
         setFormData(
           (data?.data || []).reduce((acc, param) => ({
@@ -38,6 +83,7 @@ function App() {
         );
       } catch (error) {
         console.error('Error fetching credentials:', error);
+        setError(error.message);
         setParams([]);
       } finally {
         setIsLoading(false);
@@ -59,20 +105,27 @@ function App() {
     
     setIsSubmitting(true);
     try {
+      const appId = getApplication();
+      const companyId = getCompanyId();
+      
+      if (!appId || !companyId) {
+        throw new Error('Application ID or Company ID is missing from URL');
+      }
+
       const body = Object.entries(formData).map(([slug, value]) => ({
         slug,
         value
       }));
 
-      const response = await fetch(getCredentialsUrl(getCompany(), getApplication()), {
+      const response = await fetch(getCredentialsUrl(appId, companyId), {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-company-id': getCompany(),
-          'x-application-id': getApplication(),
-        },
+        headers: getCommonHeaders(),
         body: JSON.stringify({ data: body }),
       });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
       const data = await response.json();
       
@@ -82,6 +135,7 @@ function App() {
       }
     } catch (error) {
       console.error('Error submitting credentials:', error);
+      setError(error.message);
     } finally {
       setIsSubmitting(false);
     }
@@ -141,6 +195,17 @@ function App() {
 
   if (isLoading) {
     return <div className="loading">Loading configuration...</div>;
+  }
+
+  if (error) {
+    return (
+      <div className="form-container">
+        <div className="error-message">
+          <h2>Error</h2>
+          <p>{error}</p>
+        </div>
+      </div>
+    );
   }
 
   return (

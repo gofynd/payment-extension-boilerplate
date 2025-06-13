@@ -17,7 +17,7 @@ const CREDENTIAL_FIELDS = [
  * @param {Object} req - Express request object
  * @param {Object} req.params - Parameters from the URL
  * @param {string} req.params.app_id - Application ID
- * @param {string} req.params.company_id - Company ID
+ * @param {Object} req.fdkSession - Session object containing company_id
  * @param {Object} req.body - Request body
  * @param {Array} req.body.data - Array of credentials data
  * @param {Object} res - Express response object
@@ -90,14 +90,13 @@ exports.createSecretsHandler = async (req, res) => {
  * @param {Object} req - Express request object
  * @param {Object} req.params - Parameters from the URL
  * @param {string} req.params.app_id - Application ID
- * @param {string} req.params.company_id - Company ID
+ * @param {Object} req.fdkSession - Session object containing company_id
  * @param {Object} res - Express response object
  */
 exports.getSecretsHandler = async (req, res) => {
   try {
     const { app_id: appId } = req.params;
     const { company_id: companyId } = req.fdkSession;
-
 
     // Fetch encrypted secrets from the database
     const encryptedSecret = await Secret.findOne({
@@ -128,7 +127,7 @@ exports.getSecretsHandler = async (req, res) => {
       success: true,
       app_id: appId,
       is_active: true,
-      data: req.path.startsWith('/secrets') ? [] : creds,
+      data: creds,
     };
     return res.status(200).json(responseData);
   } catch (error) {

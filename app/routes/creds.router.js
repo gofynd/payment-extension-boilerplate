@@ -27,22 +27,22 @@ credsRouter.get('/secrets/:app_id', verifyExtensionAuth, getSecretsHandler);
 credsRouter.post('/secrets', verifyExtensionAuth, createSecretsHandler);
 
 /**
- * @route GET /credentials/:company_id/:app_id
+ * @route GET /company/:company_id/credentials/:app_id
  * @desc Fetch merchant credentials by company ID and app ID
  * @access Private (requires application ID verification)
  */
 extensionCredsRouter.get(
-  '/credentials/:company_id/:app_id',
+  '/company/:company_id/credentials/:app_id',
   getSecretsHandler
 );
 
 /**
- * @route POST /credentials/:company_id/:app_id
+ * @route POST /company/:company_id/credentials/:app_id
  * @desc Create merchant credentials by company ID and app ID
  * @access Private (requires application ID verification)
  */
 extensionCredsRouter.post(
-  '/credentials/:company_id/:app_id',
+  '/company/:company_id/credentials/:app_id',
   createSecretsHandler
 );
 

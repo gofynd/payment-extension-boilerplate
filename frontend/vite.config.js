@@ -62,7 +62,6 @@ export default defineConfig({
       '^/fp(/|(\\?.*)?$)': proxyOptions,
       '^/adm(/|(\\?.*)?$)': proxyOptions,
       '^/protected(/|(\\?.*)?$)': proxyOptions,
-      '^/company/.*/application/.*': proxyOptions,
       '^/v1(/|(\\?.*)?$)': proxyOptions,
       '^/payment(/|(\\?.*)?$)': proxyOptions,
       '^/creds(/|(\\?.*)?$)': proxyOptions
