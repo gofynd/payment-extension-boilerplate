@@ -2,19 +2,19 @@ const express = require('express');
 
 class CredsService {
   constructor(handlers = {}) {
-    if (!handlers.createSecrets || !handlers.getSecrets) {
+    if (!handlers.createSecrets || !handlers.checkPaymentReadiness) {
       throw new Error('Required handlers missing for CredsService');
     }
     
     this.createSecrets = handlers.createSecrets;
-    this.getSecrets = handlers.getSecrets;
+    this.checkPaymentReadiness = handlers.checkPaymentReadiness;
   }
 
   registerRoutes(app) {
     const router = express.Router();
 
     // Register credential routes
-    router.get('/secrets/:app_id', this.getSecrets);
+    router.get('/secrets/:app_id', this.checkPaymentReadiness);
     router.post('/secrets', this.createSecrets);
 
     // Mount the router

@@ -26,7 +26,7 @@ const {
 } = require('./controllers/orderController');
 const {
   createSecretsHandler,
-  getSecretsHandler,
+  checkPaymentReadinessHandler,
 } = require('./controllers/credsController');
 
 const app = express();
@@ -61,7 +61,7 @@ const paymentService = new PaymentService({
 // Initialize credentials service with existing handlers
 const credsService = new CredsService({
   createSecrets: createSecretsHandler,
-  getSecrets: getSecretsHandler
+  checkPaymentReadiness: checkPaymentReadinessHandler
 });
 
 // Register service routes
@@ -71,6 +71,8 @@ credsService.registerRoutes(app);
 // Routes mounted on platformApiRoutes will have fdkSession middleware attached to the request object,
 // providing access to authenticated session data and platform context for secure API endpoints.
 const { platformApiRoutes } = fdkExtension;
+
+// These protected routes will be called by the extension UI
 platformApiRoutes.use('/v1', extensionCredsRouter);
 app.use('/protected', platformApiRoutes);
 

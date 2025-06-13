@@ -2,7 +2,6 @@ const config = require('../config');
 const { Secret } = require('../models/model');
 const EncryptHelper = require('../utils/encryptUtils');
 const _ = require('lodash');
-const crypto = require('crypto-js');
 
 const { encryption_key: encryptionKey } = config;
 
@@ -83,6 +82,7 @@ exports.createSecretsHandler = async (req, res) => {
   }
 };
 
+
 /**
  * @desc Get merchant credentials
  * @route GET /api/v1/secrets
@@ -132,6 +132,50 @@ exports.getSecretsHandler = async (req, res) => {
     return res.status(200).json(responseData);
   } catch (error) {
     console.error('Error in getSecretsHandler:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
+    });
+  }
+};
+
+/**
+ * @desc Check if payment processing is ready by verifying secrets existence
+ * @route GET /api/v1/payment-readiness
+ * @access Private
+ * @param {Object} req - Express request object
+ * @param {Object} req.params - Parameters from the URL
+ * @param {string} req.params.app_id - Application ID
+ * @param {Object} res - Express response object
+ */
+exports.checkPaymentReadinessHandler = async (req, res) => {
+  try {
+    const { app_id: appId } = req.params;
+
+    // Validate required parameters
+    if (!appId) {
+      return res
+        .status(400)
+        .json({ success: false, message: 'Missing app_id' });
+    }
+
+    // Check if secrets exist in the database
+    const secret = await Secret.findOne({
+      app_id: appId,
+    });
+
+    const responseData = {
+      success: true,
+      application_id: appId,
+      is_active: !!secret,
+      data: [], // Empty list added for now, will be removed in future releases
+      message: secret ? 'Payment processing is ready' : 'Payment processing is not configured'
+    };
+
+    return res.status(200).json(responseData);
+  } catch (error) {
+    console.error('Error in checkPaymentReadinessHandler:', error);
     res.status(500).json({
       success: false,
       message: 'Internal server error',

@@ -11,20 +11,7 @@ const {
   getSecretsHandler,
 } = require('../controllers/credsController');
 
-/**
- * @route GET /secrets/:app_id
- * @desc Fetch merchant secrets by app ID
- * @access Private (requires extension authentication)
- */
-credsRouter.get('/secrets/:app_id', verifyExtensionAuth, getSecretsHandler);
 
-/**
- * @route POST /secrets
- * @desc Create merchant secrets
- * @access Private (requires extension authentication)
- * @desc - This api is being called by platform to confirm the activation of extension
- */
-credsRouter.post('/secrets', verifyExtensionAuth, createSecretsHandler);
 
 /**
  * @route GET /company/:company_id/credentials/:app_id
