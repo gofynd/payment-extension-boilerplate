@@ -12,7 +12,7 @@ const STATIC_PATH = process.env.NODE_ENV === 'production'
 
 const { fdkExtension } = require('./fdk');
 const errorHandler = require('./middleware/errorHandler');
-const { apiRouter } = require('./routes/creds.router');
+const { extensionCredsRouter } = require('./routes/creds.router');
 const { PaymentService } = require('./services/payment.service');
 const { CredsService } = require('./services/creds.service');
 const {
@@ -68,9 +68,9 @@ const credsService = new CredsService({
 paymentService.registerRoutes(app);
 credsService.registerRoutes(app);
 
-const { apiRoutes } = fdkExtension;
-apiRoutes.use('/v1', apiRouter);
-app.use('/protected', apiRoutes);
+const { platformApiRoutes } = fdkExtension;
+platformApiRoutes.use('/v1', extensionCredsRouter);
+app.use('/protected', platformApiRoutes);
 
 app.use(errorHandler);
 

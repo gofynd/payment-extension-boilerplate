@@ -23,21 +23,6 @@ const verifyExtensionAuth = (req, res, next) => {
   next();
 };
 
-const verifyApplicationId = (req, res, next) => {
-  const pathApplicationId = req.params.app_id;
-  const headerApplicationId = req.headers['x-application-id'];
-
-  if (
-    pathApplicationId &&
-    headerApplicationId &&
-    pathApplicationId === headerApplicationId
-  ) {
-    next();
-  } else {
-    throw new AuthorizationError('Authorization failed');
-  }
-};
-
 const verifyStatusChecksum = (req, res, next) => {
   const { gid } = req.params;
 
@@ -51,6 +36,5 @@ const verifyStatusChecksum = (req, res, next) => {
 module.exports = {
   verifyPlatformChecksum,
   verifyExtensionAuth,
-  verifyStatusChecksum,
-  verifyApplicationId,
+  verifyStatusChecksum
 };

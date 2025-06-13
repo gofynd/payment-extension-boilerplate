@@ -1,11 +1,10 @@
 const express = require('express');
 const {
   verifyExtensionAuth,
-  verifyApplicationId,
 } = require('../middleware/verifyChecksum');
 
 const credsRouter = express.Router();
-const apiRouter = express.Router();
+const extensionCredsRouter = express.Router();
 
 const {
   createSecretsHandler,
@@ -32,9 +31,8 @@ credsRouter.post('/secrets', verifyExtensionAuth, createSecretsHandler);
  * @desc Fetch merchant credentials by company ID and app ID
  * @access Private (requires application ID verification)
  */
-apiRouter.get(
+extensionCredsRouter.get(
   '/credentials/:company_id/:app_id',
-  verifyApplicationId,
   getSecretsHandler
 );
 
@@ -43,13 +41,12 @@ apiRouter.get(
  * @desc Create merchant credentials by company ID and app ID
  * @access Private (requires application ID verification)
  */
-apiRouter.post(
+extensionCredsRouter.post(
   '/credentials/:company_id/:app_id',
-  verifyApplicationId,
   createSecretsHandler
 );
 
 module.exports = {
   credsRouter,
-  apiRouter,
+  extensionCredsRouter,
 };
