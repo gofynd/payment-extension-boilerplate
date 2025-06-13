@@ -6,7 +6,7 @@ import App from '../App';
 const router = createBrowserRouter(
   [
     {
-      path: '/company/:company_id/application/:application_id',
+      path: '/credentials',
       element: <App />,
       loader: routeGuard,
     },

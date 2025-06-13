@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { FaRegEye, FaRegEyeSlash } from 'react-icons/fa';
+import { FaRegEye, FaRegEyeSlash, FaInfoCircle } from 'react-icons/fa';
 import './App.css';
 
 // Utility functions
-const getCompany = () => window.location.pathname.split('/')[2];
-const getApplication = () => window.location.pathname.split('/')[4];
+const getCompany = () => new URLSearchParams(window.location.search).get('company_id');
+const getApplication = () => new URLSearchParams(window.location.search).get('application_id');
 
 // API endpoints
 const getCredentialsUrl = (companyId, appId) => 
@@ -14,7 +14,7 @@ const getCredentialsUrl = (companyId, appId) =>
 function App() {
   const [formData, setFormData] = useState({});
   const [showSuccessBanner, setShowSuccessBanner] = useState(false);
-  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const [isPasswordVisible, setIsPasswordVisible] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [params, setParams] = useState([]);
@@ -73,8 +73,10 @@ function App() {
         },
         body: JSON.stringify({ data: body }),
       });
-debugger;
-      if (response.json().success === true) {
+
+      const data = await response.json();
+      
+      if (data.success === true) {
         setShowSuccessBanner(true);
         setTimeout(() => setShowSuccessBanner(false), 3000);
       }
@@ -85,54 +87,90 @@ debugger;
     }
   };
 
+  const togglePasswordVisibility = (fieldId) => {
+    setIsPasswordVisible(prev => ({
+      ...prev,
+      [fieldId]: !prev[fieldId]
+    }));
+  };
+
+  const renderCredentialsSection = () => (
+    <div className="section">
+      <h2>API Credentials</h2>
+      <p className="section-description">
+        Configure your payment gateway API credentials below. These credentials are essential for authenticating and processing payments through your gateway. Make sure to use the correct credentials provided by your payment gateway provider.
+      </p>
+      {params.map((param) => (
+        param.display !== false && (
+          <div key={param.slug} className="form-field">
+            <label htmlFor={param.slug}>
+              {param.name}
+              {param.required && <span className="required">*</span>}
+              {param.description && (
+                <span className="field-tooltip">
+                  <FaInfoCircle />
+                  <span className="tooltip-text">{param.description}</span>
+                </span>
+              )}
+            </label>
+            <div className="input-group">
+              <input
+                id={param.slug}
+                required={param.required}
+                name={param.name}
+                value={formData[param.slug]}
+                type={isPasswordVisible[param.slug] ? 'text' : 'password'}
+                onChange={handleInputChange}
+                disabled={isSubmitting}
+                placeholder={param.placeholder || ''}
+              />
+              <button
+                type="button"
+                className="toggle-password"
+                onClick={() => togglePasswordVisibility(param.slug)}
+                disabled={isSubmitting}
+              >
+                {isPasswordVisible[param.slug] ? <FaRegEye size={20} /> : <FaRegEyeSlash size={20} />}
+              </button>
+            </div>
+          </div>
+        )
+      ))}
+    </div>
+  );
+
   if (isLoading) {
-    return null;
+    return <div className="loading">Loading configuration...</div>;
   }
 
   return (
     <div className="form-container">
-      <h1>Credentials</h1>
+      <h1>Payment Gateway Configuration</h1>
+      
+      <div className="note-box">
+        <p>
+          <strong>Welcome to Payment Gateway Setup!</strong> This is a starter template that you need to customize to match your payment gateway's requirements. Feel free to modify the interface, add new fields, or adjust the styling to create the perfect integration for your needs.
+        </p>
+      </div>
+      
       <form onSubmit={handleSubmit} noValidate>
-        {params.map((param) => (
-          param.display !== false && (
-            <div key={param.slug} className="form-field">
-              <label htmlFor={param.slug}>
-                {param.name}
-                {param.required && <span className="required">*</span>}
-              </label>
-              <div className="input-group">
-                <input
-                  id={param.slug}
-                  required={param.required}
-                  name={param.name}
-                  value={formData[param.slug]}
-                  type={isPasswordVisible ? 'text' : 'password'}
-                  onChange={handleInputChange}
-                  disabled={isSubmitting}
-                />
-                <button
-                  type="button"
-                  className="toggle-password"
-                  onClick={() => setIsPasswordVisible(!isPasswordVisible)}
-                  disabled={isSubmitting}
-                >
-                  {isPasswordVisible ? <FaRegEye size={20} /> : <FaRegEyeSlash size={20} />}
-                </button>
-              </div>
-            </div>
-          )
-        ))}
-        <button 
-          type="submit" 
-          className="submit-button"
-          disabled={isSubmitting || isLoading}
-        >
-          {isSubmitting ? 'Submitting..' : 'Submit'}
-        </button>
+        {renderCredentialsSection()}
+        
+        <div className="form-actions">
+          <button 
+            type="submit" 
+            className="submit-button"
+            disabled={isSubmitting || isLoading}
+          >
+            {isSubmitting ? 'Saving...' : 'Save'}
+          </button>
+        </div>
       </form>
+
       {showSuccessBanner && (
-        <div className="message-box">
-          Updated Successfully
+        <div className="message-box success">
+          <span className="success-icon">✓</span>
+          <span>Configuration saved successfully</span>
         </div>
       )}
     </div>

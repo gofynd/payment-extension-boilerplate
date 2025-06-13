@@ -9,7 +9,7 @@ const fdkExtension = setupFdk({
   callbacks: {
     auth: async req =>
       // Write you code here to return initial launch url after suth process complete
-      `${req.extension.base_url}/company/${req.query.company_id}/application/${req.query.application_id}`,
+      `${req.extension.base_url}/credentials?application_id=${req.extension.application_id}`,
     uninstall: async () => {
       // Any clean up activity here
       console.log('Uninstalling extension');
