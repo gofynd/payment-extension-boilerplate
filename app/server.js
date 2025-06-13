@@ -68,6 +68,8 @@ const credsService = new CredsService({
 paymentService.registerRoutes(app);
 credsService.registerRoutes(app);
 
+// Routes mounted on platformApiRoutes will have fdkSession middleware attached to the request object,
+// providing access to authenticated session data and platform context for secure API endpoints.
 const { platformApiRoutes } = fdkExtension;
 platformApiRoutes.use('/v1', extensionCredsRouter);
 app.use('/protected', platformApiRoutes);

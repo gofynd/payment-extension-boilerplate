@@ -4,7 +4,7 @@ const DEFAULT_CONFIG = {
   FP_API_SERVER: 'https://api.fynd.com',
   PG_BASE_URL: '/',
   EXTENSION_SLUG: 'dummy',
-  MONGO_URI: 'mongodb://localhost:27017/dummy_test'
+  MONGO_URI: 'mongodb://localhost:27017/example-payment-extension-javascript'
 };
 
 module.exports = {

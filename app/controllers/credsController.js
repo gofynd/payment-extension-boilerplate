@@ -24,7 +24,8 @@ const CREDENTIAL_FIELDS = [
  */
 exports.createSecretsHandler = async (req, res) => {
   try {
-    const { app_id: appId, company_id: companyId } = req.params;
+    const { app_id: appId } = req.params;
+    const { company_id: companyId } = req.fdkSession;
 
     // Validate required parameters
     if (!appId || !companyId) {
@@ -94,11 +95,14 @@ exports.createSecretsHandler = async (req, res) => {
  */
 exports.getSecretsHandler = async (req, res) => {
   try {
-    const { app_id: appId, company_id: companyId } = req.params;
+    const { app_id: appId } = req.params;
+    const { company_id: companyId } = req.fdkSession;
+
 
     // Fetch encrypted secrets from the database
     const encryptedSecret = await Secret.findOne({
       app_id: appId,
+      company_id: companyId
     });
 
     // If no secrets are found, return default credential fields
