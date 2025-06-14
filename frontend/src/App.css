@@ -297,15 +297,27 @@ input[type="url"]:focus {
 }
 
 /* Loader */
-.loader {
+.loader-container {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
-  min-height: 200px;
+  justify-content: center;
+  margin: 20px 0;
 }
 
-.loader img {
-  height: 100px;
+.loader {
+  width: 48px;
+  height: 48px;
+  border: 5px solid #f3f3f3;
+  border-top: 5px solid #3498db;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 10px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 .button-loader {

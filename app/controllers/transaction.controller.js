@@ -375,6 +375,9 @@ exports.paymentCallbackHandler = async (req, res, next) => {
     } else if (callbackPayload.status === 'PAYMENT_COMPLETE') {
       status = paymentStatus.COMPLETE;
       paymentId = callbackPayload.transaction_id;
+    } else {
+      status = paymentStatus.FAILED;
+      paymentId = callbackPayload.transaction_id;
     }
 
     const payload = {
@@ -382,12 +385,12 @@ exports.paymentCallbackHandler = async (req, res, next) => {
       order_details: {
         gid,
         amount: storedPayment.amount,
-        status,
+        status: status ? String(status) : null,
         currency: storedPayment.currency,
         aggregator_order_details: storedPayment,
         aggregator: 'Dummy',
       },
-      status,
+      status: status ? String(status) : null,
       currency: storedPayment.currency,
       total_amount: storedPayment.amount,
       payment_details: [
@@ -395,25 +398,31 @@ exports.paymentCallbackHandler = async (req, res, next) => {
           gid,
           amount: storedPayment.amount,
           currency: storedPayment.currency,
-          payment_id: paymentId,
+          payment_id: paymentId ? String(paymentId) : null,
           mode: config.env,
           success_url: storedPayment.success_url,
           cancel_url: storedPayment.cancel_url,
           amount_captured: storedPayment.amount,
           payment_methods: storedPayment.payment_methods,
           g_user_id: storedPayment.g_user_id,
-          aggregator_order_id: paymentId,
-          status,
+          aggregator_order_id: paymentId ? String(paymentId) : null,
+          status: status ? String(status) : null,
           created: String(Date.now()),
         },
       ],
+    };
+
+    const checksum = getHmacChecksum(JSON.stringify(payload), config.api_secret);
+    const payloadWithChecksum = {
+      ...payload,
+      checksum,
     };
 
     const platformClient = await fdkExtension.getPlatformClient(company_id);
     const applicationClient = platformClient.application(app_id);
     await applicationClient.payment.updatePaymentSession({
       gid,
-      body: payload,
+      body: payloadWithChecksum,
     });
 
     // Get success/cancel URLs from stored payment
@@ -425,7 +434,7 @@ exports.paymentCallbackHandler = async (req, res, next) => {
     };
     console.log('LOG:Callback response', responseData);
     
-    return res.status(308).render('redirector', responseData);
+    return res.status(200).json(responseData);
   } catch (error) {
     next(error);
   }
@@ -501,10 +510,10 @@ exports.processWebhook = async (req, res, next) => {
       ],
     };
 
-    const webhookChecksum = getHmacChecksum(JSON.stringify(payload), config.api_secret);
+    const checksum = getHmacChecksum(JSON.stringify(payload), config.api_secret);
     const payloadWithChecksum = {
       ...payload,
-      checksum: webhookChecksum,
+      checksum,
     };
 
     const platformClient = await fdkExtension.getPlatformClient(data.company_id);
@@ -592,10 +601,10 @@ exports.processRefundWebhook = async (req, res, next) => {
       meta: data,
     };
 
-    const refundWebhookChecksum = getHmacChecksum(JSON.stringify(payload), config.api_secret);
+    const checksum = getHmacChecksum(JSON.stringify(payload), config.api_secret);
     const payloadWithChecksum = {
       ...payload,
-      checksum: refundWebhookChecksum,
+      checksum,
     };
 
     const platformClient = await fdkExtension.getPlatformClient(data.company_id);

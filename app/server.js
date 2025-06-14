@@ -5,7 +5,6 @@ const path = require('path');
 const serveStatic = require("serve-static");
 const { readFileSync } = require('fs');
 
-
 const STATIC_PATH = process.env.NODE_ENV === 'production'
   ? path.join(process.cwd(), 'frontend', 'public', 'dist')
   : path.join(process.cwd(), 'frontend');
@@ -45,9 +44,6 @@ app.use(serveStatic(STATIC_PATH, { index: false }));
 app.use('/', fdkExtension.fdkHandler);
 
 // Initialize payment service with existing handlers
-// These handlers are implemented in orderController.js and use AggregatorProcessor
-// for payment gateway specific operations. Developers can replace these handlers
-// with their own implementation if needed.
 const paymentService = new PaymentService({
   initiatePaymentToPG: initiatePaymentToPGHandler,
   getPaymentDetails: getPaymentDetailsHandler,
@@ -80,21 +76,12 @@ app.use('/protected', platformApiRoutes);
 
 app.use(errorHandler);
 
-// app.get('/company/:company_id/application/:app_id', (req, res) => {
-//   res.contentType('text/html');
-//   res.sendFile(path.join(STATIC_PATH, 'index.html'));
-// });
-
+// Catch-all route to serve the React app
 app.get('*', (req, res) => {
   return res
-  .status(200)
-  .set("Content-Type", "text/html")
-  .send(readFileSync(path.join(STATIC_PATH, "index.html")));
+    .status(200)
+    .set("Content-Type", "text/html")
+    .send(readFileSync(path.join(STATIC_PATH, "index.html")));
 });
-
-app.engine('html', require('ejs').renderFile);
-
-app.set('view engine', 'html');
-app.set('views', path.join(__dirname, 'views'));
 
 module.exports = app;
