@@ -24,9 +24,8 @@ const {
   processRefundWebhook,
 } = require('./controllers/transaction.controller');
 const {
-  createSecretsHandler,
   checkPaymentReadinessHandler,
-} = require('./controllers/credsController');
+} = require('./controllers/creds.controller');
 
 const app = express();
 
@@ -53,7 +52,6 @@ const paymentService = new PaymentService({
 
 // Initialize credentials service with existing handlers
 const credsService = new CredsService({
-  createSecrets: createSecretsHandler,
   checkPaymentReadiness: checkPaymentReadinessHandler
 });
 

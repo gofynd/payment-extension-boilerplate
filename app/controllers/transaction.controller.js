@@ -1,8 +1,21 @@
 const { fdkExtension } = require('../fdk');
 const config = require('../config');
 const { getHmacChecksum } = require('../utils/signatureUtils');
-const { paymentStatus, refundStatus } = require('../services/aggregator/config');
 const PaymentModel = require('../models/payment.model');
+
+// Payment status constants
+const paymentStatus = {
+  COMPLETE: 'complete',
+  PENDING: 'pending',
+  FAILED: 'failed'
+};
+
+// Refund status constants
+const refundStatus = {
+  INITIATED: 'initiated',
+  COMPLETE: 'complete',
+  FAILED: 'failed'
+};
 
 /**
  * Creates a new payment order and initiates payment gateway integration

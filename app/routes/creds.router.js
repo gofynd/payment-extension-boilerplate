@@ -1,15 +1,10 @@
 const express = require('express');
-const {
-  verifyExtensionAuth,
-} = require('../middleware/verifyChecksum');
-
-const credsRouter = express.Router();
 const extensionCredsRouter = express.Router();
 
 const {
   createSecretsHandler,
   getSecretsHandler,
-} = require('../controllers/credsController');
+} = require('../controllers/creds.controller');
 
 
 
@@ -34,6 +29,5 @@ extensionCredsRouter.post(
 );
 
 module.exports = {
-  credsRouter,
-  extensionCredsRouter,
+  extensionCredsRouter
 };

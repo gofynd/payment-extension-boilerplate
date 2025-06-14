@@ -1,6 +1,6 @@
 const config = require('../config');
-const { Secret } = require('../models/model');
 const EncryptHelper = require('../utils/encryptUtils');
+const CredsModel = require('../models/creds.model');
 const _ = require('lodash');
 
 const { encryption_key: encryptionKey } = config;
@@ -56,12 +56,8 @@ exports.createSecretsHandler = async (req, res) => {
       JSON.stringify(data)
     );
 
-    // Save or update the encrypted secrets in the database
-    await Secret.findOneAndUpdate(
-      { app_id: appId, company_id: companyId }, // Filter
-      { secrets: encryptedSecret }, // Update
-      { upsert: true, new: true } // Options
-    );
+    // Save the encrypted secrets in SQLite
+    await CredsModel.storeCreds(appId, companyId, encryptedSecret);
 
     // Construct response
     const response = {
@@ -82,7 +78,6 @@ exports.createSecretsHandler = async (req, res) => {
   }
 };
 
-
 /**
  * @desc Get merchant credentials
  * @route GET /api/v1/secrets
@@ -98,11 +93,8 @@ exports.getSecretsHandler = async (req, res) => {
     const { app_id: appId } = req.params;
     const { company_id: companyId } = req.fdkSession;
 
-    // Fetch encrypted secrets from the database
-    const encryptedSecret = await Secret.findOne({
-      app_id: appId,
-      company_id: companyId
-    });
+    // Fetch encrypted secrets from SQLite
+    const encryptedSecret = await CredsModel.getCreds(appId, companyId);
 
     // If no secrets are found, return default credential fields
     if (!encryptedSecret) {
@@ -115,7 +107,7 @@ exports.getSecretsHandler = async (req, res) => {
     }
 
     // Decrypt the secrets and construct the response
-    let secrets = EncryptHelper.decrypt(encryptionKey, encryptedSecret.secrets);
+    let secrets = EncryptHelper.decrypt(encryptionKey, encryptedSecret);
     secrets = JSON.parse(secrets);
 
     const creds = CREDENTIAL_FIELDS.map(field => ({
@@ -160,17 +152,15 @@ exports.checkPaymentReadinessHandler = async (req, res) => {
         .json({ success: false, message: 'Missing app_id' });
     }
 
-    // Check if secrets exist in the database
-    const secret = await Secret.findOne({
-      app_id: appId,
-    });
+    // Check if secrets exist in SQLite
+    const hasCreds = await CredsModel.checkCredsExist(appId);
 
     const responseData = {
       success: true,
       application_id: appId,
-      is_active: !!secret,
+      is_active: hasCreds,
       data: [], // Empty list added for now, will be removed in future releases
-      message: secret ? 'Payment processing is ready' : 'Payment processing is not configured'
+      message: hasCreds ? 'Payment processing is ready' : 'Payment processing is not configured'
     };
 
     return res.status(200).json(responseData);
@@ -182,4 +172,4 @@ exports.checkPaymentReadinessHandler = async (req, res) => {
       error: error.message
     });
   }
-};
+}; 

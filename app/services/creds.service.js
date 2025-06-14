@@ -2,11 +2,10 @@ const express = require('express');
 
 class CredsService {
   constructor(handlers = {}) {
-    if (!handlers.createSecrets || !handlers.checkPaymentReadiness) {
+    if (!handlers.checkPaymentReadiness) {
       throw new Error('Required handlers missing for CredsService');
     }
     
-    this.createSecrets = handlers.createSecrets;
     this.checkPaymentReadiness = handlers.checkPaymentReadiness;
   }
 
@@ -15,7 +14,6 @@ class CredsService {
 
     // Register credential routes
     router.get('/secrets/:app_id', this.checkPaymentReadiness);
-    router.post('/secrets', this.createSecrets);
 
     // Mount the router
     app.use('/api/v1', router);

@@ -1,7 +1,7 @@
 const {
   getSecretsHandler,
   createSecretsHandler,
-} = require('../controllers/credsController');
+} = require('../controllers/creds.controller');
 
 const mockResponse = {
   status: jest.fn().mockReturnThis(),
