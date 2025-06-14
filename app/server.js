@@ -16,14 +16,14 @@ const { extensionCredsRouter } = require('./routes/creds.router');
 const { PaymentService } = require('./services/payment.service');
 const { CredsService } = require('./services/creds.service');
 const {
-  createOrderHandler,
+  initiatePaymentToPGHandler,
   getPaymentDetailsHandler,
   paymentCallbackHandler,
   createRefundHandler,
   getRefundDetailsHandler,
   processWebhook,
   processRefundWebhook,
-} = require('./controllers/orderController');
+} = require('./controllers/transaction.controller');
 const {
   createSecretsHandler,
   checkPaymentReadinessHandler,
@@ -49,13 +49,10 @@ app.use('/', fdkExtension.fdkHandler);
 // for payment gateway specific operations. Developers can replace these handlers
 // with their own implementation if needed.
 const paymentService = new PaymentService({
-  createOrder: createOrderHandler,
+  initiatePaymentToPG: initiatePaymentToPGHandler,
   getPaymentDetails: getPaymentDetailsHandler,
-  paymentCallback: paymentCallbackHandler,
   createRefund: createRefundHandler,
-  getRefundDetails: getRefundDetailsHandler,
-  processWebhook: processWebhook,
-  processRefundWebhook: processRefundWebhook
+  getRefundDetails: getRefundDetailsHandler
 });
 
 // Initialize credentials service with existing handlers
@@ -67,6 +64,11 @@ const credsService = new CredsService({
 // Register service routes
 paymentService.registerRoutes(app);
 credsService.registerRoutes(app);
+
+// Payment Gateway webhook routes
+app.post('/api/v1/payment_callback/:company_id/:app_id', paymentCallbackHandler);
+app.post('/api/v1/webhook/payment/:company_id/:app_id', processWebhook);
+app.post('/api/v1/webhook/refund/:company_id/:app_id', processRefundWebhook);
 
 // Routes mounted on platformApiRoutes will have fdkSession middleware attached to the request object,
 // providing access to authenticated session data and platform context for secure API endpoints.

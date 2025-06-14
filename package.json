@@ -16,7 +16,8 @@
     "lodash": "^4.17.21",
     "luxon": "^3.4.0",
     "mongoose": "^8.1.1",
-    "serve-static": "^2.2.0"
+    "serve-static": "^2.2.0",
+    "sqlite3": "^5.1.7"
   },
   "scripts": {
     "start": "node index.js",

@@ -1,12 +1,12 @@
 const { 
-  createOrderHandler,
+  initiatePaymentToPGHandler,
   createRefundHandler,
   getPaymentDetailsHandler,
   getRefundDetailsHandler,
   paymentCallbackHandler,
   processWebhook,
   processRefundWebhook
-} = require('../controllers/orderController');
+} = require('../controllers/transaction.controller');
 
 describe('Order Controller', () => {
   let mockRequest;
@@ -26,7 +26,7 @@ describe('Order Controller', () => {
     mockNext = jest.fn();
   });
 
-  describe('createOrderHandler', () => {
+  describe('initiatePaymentToPGHandler', () => {
     test('should create order successfully with valid data', async () => {
       mockRequest.body = {
         amount: 1000,
@@ -35,7 +35,7 @@ describe('Order Controller', () => {
         customer_details: { name: 'Test User' }
       };
 
-      await createOrderHandler(mockRequest, mockResponse, mockNext);
+      await initiatePaymentToPGHandler(mockRequest, mockResponse, mockNext);
 
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith(
@@ -57,7 +57,7 @@ describe('Order Controller', () => {
         // Missing currency and payment_method
       };
 
-      await createOrderHandler(mockRequest, mockResponse, mockNext);
+      await initiatePaymentToPGHandler(mockRequest, mockResponse, mockNext);
 
       expect(mockNext).toHaveBeenCalledWith(expect.any(Error));
     });
