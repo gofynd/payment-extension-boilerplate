@@ -5,6 +5,20 @@ const {
 
 class PaymentService {
   constructor(handlers) {
+    // Validate that all required handlers are provided
+    const requiredHandlers = [
+      'initiatePaymentToPG',
+      'getPaymentDetails',
+      'createRefund',
+      'getRefundDetails'
+    ];
+
+    for (const handler of requiredHandlers) {
+      if (!handlers[handler] || typeof handlers[handler] !== 'function') {
+        throw new Error(`Missing or invalid handler: ${handler}`);
+      }
+    }
+
     this.handlers = {
       initiatePaymentToPG: handlers.initiatePaymentToPG,
       getPaymentDetails: handlers.getPaymentDetails,

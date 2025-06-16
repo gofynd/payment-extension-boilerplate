@@ -20,8 +20,8 @@ const {
   paymentCallbackHandler,
   createRefundHandler,
   getRefundDetailsHandler,
-  processWebhook,
-  processRefundWebhook,
+  processPaymentWebhookHandler,
+  processRefundWebhookHandler,
 } = require('./controllers/transaction.controller');
 const {
   checkPaymentReadinessHandler,
@@ -61,8 +61,8 @@ credsService.registerRoutes(app);
 
 // Payment Gateway webhook routes
 app.post('/api/v1/payment_callback/:company_id/:app_id', paymentCallbackHandler);
-app.post('/api/v1/webhook/payment/:company_id/:app_id', processWebhook);
-app.post('/api/v1/webhook/refund/:company_id/:app_id', processRefundWebhook);
+app.post('/api/v1/webhook/payment/:company_id/:app_id', processPaymentWebhookHandler);
+app.post('/api/v1/webhook/refund/:company_id/:app_id', processRefundWebhookHandler);
 
 // Routes mounted on platformApiRoutes will have fdkSession middleware attached to the request object,
 // providing access to authenticated session data and platform context for secure API endpoints.

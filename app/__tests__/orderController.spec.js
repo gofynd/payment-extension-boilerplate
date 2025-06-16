@@ -4,8 +4,8 @@ const {
   getPaymentDetailsHandler,
   getRefundDetailsHandler,
   paymentCallbackHandler,
-  processWebhook,
-  processRefundWebhook
+  processPaymentWebhookHandler,
+  processRefundWebhookHandler
 } = require('../controllers/transaction.controller');
 
 describe('Order Controller', () => {
@@ -180,14 +180,14 @@ describe('Order Controller', () => {
     });
   });
 
-  describe('processWebhook', () => {
+  describe('processPaymentWebhookHandler', () => {
     test('should process webhook successfully', async () => {
       mockRequest.body = {
         data: { status: 'success' },
         headers: { signature: 'valid_signature' }
       };
 
-      await processWebhook(mockRequest, mockResponse, mockNext);
+      await processPaymentWebhookHandler(mockRequest, mockResponse, mockNext);
 
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith(
@@ -201,20 +201,20 @@ describe('Order Controller', () => {
     test('should handle invalid webhook payload', async () => {
       mockRequest.body = {};
 
-      await processWebhook(mockRequest, mockResponse, mockNext);
+      await processPaymentWebhookHandler(mockRequest, mockResponse, mockNext);
 
       expect(mockNext).toHaveBeenCalledWith(expect.any(Error));
     });
   });
 
-  describe('processRefundWebhook', () => {
+  describe('processRefundWebhookHandler', () => {
     test('should process refund webhook successfully', async () => {
       mockRequest.body = {
         data: { status: 'refund_success' },
         headers: { signature: 'valid_signature' }
       };
 
-      await processRefundWebhook(mockRequest, mockResponse, mockNext);
+      await processRefundWebhookHandler(mockRequest, mockResponse, mockNext);
 
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith(
@@ -228,7 +228,7 @@ describe('Order Controller', () => {
     test('should handle invalid refund webhook payload', async () => {
       mockRequest.body = {};
 
-      await processRefundWebhook(mockRequest, mockResponse, mockNext);
+      await processRefundWebhookHandler(mockRequest, mockResponse, mockNext);
 
       expect(mockNext).toHaveBeenCalledWith(expect.any(Error));
     });

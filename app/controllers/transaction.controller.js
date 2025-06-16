@@ -455,7 +455,7 @@ exports.paymentCallbackHandler = async (req, res, next) => {
   }
 };
 
-exports.processWebhook = async (req, res, next) => {
+exports.processPaymentWebhookHandler = async (req, res, next) => {
   try {
     const webhookPayload = req.body;
     console.log('LOG: Webhook request body', webhookPayload);
@@ -548,7 +548,7 @@ exports.processWebhook = async (req, res, next) => {
   }
 };
 
-exports.processRefundWebhook = async (req, res, next) => {
+exports.processRefundWebhookHandler = async (req, res, next) => {
   try {
     const webhookPayload = req.body;
     console.log('LOG: Request body for Refund Webhook', webhookPayload);
