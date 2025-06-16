@@ -1,4 +1,4 @@
-const EncryptHelper = require('../utils/encryptUtils');
+const EncryptHelper = require('../utils/encrypt.util');
 const CredsModel = require('../models/creds.model');
 
 // Environment variables

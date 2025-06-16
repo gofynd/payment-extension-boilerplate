@@ -13,7 +13,7 @@ const STATIC_PATH = NODE_ENV === 'production'
   : path.join(process.cwd(), 'frontend');
 
 const { fdkExtension } = require('./fdk');
-const errorHandler = require('./middleware/errorHandler');
+const errorHandler = require('./middleware/error.middleware');
 const { extensionCredsRouter } = require('./routes/creds.router');
 const { PaymentService } = require('./services/payment.service');
 const { CredsService } = require('./services/creds.service');

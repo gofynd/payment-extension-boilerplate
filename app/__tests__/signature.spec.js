@@ -2,8 +2,8 @@ const {
   verifyPlatformChecksum,
   verifyExtensionAuth,
   verifyStatusChecksum,
-} = require('../middleware/verifyChecksum');
-const { AuthorizationError } = require('../utils/errorUtils');
+} = require('../middleware/checksum.middleware');
+const { AuthorizationError } = require('../utils/error.util');
 
 jest.mock('../config', () => ({
   api_secret: 'secret',

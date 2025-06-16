@@ -1,7 +1,8 @@
 const {
   verifyPlatformChecksum,
-  verifyStatusChecksum,
-} = require('../middleware/verifyChecksum');
+  verifyExtensionAuth,
+  verifyStatusChecksum
+} = require('../middleware/checksum.middleware');
 
 class PaymentService {
   constructor(handlers) {

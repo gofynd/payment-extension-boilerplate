@@ -1,5 +1,5 @@
-const { AuthorizationError } = require('../utils/errorUtils');
-const { getHmacChecksum } = require('../utils/signatureUtils');
+const { AuthorizationError } = require('../utils/error.util');
+const { getHmacChecksum } = require('../utils/signature.util');
 
 // Environment variables
 const EXTENSION_API_SECRET = process.env.EXTENSION_API_SECRET;

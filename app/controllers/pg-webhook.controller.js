@@ -1,5 +1,5 @@
 const { fdkExtension } = require('../fdk');
-const { getHmacChecksum } = require('../utils/signatureUtils');
+const { getHmacChecksum } = require('../utils/signature.util');
 const PaymentModel = require('../models/payment.model');
 
 // Environment variables
