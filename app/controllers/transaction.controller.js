@@ -1,7 +1,9 @@
 const { fdkExtension } = require('../fdk');
-const config = require('../config');
 const { getHmacChecksum } = require('../utils/signatureUtils');
 const PaymentModel = require('../models/payment.model');
+
+// Payment mode constant
+const PAYMENT_MODE = 'live'; // Can be 'live' or 'test'
 
 // Payment status constants
 const paymentStatus = {
@@ -65,7 +67,7 @@ exports.initiatePaymentToPGHandler = async (req, res, next) => {
     };
 
     // Step 2: Prepare callback URL for payment gateway webhook
-    const callbackUrl = `${config.base_url}/api/v1/callback/${requestPayload.company_id}/${requestPayload.app_id}`;
+    const callbackUrl = `${process.env.EXTENSION_BASE_URL}/api/v1/callback/${requestPayload.company_id}/${requestPayload.app_id}`;
 
     // Step 3: Prepare payment gateway request payload
     /*
@@ -256,7 +258,7 @@ exports.getPaymentDetailsHandler = async (req, res, next) => {
           amount: amountInPaise,
           currency: response.data.currency,
           payment_id: paymentId,
-          mode: config.env,
+          mode: PAYMENT_MODE,
           success_url: '',
           cancel_url: '',
           amount_captured: amountInPaise,
@@ -335,7 +337,7 @@ exports.getRefundDetailsHandler = async (req, res, next) => {
         status,
         aggregator_order_id: paymentId,
         payment_id: paymentId,
-        mode: config.env,
+        mode: PAYMENT_MODE,
         amount: amountInPaise,
         success_url: '',
         cancel_url: '',
@@ -412,7 +414,7 @@ exports.paymentCallbackHandler = async (req, res, next) => {
           amount: storedPayment.amount,
           currency: storedPayment.currency,
           payment_id: paymentId ? String(paymentId) : null,
-          mode: config.env,
+          mode: PAYMENT_MODE,
           success_url: storedPayment.success_url,
           cancel_url: storedPayment.cancel_url,
           amount_captured: storedPayment.amount,
@@ -425,7 +427,7 @@ exports.paymentCallbackHandler = async (req, res, next) => {
       ],
     };
 
-    const checksum = getHmacChecksum(JSON.stringify(payload), config.api_secret);
+    const checksum = getHmacChecksum(JSON.stringify(payload), process.env.EXTENSION_API_SECRET);
     const payloadWithChecksum = {
       ...payload,
       checksum,
@@ -510,7 +512,7 @@ exports.processWebhook = async (req, res, next) => {
           amount: amountInPaise,
           currency,
           payment_id: paymentId,
-          mode: config.env,
+          mode: PAYMENT_MODE,
           success_url: storedPayment.success_url || '',
           cancel_url: storedPayment.cancel_url || '',
           amount_captured: amountInPaise,
@@ -523,7 +525,7 @@ exports.processWebhook = async (req, res, next) => {
       ],
     };
 
-    const checksum = getHmacChecksum(JSON.stringify(payload), config.api_secret);
+    const checksum = getHmacChecksum(JSON.stringify(payload), process.env.EXTENSION_API_SECRET);
     const payloadWithChecksum = {
       ...payload,
       checksum,
@@ -600,7 +602,7 @@ exports.processRefundWebhook = async (req, res, next) => {
         status,
         aggregator_order_id: paymentId,
         payment_id: paymentId,
-        mode: config.env,
+        mode: PAYMENT_MODE,
         amount: amountInPaise,
         success_url: '',
         cancel_url: '',
@@ -614,7 +616,7 @@ exports.processRefundWebhook = async (req, res, next) => {
       meta: data,
     };
 
-    const checksum = getHmacChecksum(JSON.stringify(payload), config.api_secret);
+    const checksum = getHmacChecksum(JSON.stringify(payload), process.env.EXTENSION_API_SECRET);
     const payloadWithChecksum = {
       ...payload,
       checksum,

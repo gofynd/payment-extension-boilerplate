@@ -1,9 +1,8 @@
-const config = require('../config');
 const EncryptHelper = require('../utils/encryptUtils');
 const CredsModel = require('../models/creds.model');
 const _ = require('lodash');
 
-const { encryption_key: encryptionKey } = config;
+const encryptionKey = process.env.EXTENSION_API_SECRET;
 
 const CREDENTIAL_FIELDS = [
   { name: 'API Key', slug: 'api_key', required: true, display: true },

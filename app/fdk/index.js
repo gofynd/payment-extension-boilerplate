@@ -2,7 +2,6 @@ const { setupFdk } = require('@gofynd/fdk-extension-javascript/express');
 const { SQLiteStorage } = require('@gofynd/fdk-extension-javascript/express/storage');
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
-const config = require('../config');
 
 /**
  * TODO: Development vs Production Database Configuration
@@ -26,12 +25,13 @@ const sqliteInstance = new sqlite3.Database(dbPath);
 
 // Initialize storage first
 const storage = new SQLiteStorage(sqliteInstance, 'example-payment-extension-javascript');
+console.log(process.env.EXTENSION_API_SECRET, process.env.EXTENSION_API_KEY, process.env.EXTENSION_BASE_URL);
 
 // Initialize FDK extension
 const fdkExtension = setupFdk({
-  api_key: config.api_key,
-  api_secret: config.api_secret,
-  base_url: config.base_url,
+  api_key: process.env.EXTENSION_API_KEY,
+  api_secret: process.env.EXTENSION_API_SECRET,
+  base_url: process.env.EXTENSION_BASE_URL,
   callbacks: {
     auth: async req => {
       const application_id = req.query.application_id;
@@ -46,10 +46,9 @@ const fdkExtension = setupFdk({
   },
   // Set debug to true to print all API calls and interactions with fdk-extension-javascript library
   // Useful for development and debugging. Set to false in production to reduce console noise
-  debug: false,
+  debug: true,
   storage: storage,
   access_mode: 'offline',
-  cluster: config.fp_api_server,
 });
 
 module.exports = {
