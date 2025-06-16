@@ -3,28 +3,30 @@ import { dirname } from "path";
 import { fileURLToPath } from "url";
 import react from "@vitejs/plugin-react";
 
+// Environment variables
+const BACKEND_PORT = process.env.BACKEND_PORT;
+const HOST = process.env.HOST;
+const EXTENSION_BASE_URL = process.env.EXTENSION_BASE_URL;
+const FRONTEND_PORT = process.env.FRONTEND_PORT;
+
 const proxyOptions = {
-  target: `http://127.0.0.1:${process.env.BACKEND_PORT}`,
+  target: `http://127.0.0.1:${BACKEND_PORT}`,
   changeOrigin: false,
   secure: true,
   ws: false,
 };
 
-const host = process.env.HOST
-  ? process.env.HOST.replace(/https?:\/\//, "")
+const host = HOST
+  ? HOST.replace(/https?:\/\//, "")
   : "localhost";
 
-const extensionUrl = process.env.EXTENSION_BASE_URL;
 let allowedHost = '';
 
 try {
-  allowedHost = new URL(extensionUrl).hostname;
+  allowedHost = new URL(EXTENSION_BASE_URL).hostname;
 } catch (e) {
-  console.warn('Invalid EXTENSION_BASE_URL provided:', extensionUrl);
+  console.warn('Invalid EXTENSION_BASE_URL provided:', EXTENSION_BASE_URL);
 }
-
-
-
 
 let hmrConfig;
 if (host === "localhost") {
@@ -38,7 +40,7 @@ if (host === "localhost") {
   hmrConfig = {
     protocol: "wss",
     host: host,
-    port: process.env.FRONTEND_PORT,
+    port: FRONTEND_PORT,
     clientPort: 443,
   };
 }
@@ -54,7 +56,7 @@ export default defineConfig({
   },
   server: {
     host: "localhost",
-    port: process.env.FRONTEND_PORT,
+    port: FRONTEND_PORT,
     allowedHosts: allowedHost ? [allowedHost] : [],
     proxy: {
       '^/(\\?.*)?$': proxyOptions,

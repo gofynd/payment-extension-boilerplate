@@ -1,12 +1,15 @@
 const { AuthorizationError } = require('../utils/errorUtils');
 const { getHmacChecksum } = require('../utils/signatureUtils');
 
+// Environment variables
+const EXTENSION_API_SECRET = process.env.EXTENSION_API_SECRET;
+
 const verifyPlatformChecksum = (req, res, next) => {
   const requestPayload = req.body;
 
   const checksum = getHmacChecksum(
     JSON.stringify(requestPayload),
-    process.env.EXTENSION_API_SECRET
+    EXTENSION_API_SECRET
   );
 
   if (checksum !== req.headers.checksum)
@@ -15,7 +18,7 @@ const verifyPlatformChecksum = (req, res, next) => {
 };
 
 const verifyExtensionAuth = (req, res, next) => {
-  const basicAuthHeader = `Basic ${btoa(process.env.EXTENSION_API_SECRET)}`;
+  const basicAuthHeader = `Basic ${btoa(EXTENSION_API_SECRET)}`;
 
   if (basicAuthHeader !== req.headers.authorization)
     throw new AuthorizationError('Authorization failed');
@@ -25,7 +28,7 @@ const verifyExtensionAuth = (req, res, next) => {
 const verifyStatusChecksum = (req, res, next) => {
   const { gid } = req.params;
 
-  const checksum = getHmacChecksum(gid, process.env.EXTENSION_API_SECRET);
+  const checksum = getHmacChecksum(gid, EXTENSION_API_SECRET);
 
   if (checksum !== req.headers.checksum)
     throw new AuthorizationError('Invalid Checksum');

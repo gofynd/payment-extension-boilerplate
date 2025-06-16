@@ -1,8 +1,8 @@
 const EncryptHelper = require('../utils/encryptUtils');
 const CredsModel = require('../models/creds.model');
-const _ = require('lodash');
 
-const encryptionKey = process.env.EXTENSION_API_SECRET;
+// Environment variables
+const EXTENSION_API_SECRET = process.env.EXTENSION_API_SECRET;
 
 const CREDENTIAL_FIELDS = [
   { name: 'API Key', slug: 'api_key', required: true, display: true },
@@ -51,7 +51,7 @@ exports.createSecretsHandler = async (req, res) => {
 
     // Encrypt the credentials
     const encryptedSecret = EncryptHelper.encrypt(
-      encryptionKey,
+      EXTENSION_API_SECRET,
       JSON.stringify(data)
     );
 
@@ -106,7 +106,7 @@ exports.getSecretsHandler = async (req, res) => {
     }
 
     // Decrypt the secrets and construct the response
-    let secrets = EncryptHelper.decrypt(encryptionKey, encryptedSecret);
+    let secrets = EncryptHelper.decrypt(EXTENSION_API_SECRET, encryptedSecret);
     secrets = JSON.parse(secrets);
 
     const creds = CREDENTIAL_FIELDS.map(field => ({

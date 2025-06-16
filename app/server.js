@@ -5,7 +5,10 @@ const path = require('path');
 const serveStatic = require("serve-static");
 const { readFileSync } = require('fs');
 
-const STATIC_PATH = process.env.NODE_ENV === 'production'
+// Environment variables
+const NODE_ENV = process.env.NODE_ENV;
+
+const STATIC_PATH = NODE_ENV === 'production'
   ? path.join(process.cwd(), 'frontend', 'public', 'dist')
   : path.join(process.cwd(), 'frontend');
 
@@ -17,12 +20,14 @@ const { CredsService } = require('./services/creds.service');
 const {
   initiatePaymentToPGHandler,
   getPaymentDetailsHandler,
-  paymentCallbackHandler,
   createRefundHandler,
   getRefundDetailsHandler,
+} = require('./controllers/fp-payment.controller');
+const {
+  paymentCallbackHandler,
   processPaymentWebhookHandler,
   processRefundWebhookHandler,
-} = require('./controllers/transaction.controller');
+} = require('./controllers/pg-webhook.controller');
 const {
   checkPaymentReadinessHandler,
 } = require('./controllers/creds.controller');
