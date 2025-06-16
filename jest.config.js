@@ -11,7 +11,7 @@ const config = {
     'app/**/*.js',
     '!app/**.js',
     '!app/scripts/**/*.js',
-    '!app/fdk/**/*.js',
+    '!app/fdk.js',
     '!app/models/**/*.js',
     '!app/routes/index.js',
     '!app/common/**/*.js',
