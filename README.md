@@ -35,7 +35,6 @@ Relation of Extensions with Fynd Platform.
 Before setting up the extension, make sure you have the following installed:
 
 - [Node.js](https://nodejs.org/en/download/package-manager) : >= v16.x.x
-- [MongoDB](https://www.mongodb.com/try/download/community) : >= v4.4.x
 
 ---
 
@@ -130,25 +129,15 @@ For more detailed examples and additional languages, refer to the provided guide
 
 You have successfully set up your payment extension on the Fynd platform.
 
-### 💻 Local Setup
+### �� Local Setup
 
-1. **🗄️ Start MongoDB.**
-
-   Ensure MongoDB (v4.4.x or above) is installed on your machine. Start the MongoDB service.
-
-<p align="center">
-  <a target="_blank" href="https://www.mongodb.com/try/download/community">
-    <img src="https://cdn.pixelbin.io/v2/broken-limit-7ed062/original/Mongo.png" alt="MongoDB" width="490" height="160" />
-  </a>
-</p>
-
-2. **📁 Use Git to clone the repository to your local machine and navigate into the project directory.**
+1. **📁 Use Git to clone the repository to your local machine and navigate into the project directory.**
 
    ```bash
    git clone https://github.com/gofynd/payment-extension-boilerplate.git
    ```
 
-3. **📦 Install Backend Dependencies.**
+2. **📦 Install Backend Dependencies.**
 
    Ensure you have Node.js (v16.x.x or above) installed.
 
@@ -156,20 +145,20 @@ You have successfully set up your payment extension on the Fynd platform.
    npm install
    ```
 
-4. **📦 Install Frontend Dependencies.**
+3. **📦 Install Frontend Dependencies.**
 
    ```bash
    cd web
    npm install
    ```
 
-5. **🔧 Create build of frontend React project.**
+4. **🔧 Create build of frontend React project.**
 
    ```bash
    npm run build
    ```
 
-6. **🛠️ Configure Environment Variables.**
+5. **🛠️ Configure Environment Variables.**
 
    Open the `app/config.js` file in your project directory. Update the `EXTENSION_API_KEY` and `EXTENSION_API_SECRET` environment variables in `api_key` and `api_secret` with the values obtained from the Partners Panel. These should be set as the default values for the `config` variables.
 
@@ -180,8 +169,6 @@ You have successfully set up your payment extension on the Fynd platform.
 | **enable_cors**                  | cors toggle           | Boolean   | true                           | ENABLE_CORS                 |
 | **env**                          | node env              | String    | development                    | NODE_ENV                    |
 | **environment**                  | env                   | String    | fynd                           | ENV                         |
-| **mongo.host.uri**               | host mongo            | mongo-uri | mongodb://localhost:27017/mock | MONGO_MOCK_READ_WRITE       |
-| **mongo.host.options.appname**   | mongo app name        | String    | mock                           | K8S_POD_NAME                |
 | **sentry.dsn**                   | sentry url            | String    | <sentry_url>                   | SENTRY_DSN                  |
 | **sentry.environment**           | sentry environment    | String    | development                    | SENTRY_ENVIRONMENT          |
 | **newrelic.app_name**            | new relic app name    | String    | mock                           | NEW_RELIC_APP_NAME          |
@@ -205,9 +192,7 @@ api_secret: {
 },
 ```
 
-7. 🖥️ Also update MongoDB Environment Variables according to your machine.
-
-8. **🔒 Secure Tunnel Setup.**
+6. **🔒 Secure Tunnel Setup.**
 
    Install ngrok or a similar cross-platform application to create secure tunnels, enabling your locally hosted web server to be accessible over the internet.
 
@@ -217,7 +202,7 @@ api_secret: {
   </a>
 </p>
 
-9. 🚀 Launch ngrok to forward the port used by your local server.
+7. 🚀 Launch ngrok to forward the port used by your local server.
 
     ```bash
     ngrok http 3000
@@ -225,7 +210,7 @@ api_secret: {
 
     Replace `3000` with the actual port number your server is using. This will generate a public URL that securely tunnels to your local server.
 
-10. 🌐 Update default env value for `EXTENSION_BASE_URL` with this URL.
+8. 🌐 Update default env value for `EXTENSION_BASE_URL` with this URL.
 
 ```javascript
 base_url: {
@@ -237,15 +222,15 @@ base_url: {
 },
 ```
 
-11. 🛠️ Navigate to your extension in the Partner Panel and update the Extension URL field with the generated ngrok URL.
+9. 🛠️ Navigate to your extension in the Partner Panel and update the Extension URL field with the generated ngrok URL.
 
-12. **💻 Run local server.**
+10. **💻 Run local server.**
 
     ```bash
     npm start
     ```
 
-13. 🎉 You are ready to go.
+11. 🎉 You are ready to go.
 
 ### 🧪 Running Test Cases
 
