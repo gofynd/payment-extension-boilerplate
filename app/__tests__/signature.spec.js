@@ -2,9 +2,8 @@ const {
   verifyPlatformChecksum,
   verifyExtensionAuth,
   verifyStatusChecksum,
-  verifyApplicationId,
-} = require('../middleware/verifyChecksum');
-const { AuthorizationError } = require('../utils/errorUtils');
+} = require('../middleware/checksum.middleware');
+const { AuthorizationError } = require('../utils/error.util');
 
 jest.mock('../config', () => ({
   api_secret: 'secret',
@@ -97,14 +96,4 @@ describe('application id verification', () => {
     };
   });
 
-  test('should pass', () => {
-    verifyApplicationId(req, null, () => {});
-  });
-
-  test('should fail', () => {
-    req.params.app_id = 'incorrect_app_id'; // wrong checksum
-    expect(() => {
-      verifyApplicationId(req, null, () => {});
-    }).toThrow(AuthorizationError);
-  });
 });

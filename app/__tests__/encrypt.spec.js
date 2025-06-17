@@ -1,4 +1,4 @@
-const EncryptHelper = require('../utils/encryptUtils');
+const EncryptHelper = require('../utils/encrypt.util');
 
 const originalMsg = {
   key: 'This is a test value',
