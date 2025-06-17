@@ -129,7 +129,7 @@ For more detailed examples and additional languages, refer to the provided guide
 
 You have successfully set up your payment extension on the Fynd platform.
 
-### �� Local Setup
+### 🎉 Local Setup
 
 1. **📁 Use Git to clone the repository to your local machine and navigate into the project directory.**
 
@@ -251,72 +251,6 @@ After you have completed the local setup, you can run the test cases to ensure e
    ```bash
    npm test
    ```
-
-### 🔍 Newrelic Integration (Optional)
-
-The payment extension boilerplate comes pre-configured for integration with New Relic, allowing you to monitor your application's performance in real-time. This feature provides insights to help you improve and optimize your extension efficiently.
-
-To leverage New Relic for performance monitoring, update the default values for the following environment variables in the app/fdk/config.js file in your project directory. This step ensures the New Relic integration is securely configured with your specific credentials.
-
-1. `NEW_RELIC_APP_NAME`: Set this to the name you wish your application to appear as in New Relic. It helps easily identify your project within the New Relic dashboard.
-2. `NEW_RELIC_LICENSE_KEY`: This is your unique New Relic license key, which authorizes the New Relic agent to send monitoring data to your New Relic account.
-
-   ```javascript
-     newrelic: {
-       app_name: {
-         doc: 'new relic app name',
-         format: String,
-         default: '',
-         env: 'NEW_RELIC_APP_NAME',
-         arg: 'new_relic_app_name',
-       },
-       license_key: {
-         doc: 'new relic license key',
-         format: String,
-         default: '',
-         env: 'NEW_RELIC_LICENSE_KEY',
-         args: 'new_relic_license_key',
-       },
-     },
-   ```
-
-By updating these variables, you can activate New Relic's data collection, offering a comprehensive view of your application's performance.
-
-> **Notes :**
-> To remove New Relic integration completely, delete the New Relic environment variables in your `app/fdk/config.js` file and uninstall the New Relic package with `npm uninstall newrelic`. Remove `require('./connections/newrelic');` from `app/index.js`. Delete the `app/connections/newrelic.js` and `newrelic.js` files and update your documentation accordingly.
-
-### 🚨 Sentry Integration (Optional)
-
-Similar to New Relic, the payment extension boilerplate comes pre-configured for optional integration with Sentry. Sentry provides real-time error tracking and monitoring, offering insights to quickly identify, diagnose, and fix issues, thereby enhancing your extension's reliability and user experience.
-
-To enable Sentry for error monitoring, update the environment variables in the `app/fdk/config.js` file with your Sentry credentials:
-
-1. `SENTRY_DSN`: This is the unique Data Source Name (DSN) provided by Sentry, which directs error messages to your Sentry project.
-2. `SENTRY_ENVIRONMENT`: Specify the environment your application is running in, such as development, staging, or production. This helps in filtering and categorizing issues within Sentry.
-
-   ```javascript
-     sentry: {
-       dsn: {
-         doc: 'sentry url',
-         format: String,
-         default: '',
-         env: 'SENTRY_DSN',
-         arg: 'sentry_dsn',
-       },
-       environment: {
-         doc: 'sentry environment',
-         format: String,
-         default: 'development',
-         env: 'SENTRY_ENVIRONMENT',
-         arg: 'sentry_environment',
-       },
-     },
-   ```
-
-Configuring these variables enables Sentry's error tracking for your application, offering a layer of insight into its stability and helping you maintain a high-quality user experience.
-
-> **Notes :**
-> To remove Sentry integration, delete the Sentry environment variables in your `app/fdk/config.js` file and uninstall the Sentry package with `npm uninstall @sentry/node`. Remove `require('./connections/sentry');` from `app/index.js`. Delete the `app/connections/sentry.js` and `sentry.js` files and update your documentation accordingly.
 
 ### 📋 Fynd Platform Panel
 
