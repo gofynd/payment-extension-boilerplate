@@ -2,7 +2,7 @@ const { fdkExtension } = require('../fdk');
 
 const CredsModel = {
   // Store encrypted credentials
-  storeCreds: async (appId, encryptedSecret) => {
+  storeCreds: async (appId,companyId, encryptedSecret) => {
     try {
       if (!fdkExtension) {
         throw new Error('FDK extension is not initialized');
