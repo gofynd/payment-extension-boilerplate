@@ -7,18 +7,22 @@ const EXTENSION_BASE_URL = process.env.EXTENSION_BASE_URL;
 // Payment mode constant
 const PAYMENT_MODE = 'live'; // Can be 'live' or 'test'
 
-// Payment status constants
+// Payment status constants - for payment forward journey only - payment status sent in response to the core api call can be one of these only
 const paymentStatus = {
-  COMPLETE: 'complete',
+  STARTED: 'started',
   PENDING: 'pending',
-  FAILED: 'failed'
+  COMPLETE: 'complete',
+  FAILED: 'failed',
 };
 
-// Refund status constants
+// Refund status constants - for refund joruney only, refund status sent in response to the core api call can be one of these only
 const refundStatus = {
-  INITIATED: 'initiated',
-  COMPLETE: 'complete',
-  FAILED: 'failed'
+  REFUND_INITIATED: 'refund_initiated',
+  REFUND_PENDING: 'refund_pending',
+  REFUND_DONE: 'refund_done',
+  REFUND_FAILED: 'refund_failed',
+  REFUND_REJECTED: 'refund_rejected',
+  REFUND_DISPUTED: 'refund_disputed',
 };
 
 /**
@@ -146,17 +150,21 @@ exports.createRefundHandler = async (req, res, next) => {
     console.log('LOG: Request body for create refund', requestPayload);
 
     const {
-      aggregator_payment_id: forwardPaymentId,
       gid,
-      requestId,
+      request_id: requestId,
       amount,
       currency,
+      meta,
     } = requestPayload;
 
+
+
     const orderIdCombined = `${gid}-${requestId}`;
+
+    // Payload for Payment Gateway API call
     const payload = {
       amount: {
-        value: amount / 100,
+        value: amount,
         currency_code: currency,
       },
       invoice_id: orderIdCombined,
@@ -164,6 +172,7 @@ exports.createRefundHandler = async (req, res, next) => {
 
     // In real implementation, make API call to payment gateway
     // For demo, returning mock response
+
     const response = {
       status: 200,
       data: {
@@ -172,28 +181,32 @@ exports.createRefundHandler = async (req, res, next) => {
       }
     };
 
+    // Store the refund payload in DB
+    await PaymentModel.storeRefund(gid, {...requestPayload, ...response.data});
+
     let refundResponse;
     if (response.status === 200) {
       refundResponse = {
-        status: refundStatus.INITIATED,
+        status: refundStatus.REFUND_INITIATED,
         refundUtr: response.data.refund_utr,
         paymentId: response.data.refund_id,
       };
     } else {
       refundResponse = {
-        status: refundStatus.FAILED,
+        status: refundStatus.REFUND_FAILED,
       };
     }
 
+    // API response data for refund creation
     const responseData = {
       gid,
       aggregator_payment_refund_details: {
         status: refundResponse.status,
-        amount,
+        amount: Number(amount),
         currency,
-        requestId,
-        refundUtr: refundResponse.refundUtr,
-        paymentId: refundResponse.paymentId,
+        request_id: requestId,
+        refund_utr: refundResponse.refundUtr,
+        payment_id: refundResponse.paymentId,
       },
     };
     console.log('LOG: Response for create refund', responseData);
@@ -215,6 +228,7 @@ exports.getPaymentDetailsHandler = async (req, res, next) => {
 
     // In real implementation, fetch from payment gateway
     // For demo, returning mock response
+
     const response = {
       status: 200,
       data: {
@@ -289,68 +303,56 @@ exports.getRefundDetailsHandler = async (req, res, next) => {
       throw new Error('Refund session ID is required');
     }
 
-    // In real implementation, fetch from payment gateway
+    // Get the stored data from DB
+    const refundPayload = await PaymentModel.getRefund(gid);
+
+    // In real implementation, fetch refund details from payment gateway
     // For demo, returning mock response
+
     const response = {
       status: 200,
       data: {
-        refund_status: "REFUND_COMPLETE",
-        currency: "INR",
-        amount: "100.00",
+        refund_status: 'REFUND_COMPLETE',
+        currency: refundPayload.currency,
+        amount: refundPayload.amount,
         transaction_id: "20230404011640000850068625351118848",
-        refund_utr: "ICICI0982435028943"
+        refund_utr: refundPayload.refund_utr,
       }
     };
 
     let amount, status, paymentId, refundUtr;
     if (response.status === 200) {
       if (response.data.refund_status === 'REFUND_COMPLETE') {
-        status = refundStatus.COMPLETE;
+        status = refundStatus.REFUND_DONE;
         paymentId = response.data.transaction_id;
         amount = response.data.amount;
         refundUtr = response.data.refund_utr;
       } else if (response.data.refund_status === 'REFUND_PENDING') {
-        status = refundStatus.PENDING;
+        status = refundStatus.REFUND_PENDING;
         paymentId = response.data.transaction_id;
         amount = response.data.amount;
       } else {
-        status = refundStatus.FAILED;
+        status = refundStatus.REFUND_FAILED;
       }
     }
 
     const amountInPaise = amount * 100;
+
+    // API response data for refund details
     const responseData = {
       gid,
-      status,
-      currency: response.data.currency,
-      total_amount: amountInPaise,
-      refund_details: [
+      aggregator_payment_refund_details: [
         {
           status,
           payment_id: paymentId,
           refund_utr: refundUtr,
           amount: amountInPaise,
-          currency: response.data.currency,
-          created: String(Date.now()),
+          currency: refundPayload.currency,
+          request_id: refundPayload.request_id,
+          reason: { description: 'item not needed anymore' },
+          receipt_number: refundPayload.refund_id,
         },
       ],
-      payment_details: {
-        gid,
-        status,
-        aggregator_order_id: paymentId,
-        payment_id: paymentId,
-        mode: PAYMENT_MODE,
-        amount: amountInPaise,
-        success_url: '',
-        cancel_url: '',
-        amount_captured: amountInPaise,
-        payment_methods: [{}],
-        g_user_id: '<User id if exists>',
-        currency: response.data.currency,
-        amount_refunded: amountInPaise,
-        created: String(Date.now()),
-      },
-      meta: response.data,
     };
 
     console.log('Response for get Refund Details', responseData);

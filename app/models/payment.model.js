@@ -46,6 +46,36 @@ const PaymentModel = {
       console.error('Error getting payment:', error);
       throw error;
     }
+  },
+
+  // Store refund payload
+  storeRefund: async (gid, payload) => {
+    try {
+      if (!fdkExtension) {
+        throw new Error('FDK extension is not initialized');
+      }
+
+      await fdkExtension.extension.storage.set(`refund:${gid}`, JSON.stringify(payload));
+      return true;
+    } catch (error) {
+      console.error('Error storing refund:', error);
+      throw error;
+    }
+  },
+
+  // Get refund payload by gid
+  getRefund: async (gid) => {
+    try {
+      if (!fdkExtension) {
+        throw new Error('FDK extension is not initialized');
+      }
+
+      const refundData = await fdkExtension.extension.storage.get(`refund:${gid}`);
+      return refundData ? JSON.parse(refundData) : null;
+    } catch (error) {
+      console.error('Error getting refund:', error);
+      throw error;
+    }
   }
 };
 
