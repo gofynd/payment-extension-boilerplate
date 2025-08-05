@@ -29,11 +29,13 @@ class PaymentService {
   }
 
   registerRoutes(app) {
-    // Payment session routes
+    // Payment session routes, these API routes are called by the core system on the extension domain.
     app.post('/api/v1/payment_session/:gid', verifyPlatformChecksum, this.handlers.initiatePaymentToPG);
     app.get('/api/v1/payment_session/:gid', verifyStatusChecksum, this.handlers.getPaymentDetails);
     app.post('/api/v1/payment_session/:gid/refund', verifyPlatformChecksum, this.handlers.createRefund);
-    app.get('/api/v1/payment_session/:gid/refund', verifyStatusChecksum, this.handlers.getRefundDetails);
+    app.get('/api/v1/payment_session/:gid/refund', verifyStatusChecksum, this.handlers.getRefundDetails); 
+    // GET "/api/v1/payment_session/:gid/refund" API endpoint is periodically called by the core system (via a scheduled cron job)
+    // to retrieve the latest refund status for a payment session and update the refund status for the end user.
   }
 }
 
