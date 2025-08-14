@@ -21,7 +21,7 @@ function App() {
 
   const getApplication = () => {
     const appId = searchParams.get('application_id');
-    if (!appId) {
+    if (!appId || appId?.toLocaleLowerCase() === 'undefined') {
       console.error('Application ID is missing from URL');
       return null;
     }
