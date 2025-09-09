@@ -25,7 +25,6 @@ const sqliteInstance = new sqlite3.Database(dbPath);
 
 // Initialize storage first
 const storage = new SQLiteStorage(sqliteInstance, 'example-payment-extension-javascript');
-console.log(process.env.EXTENSION_API_SECRET, process.env.EXTENSION_API_KEY, process.env.EXTENSION_BASE_URL);
 
 // Initialize FDK extension
 const fdkExtension = setupFdk({
