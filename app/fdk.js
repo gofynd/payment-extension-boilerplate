@@ -46,7 +46,7 @@ const fdkExtension = setupFdk({
   },
   // Set debug to true to print all API calls and interactions with fdk-extension-javascript library
   // Useful for development and debugging. Set to false in production to reduce console noise
-  debug: true,
+  debug: false,
   storage: storage,
   access_mode: 'offline',
 });
