@@ -28,7 +28,7 @@ session_storage.db
 data/payments.db
 
 # local env files
-/.env
+.env
 .env.local
 .env.*.local
 
