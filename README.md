@@ -120,6 +120,7 @@ Merchants can easily install and activate the payment extension on their Fynd Pl
 
 - **Verifying API Calls**: Use checksums generated with your Extension API Secret to secure communications between the Fynd Platform and your payment extension.
 - **Idempotency**: Ensure your extension supports idempotency to prevent duplicate transactions and provide a consistent experience for buyers.
+- **Environment files**: Never commit `.env` or any file that contains real environment variables and secrets; use `.env.example` (with placeholder values only) for documentation in the repository.
 
 For more detailed examples and additional languages, refer to the provided guides.
 
